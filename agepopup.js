@@ -33,7 +33,7 @@
 
         popup.style.cssText =
             "position:fixed;" +
-            "top:15px;" +
+            "top:100px;" +
             "left:50%;" +
             "transform:translateX(-50%);" +
             "z-index:99999999;" +
