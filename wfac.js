@@ -1,9 +1,24 @@
 (function () {
 
-const el=document.querySelector('#ngForm > fieldset > div:nth-child(1) > div:nth-child(1) > div:nth-child(6) > textarea');
+const selectors = [
+    '#ngForm > fieldset > div:nth-child(1) > div:nth-child(1) > div:nth-child(6) > textarea',
+    '#ngForm > fieldset > div:nth-child(1) > div:nth-child(1) > div:nth-child(7) > textarea'
+];
 
-if(!el){
-    alert('Comment textbox not found');
+let el = null;
+
+for (const selector of selectors) {
+    el = document.querySelector(selector);
+    if (el) break;
+}
+
+if (!el) {
+    alert(
+        'Comment textbox not found.\n\n' +
+        'Checked:\n' +
+        '• div:nth-child(6) textarea\n' +
+        '• div:nth-child(7) textarea'
+    );
     return;
 }
 
