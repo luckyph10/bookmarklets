@@ -1,93 +1,113 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<meta charset="utf-8">
-<title>Lucky Bookmarklets Admin</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Lucky Bookmarklets - Login</title>
+
 <script>
 if (sessionStorage.getItem('adminLoggedIn') === 'yes') {
     window.location.href = 'index.html';
 }
 </script>
+
 <style>
 
+*{
+    box-sizing:border-box;
+}
+
 body{
-    font-family:Arial,sans-serif;
-    background:#f4f4f4;
     margin:0;
-    padding:20px;
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    background:#f3f6fb;
+    font-family:Arial,sans-serif;
 }
 
-.login-box,
-.admin-box{
-    max-width:900px;
-    margin:50px auto;
+.login-card{
+    width:400px;
+    max-width:95%;
     background:#fff;
-    padding:20px;
-    border-radius:10px;
-    box-shadow:0 0 15px rgba(0,0,0,.2);
+    padding:30px;
+    border-radius:12px;
+    box-shadow:0 10px 30px rgba(0,0,0,.15);
 }
 
-h1{
+.logo{
     text-align:center;
+    font-size:32px;
+    font-weight:bold;
+    margin-bottom:10px;
+}
+
+.subtitle{
+    text-align:center;
+    color:#666;
+    margin-bottom:25px;
 }
 
 input{
     width:100%;
     padding:12px;
-    margin:8px 0;
+    margin-bottom:12px;
     border:1px solid #ccc;
     border-radius:6px;
-    box-sizing:border-box;
-}
-
-textarea{
-    width:100%;
-    height:400px;
-    padding:10px;
-    box-sizing:border-box;
-    border-radius:6px;
+    font-size:15px;
 }
 
 button{
-    padding:12px 20px;
+    width:100%;
+    padding:12px;
     border:none;
     border-radius:6px;
+    font-size:15px;
+    font-weight:bold;
+    background:#1976d2;
+    color:#fff;
     cursor:pointer;
+}
+
+button:hover{
+    background:#1565c0;
+}
+
+.error{
+    margin-top:10px;
+    color:#d32f2f;
+    text-align:center;
+    display:none;
     font-weight:bold;
 }
 
-.login-btn{
-    background:#1976d2;
-    color:white;
-}
-
-.save-btn{
-    background:#2e7d32;
-    color:white;
-}
-
-.logout-btn{
-    background:#d32f2f;
-    color:white;
-}
-
-#adminBox{
-    display:none;
+.footer{
+    margin-top:20px;
+    text-align:center;
+    color:#888;
+    font-size:13px;
 }
 
 </style>
 </head>
-
 <body>
 
-<div id="loginBox" class="login-box">
+<div class="login-card">
 
-    <h1>Admin Login</h1>
+    <div class="logo">
+        Bookmarklets
+    </div>
+
+    <div class="subtitle">
+        Admin Login
+    </div>
 
     <input
         id="username"
         type="text"
         placeholder="Username"
+        autocomplete="off"
     >
 
     <input
@@ -96,41 +116,17 @@ button{
         placeholder="Password"
     >
 
-    <button
-        class="login-btn"
-        onclick="login()"
-    >
+    <button onclick="login()">
         Login
     </button>
 
-</div>
+    <div id="error" class="error">
+        Invalid username or password.
+    </div>
 
-<div id="adminBox" class="admin-box">
-
-    <h1>Bookmarklet Notes</h1>
-
-    <p>
-        Save personal notes, code snippets,
-        release notes, bookmarklet updates, etc.
-    </p>
-
-    <textarea id="notes"></textarea>
-
-    <br><br>
-
-    <button
-        class="save-btn"
-        onclick="saveNotes()"
-    >
-        Save Notes
-    </button>
-
-    <button
-        class="logout-btn"
-        onclick="logout()"
-    >
-        Logout
-    </button>
+    <div class="footer">
+        Lucky Bookmarklet Library
+    </div>
 
 </div>
 
@@ -143,14 +139,17 @@ function login(){
 
     const user =
         document
-        .getElementById('username')
+        .getElementById("username")
         .value
         .trim();
 
     const pass =
         document
-        .getElementById('password')
+        .getElementById("password")
         .value;
+
+    const error =
+        document.getElementById("error");
 
     if(
         user === ADMIN_USER &&
@@ -158,64 +157,27 @@ function login(){
     ){
 
         sessionStorage.setItem(
-            'adminLoggedIn',
-            'yes'
+            "adminLoggedIn",
+            "yes"
         );
 
-        window.location.href = 'index.html';
+        window.location.href =
+            "index.html";
 
-    }else{
-
-        alert(
-            'Invalid username or password.'
-        );
+        return;
     }
+
+    error.style.display = "block";
 }
 
-function showAdmin(){
+document
+.getElementById("password")
+.addEventListener("keydown",function(e){
 
-    document
-        .getElementById('loginBox')
-        .style.display='none';
-
-    document
-        .getElementById('adminBox')
-        .style.display='block';
-
-    document
-        .getElementById('notes')
-        .value =
-        localStorage.getItem(
-            'bookmarkletAdminNotes'
-        ) || '';
-}
-
-function saveNotes(){
-
-    localStorage.setItem(
-        'bookmarkletAdminNotes',
-        document.getElementById('notes').value
-    );
-
-    alert('Notes saved.');
-}
-
-function logout(){
-
-    sessionStorage.removeItem(
-        'adminLoggedIn'
-    );
-
-    location.reload();
-}
-
-if(
-    sessionStorage.getItem(
-        'adminLoggedIn'
-    ) === 'yes'
-){
-    showAdmin();
-}
+    if(e.key==="Enter"){
+        login();
+    }
+});
 
 </script>
 
