@@ -1,37 +1,86 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<meta charset="utf-8">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
 <title>Lucky Bookmarklet Library</title>
-<script>
-if (sessionStorage.getItem('adminLoggedIn') !== 'yes') {
-    window.location.href = 'admin.html';
-}
-</script>
+
 <style>
+
+*{
+    box-sizing:border-box;
+}
+
 body{
     font-family:Arial,sans-serif;
-    background:#f4f4f4;
     margin:0;
     padding:20px;
+    background:#f4f4f4;
+}
+
+/* LOGIN */
+
+#loginPage{
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+}
+
+.login-card{
+    width:400px;
+    max-width:95%;
+    background:#fff;
+    padding:25px;
+    border-radius:12px;
+    box-shadow:0 0 20px rgba(0,0,0,.2);
+}
+
+.login-card h2{
+    text-align:center;
+    margin-bottom:20px;
+}
+
+.login-card input{
+    width:100%;
+    padding:12px;
+    margin-bottom:12px;
+    border:1px solid #ccc;
+    border-radius:6px;
+}
+
+.login-card button{
+    width:100%;
+    padding:12px;
+    background:#1976d2;
+    color:white;
+    border:none;
+    border-radius:6px;
+    font-weight:bold;
+    cursor:pointer;
+}
+
+/* LIBRARY */
+
+#mainPage{
+    display:none;
 }
 
 h1{
     text-align:center;
-    margin-bottom:20px;
 }
 
 .search{
     width:100%;
     padding:12px;
-    font-size:16px;
-    margin-bottom:20px;
     border:1px solid #ccc;
     border-radius:6px;
+    margin-bottom:20px;
 }
 
 .card{
-    background:#fff;
+    background:white;
     border-radius:10px;
     padding:15px;
     margin-bottom:15px;
@@ -41,7 +90,7 @@ h1{
 .title{
     font-size:22px;
     font-weight:bold;
-    margin-bottom:6px;
+    margin-bottom:8px;
 }
 
 .desc{
@@ -55,15 +104,6 @@ h1{
     flex-wrap:wrap;
 }
 
-button,a{
-    padding:10px 15px;
-    border:none;
-    border-radius:6px;
-    text-decoration:none;
-    cursor:pointer;
-    font-weight:bold;
-}
-
 .copy{
     background:#1976d2;
     color:white;
@@ -74,133 +114,291 @@ button,a{
     color:white;
 }
 
+button,
+a{
+    padding:10px 15px;
+    border:none;
+    border-radius:6px;
+    text-decoration:none;
+    cursor:pointer;
+    font-weight:bold;
+}
+
+.logout{
+    position:fixed;
+    top:15px;
+    right:15px;
+    background:#d32f2f;
+    color:white;
+}
+
 .code{
     display:none;
 }
+
 </style>
 </head>
 
 <body>
 
-    <button onclick="logoutAdmin()"
-style="
-    position:fixed;
-    top:10px;
-    right:10px;
-    background:#d32f2f;
-    color:white;
-    border:none;
-    padding:10px 15px;
-    border-radius:6px;
-    cursor:pointer;
-    font-weight:bold;
-">
-    Logout
-</button>
+<!-- LOGIN PAGE -->
 
-<h1>📚 Lucky Bookmarklet Library</h1>
+<div id="loginPage">
 
-<input
-    type="text"
-    id="search"
-    class="search"
-    placeholder="Search bookmarklets..."
->
+    <div class="login-card">
 
-<div id="list">
+        <h2>Lucky Bookmarklets Login</h2>
+
+        <input
+            type="text"
+            id="username"
+            placeholder="Username"
+        >
+
+        <input
+            type="password"
+            id="password"
+            placeholder="Password"
+        >
+
+        <button onclick="login()">
+            Login
+        </button>
+
+    </div>
+
+</div>
+
+<!-- MAIN PAGE -->
+
+<div id="mainPage">
+
+    <button class="logout" onclick="logout()">
+        Logout
+    </button>
+
+    <h1>📚 Lucky Bookmarklet Library</h1>
+
+    <input
+        type="text"
+        id="search"
+        class="search"
+        placeholder="Search bookmarklets..."
+    >
 
     <!-- WFA -->
 
     <div class="card">
-        <div class="title">WFA Comments</div>
+
+        <div class="title">
+            WFA Comments
+        </div>
 
         <div class="desc">
-            WFA comment helper with business day validation,
-            initials support, and categorized comments.
+            WFA NSA comment helper with initials,
+            business-day validation and comment templates.
         </div>
 
         <div class="buttons">
-            <button class="copy"
-                onclick="copyCode(this)">
+
+            <button
+                class="copy"
+                onclick="copyCode(this)"
+            >
                 Copy Bookmarklet
             </button>
 
             https://luckyph10.github.io/bookmarklets/wfac.js
+
         </div>
 
         <div class="code">
 javascript:(()=>{const s=document.createElement('script');s.src='https://luckyph10.github.io/bookmarklets/wfac.js?'+Date.now();document.head.appendChild(s);})();
         </div>
+
     </div>
 
     <!-- VOB -->
 
     <div class="card">
-        <div class="title">VOB Comments</div>
+
+        <div class="title">
+            VOB Comments
+        </div>
 
         <div class="desc">
             VOB comment helper with password protection,
-            custom initials, and categorized statuses.
+            dispute prompts and custom initials.
         </div>
 
         <div class="buttons">
-            <button class="copy"
-                onclick="copyCode(this)">
+
+            <button
+                class="copy"
+                onclick="copyCode(this)"
+            >
                 Copy Bookmarklet
             </button>
 
-            https://luckyph10.github.io/bookmarklets/vobcml.js>
+            https://luckyph10.github.io/bookmarklets/vobcml.js
+                Open JS
+            </a>
+
         </div>
 
         <div class="code">
 javascript:(()=>{const s=document.createElement('script');s.src='https://luckyph10.github.io/bookmarklets/vobcml.js?'+Date.now();document.head.appendChild(s);})();
         </div>
+
+    </div>
+
+    <!-- LIBRARY -->
+
+    <div class="card">
+
+        <div class="title">
+            Bookmarklet Library Launcher
+        </div>
+
+        <div class="desc">
+            Opens this bookmarklet library page.
+        </div>
+
+        <div class="buttons">
+
+            <button
+                class="copy"
+                onclick="copyCode(this)"
+            >
+                Copy Bookmarklet
+            </button>
+
+        </div>
+
+        <div class="code">
+javascript:(function(){window.open('https://luckyph10.github.io/bookmarklets/','_blank');})();
+        </div>
+
     </div>
 
 </div>
 
 <script>
 
+const ADMIN_USER = "luckyph10";
+const ADMIN_PASS = "naturespringph100808";
+
+function showMain(){
+
+    document.getElementById(
+        "loginPage"
+    ).style.display="none";
+
+    document.getElementById(
+        "mainPage"
+    ).style.display="block";
+}
+
+function login(){
+
+    const user =
+        document
+        .getElementById("username")
+        .value
+        .trim();
+
+    const pass =
+        document
+        .getElementById("password")
+        .value;
+
+    if(
+        user===ADMIN_USER &&
+        pass===ADMIN_PASS
+    ){
+
+        sessionStorage.setItem(
+            "adminLoggedIn",
+            "yes"
+        );
+
+        showMain();
+
+    }else{
+
+        alert("Invalid username or password.");
+    }
+}
+
+function logout(){
+
+    sessionStorage.removeItem(
+        "adminLoggedIn"
+    );
+
+    location.reload();
+}
+
+if(
+    sessionStorage.getItem(
+        "adminLoggedIn"
+    )==="yes"
+){
+    showMain();
+}
+
+document
+.getElementById("password")
+.addEventListener("keydown",function(e){
+
+    if(e.key==="Enter"){
+        login();
+    }
+});
+
 function copyCode(btn){
 
     const code =
         btn.parentElement
-           .parentElement
-           .querySelector('.code')
-           .textContent
-           .trim();
+        .parentElement
+        .querySelector(".code")
+        .textContent
+        .trim();
 
     navigator.clipboard.writeText(code);
 
-    const old = btn.textContent;
+    const oldText = btn.textContent;
 
-    btn.textContent = 'Copied!';
+    btn.textContent = "Copied!";
 
     setTimeout(function(){
-        btn.textContent = old;
+
+        btn.textContent = oldText;
+
     },1500);
 }
 
 document
-.getElementById('search')
-.addEventListener('input',function(){
+.getElementById("search")
+.addEventListener("input",function(){
 
-    const value =
+    const search =
         this.value.toLowerCase();
 
     document
-    .querySelectorAll('.card')
+    .querySelectorAll(".card")
     .forEach(function(card){
 
         const txt =
             card.textContent
-                .toLowerCase();
+            .toLowerCase();
 
         card.style.display =
-            txt.includes(value)
-            ? ''
-            : 'none';
+            txt.includes(search)
+            ? ""
+            : "none";
     });
+
 });
 
 </script>
