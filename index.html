@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Lucky Bookmarklet Library</title>
+
+<style>
+body{
+    font-family:Arial,sans-serif;
+    background:#f4f4f4;
+    margin:0;
+    padding:20px;
+}
+
+h1{
+    text-align:center;
+    margin-bottom:20px;
+}
+
+.search{
+    width:100%;
+    padding:12px;
+    font-size:16px;
+    margin-bottom:20px;
+    border:1px solid #ccc;
+    border-radius:6px;
+}
+
+.card{
+    background:#fff;
+    border-radius:10px;
+    padding:15px;
+    margin-bottom:15px;
+    box-shadow:0 2px 6px rgba(0,0,0,.15);
+}
+
+.title{
+    font-size:22px;
+    font-weight:bold;
+    margin-bottom:6px;
+}
+
+.desc{
+    color:#555;
+    margin-bottom:12px;
+}
+
+.buttons{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+}
+
+button,a{
+    padding:10px 15px;
+    border:none;
+    border-radius:6px;
+    text-decoration:none;
+    cursor:pointer;
+    font-weight:bold;
+}
+
+.copy{
+    background:#1976d2;
+    color:white;
+}
+
+.raw{
+    background:#2e7d32;
+    color:white;
+}
+
+.code{
+    display:none;
+}
+</style>
+</head>
+
+<body>
+
+<h1>📚 Lucky Bookmarklet Library</h1>
+
+<input
+    type="text"
+    id="search"
+    class="search"
+    placeholder="Search bookmarklets..."
+>
+
+<div id="list">
+
+    <!-- WFA -->
+
+    <div class="card">
+        <div class="title">WFA Comments</div>
+
+        <div class="desc">
+            WFA comment helper with business day validation,
+            initials support, and categorized comments.
+        </div>
+
+        <div class="buttons">
+            <button class="copy"
+                onclick="copyCode(this)">
+                Copy Bookmarklet
+            </button>
+
+            https://luckyph10.github.io/bookmarklets/wfac.js
+        </div>
+
+        <div class="code">
+javascript:(()=>{const s=document.createElement('script');s.src='https://luckyph10.github.io/bookmarklets/wfac.js?'+Date.now();document.head.appendChild(s);})();
+        </div>
+    </div>
+
+    <!-- VOB -->
+
+    <div class="card">
+        <div class="title">VOB Comments</div>
+
+        <div class="desc">
+            VOB comment helper with password protection,
+            custom initials, and categorized statuses.
+        </div>
+
+        <div class="buttons">
+            <button class="copy"
+                onclick="copyCode(this)">
+                Copy Bookmarklet
+            </button>
+
+            https://luckyph10.github.io/bookmarklets/vobcml.js>
+        </div>
+
+        <div class="code">
+javascript:(()=>{const s=document.createElement('script');s.src='https://luckyph10.github.io/bookmarklets/vobcml.js?'+Date.now();document.head.appendChild(s);})();
+        </div>
+    </div>
+
+</div>
+
+<script>
+
+function copyCode(btn){
+
+    const code =
+        btn.parentElement
+           .parentElement
+           .querySelector('.code')
+           .textContent
+           .trim();
+
+    navigator.clipboard.writeText(code);
+
+    const old = btn.textContent;
+
+    btn.textContent = 'Copied!';
+
+    setTimeout(function(){
+        btn.textContent = old;
+    },1500);
+}
+
+document
+.getElementById('search')
+.addEventListener('input',function(){
+
+    const value =
+        this.value.toLowerCase();
+
+    document
+    .querySelectorAll('.card')
+    .forEach(function(card){
+
+        const txt =
+            card.textContent
+                .toLowerCase();
+
+        card.style.display =
+            txt.includes(value)
+            ? ''
+            : 'none';
+    });
+});
+
+</script>
+
+</body>
+</html>
