@@ -123,6 +123,68 @@
         popup.innerHTML =
             '<div style="font-size:26px;font-weight:900;color:#000;text-align:center;margin-bottom:15px;">VOB COMMENTS</div>';
 
+        const initialsWrap = document.createElement('div');
+
+initialsWrap.style.cssText =
+    'position:absolute;' +
+    'top:10px;' +
+    'left:10px;' +
+    'display:flex;' +
+    'align-items:center;' +
+    'gap:5px;';
+
+const initialsInput = document.createElement('input');
+
+initialsInput.type = 'text';
+initialsInput.placeholder = 'Initials';
+initialsInput.maxLength = 10;
+initialsInput.value =
+    localStorage.getItem('vobCommentInitials') || 'ALD';
+
+initialsInput.style.cssText =
+    'width:80px;' +
+    'padding:6px;' +
+    'border:1px solid #333;' +
+    'border-radius:4px;' +
+    'font-weight:bold;' +
+    'text-transform:uppercase;';
+
+const saveBtn = document.createElement('button');
+
+saveBtn.textContent = 'Save';
+
+saveBtn.style.cssText =
+    'padding:6px 10px;' +
+    'background:#1976d2;' +
+    'color:#fff;' +
+    'border:none;' +
+    'border-radius:4px;' +
+    'cursor:pointer;' +
+    'font-weight:bold;';
+
+saveBtn.onclick = function () {
+
+    const val = initialsInput.value
+        .trim()
+        .toUpperCase();
+
+    if (!val) {
+        alert('Enter initials first.');
+        return;
+    }
+
+    localStorage.setItem(
+        'vobCommentInitials',
+        val
+    );
+
+    alert('Initials saved: ' + val);
+};
+
+initialsWrap.appendChild(initialsInput);
+initialsWrap.appendChild(saveBtn);
+
+popup.appendChild(initialsWrap);
         const topClose = document.createElement('button');
 
         topClose.textContent = '✕';
@@ -234,8 +296,16 @@
                     d.getFullYear()
                 ).slice(-2);
 
-                const note =
-                    `${mm}/${dd}/${yy} ${finalComment} - ALD`;
+                const initials =
+    (
+        localStorage.getItem('vobCommentInitials') ||
+        'ALD'
+    )
+    .trim()
+    .toUpperCase();
+
+const note =
+    `${mm}/${dd}/${yy} ${finalComment} - ${initials}`;
 
                 el.value =
                     note +
