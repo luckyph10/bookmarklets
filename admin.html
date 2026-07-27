@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Lucky Bookmarklets Admin</title>
+<script>
+if (sessionStorage.getItem('adminLoggedIn') === 'yes') {
+    window.location.href = 'index.html';
+}
+</script>
+<style>
+
+body{
+    font-family:Arial,sans-serif;
+    background:#f4f4f4;
+    margin:0;
+    padding:20px;
+}
+
+.login-box,
+.admin-box{
+    max-width:900px;
+    margin:50px auto;
+    background:#fff;
+    padding:20px;
+    border-radius:10px;
+    box-shadow:0 0 15px rgba(0,0,0,.2);
+}
+
+h1{
+    text-align:center;
+}
+
+input{
+    width:100%;
+    padding:12px;
+    margin:8px 0;
+    border:1px solid #ccc;
+    border-radius:6px;
+    box-sizing:border-box;
+}
+
+textarea{
+    width:100%;
+    height:400px;
+    padding:10px;
+    box-sizing:border-box;
+    border-radius:6px;
+}
+
+button{
+    padding:12px 20px;
+    border:none;
+    border-radius:6px;
+    cursor:pointer;
+    font-weight:bold;
+}
+
+.login-btn{
+    background:#1976d2;
+    color:white;
+}
+
+.save-btn{
+    background:#2e7d32;
+    color:white;
+}
+
+.logout-btn{
+    background:#d32f2f;
+    color:white;
+}
+
+#adminBox{
+    display:none;
+}
+
+</style>
+</head>
+
+<body>
+
+<div id="loginBox" class="login-box">
+
+    <h1>Admin Login</h1>
+
+    <input
+        id="username"
+        type="text"
+        placeholder="Username"
+    >
+
+    <input
+        id="password"
+        type="password"
+        placeholder="Password"
+    >
+
+    <button
+        class="login-btn"
+        onclick="login()"
+    >
+        Login
+    </button>
+
+</div>
+
+<div id="adminBox" class="admin-box">
+
+    <h1>Bookmarklet Notes</h1>
+
+    <p>
+        Save personal notes, code snippets,
+        release notes, bookmarklet updates, etc.
+    </p>
+
+    <textarea id="notes"></textarea>
+
+    <br><br>
+
+    <button
+        class="save-btn"
+        onclick="saveNotes()"
+    >
+        Save Notes
+    </button>
+
+    <button
+        class="logout-btn"
+        onclick="logout()"
+    >
+        Logout
+    </button>
+
+</div>
+
+<script>
+
+const ADMIN_USER = "luckyph10";
+const ADMIN_PASS = "naturespringph100808";
+
+function login(){
+
+    const user =
+        document
+        .getElementById('username')
+        .value
+        .trim();
+
+    const pass =
+        document
+        .getElementById('password')
+        .value;
+
+    if(
+        user === ADMIN_USER &&
+        pass === ADMIN_PASS
+    ){
+
+        sessionStorage.setItem(
+            'adminLoggedIn',
+            'yes'
+        );
+
+        window.location.href = 'index.html';
+
+    }else{
+
+        alert(
+            'Invalid username or password.'
+        );
+    }
+}
+
+function showAdmin(){
+
+    document
+        .getElementById('loginBox')
+        .style.display='none';
+
+    document
+        .getElementById('adminBox')
+        .style.display='block';
+
+    document
+        .getElementById('notes')
+        .value =
+        localStorage.getItem(
+            'bookmarkletAdminNotes'
+        ) || '';
+}
+
+function saveNotes(){
+
+    localStorage.setItem(
+        'bookmarkletAdminNotes',
+        document.getElementById('notes').value
+    );
+
+    alert('Notes saved.');
+}
+
+function logout(){
+
+    sessionStorage.removeItem(
+        'adminLoggedIn'
+    );
+
+    location.reload();
+}
+
+if(
+    sessionStorage.getItem(
+        'adminLoggedIn'
+    ) === 'yes'
+){
+    showAdmin();
+}
+
+</script>
+
+</body>
+</html>
