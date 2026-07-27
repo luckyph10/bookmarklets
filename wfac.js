@@ -1,386 +1,405 @@
 (function () {
 
-    function showPopup(title, message, color, autoClose = false, callback = null) {
-        const old = document.getElementById('af-popup');
-        if (old) old.remove();
+const el=document.querySelector('#ngForm > fieldset > div:nth-child(1) > div:nth-child(1) > div:nth-child(6) > textarea');
 
-        const popup = document.createElement('div');
-        popup.id = 'af-popup';
+if(!el){
+    alert('Comment textbox not found');
+    return;
+}
 
-        popup.innerHTML = `
-            <div style="
-                position:fixed;
-                inset:0;
-                background:rgba(0,0,0,.7);
-                z-index:99999999;
-                display:flex;
-                justify-content:center;
-                align-items:center;
-            ">
-                <div style="
-                    background:#fff;
-                    width:450px;
-                    max-width:90%;
-                    border-radius:14px;
-                    overflow:hidden;
-                    box-shadow:0 15px 40px rgba(0,0,0,.35);
-                    font-family:Arial,sans-serif;
-                ">
-                    <div style="
-                        background:${color};
-                        color:#fff;
-                        padding:15px;
-                        text-align:center;
-                        font-size:24px;
-                        font-weight:bold;
-                    ">
-                        ${title}
-                    </div>
+function businessDaysBetween(startDate,endDate){
+    let count=0;
 
-                    <div style="
-                        padding:25px;
-                        text-align:center;
-                        font-size:16px;
-                        color:#333;
-                        line-height:1.6;
-                    ">
-                        ${message}
-                    </div>
+    let cur=new Date(startDate);
+    cur.setHours(0,0,0,0);
 
-                    ${!autoClose ? `
-                        <div style="
-                            padding:15px;
-                            text-align:center;
-                            border-top:1px solid #eee;
-                        ">
-                            <button id="af-popup-close" style="
-                                background:${color};
-                                color:#fff;
-                                border:none;
-                                padding:10px 26px;
-                                border-radius:6px;
-                                cursor:pointer;
-                                font-size:15px;
-                                font-weight:bold;
-                            ">
-                                OK
-                            </button>
-                        </div>
-                    ` : ''}
-                </div>
-            </div>
-        `;
+    while(cur<endDate){
+        cur.setDate(cur.getDate()+1);
 
-        document.body.appendChild(popup);
+        const day=cur.getDay();
 
-        if (autoClose) {
-            setTimeout(function () {
-                popup.remove();
-
-                if (typeof callback === 'function') {
-                    callback();
-                }
-            }, 2000);
-        } else {
-            const btn = document.getElementById('af-popup-close');
-
-            if (btn) {
-                btn.onclick = function () {
-                    popup.remove();
-
-                    if (typeof callback === 'function') {
-                        callback();
-                    }
-                };
-            }
+        if(day!==0 && day!==6){
+            count++;
         }
     }
 
-    function checkRecentComment(textarea) {
-        const matches = (textarea.value || '').match(/\b\d{2}\/\d{2}\/\d{2}\b/g);
+    return count;
+}
 
-        if (!matches || !matches.length) {
-            return true;
-        }
+function checkRecentComment(textarea){
 
-        let newest = null;
-        let newestText = '';
+    const matches=(textarea.value||'').match(/\b\d{2}\/\d{2}\/\d{2}\b/g);
 
-        matches.forEach(function (dt) {
-            const p = dt.split('/');
-
-            const d = new Date(
-                2000 + parseInt(p[2], 10),
-                parseInt(p[0], 10) - 1,
-                parseInt(p[1], 10)
-            );
-
-            if (!newest || d > newest) {
-                newest = d;
-                newestText = dt;
-            }
-        });
-
-        if (!newest) {
-            return true;
-        }
-
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-
-        newest.setHours(0, 0, 0, 0);
-
-        const diffDays = Math.floor(
-            (today.getTime() - newest.getTime()) / 86400000
-        );
-
-        if (diffDays <= 2) {
-            return confirm(
-                'WARNING\n\n' +
-                'Recent comment found.\n\n' +
-                'Date: ' + newestText +
-                '\nDays: ' + diffDays +
-                '\n\nContinue?'
-            );
-        }
-
+    if(!matches || !matches.length){
         return true;
     }
 
-    const el = document.querySelector(
-        '#ngForm > fieldset > div:nth-child(1) > div:nth-child(1) > div:nth-child(6) > textarea'
+    let newest=null;
+    let newestText='';
+
+    matches.forEach(function(dt){
+
+        const p=dt.split('/');
+
+        const d=new Date(
+            2000+parseInt(p[2],10),
+            parseInt(p[0],10)-1,
+            parseInt(p[1],10)
+        );
+
+        if(!newest || d>newest){
+            newest=d;
+            newestText=dt;
+        }
+    });
+
+    if(!newest){
+        return true;
+    }
+
+    const today=new Date();
+    today.setHours(0,0,0,0);
+
+    const days=businessDaysBetween(
+        newest,
+        today
     );
 
-    if (!el) {
-        showPopup(
-            'ERROR',
-            'Comment textbox not found.',
-            '#d32f2f'
+    if(days<=2){
+        return confirm(
+            'WARNING\n\n' +
+            'A recent comment was found.\n\n' +
+            'Most Recent Comment Date:\n' +
+            newestText +
+            '\n\nBusiness Days Since Comment:\n' +
+            days +
+            '\n\nDo you want to continue?'
         );
+    }
+
+    return true;
+}
+
+const items=[
+    {header:false,text:'Self-Funded NSA eligible - Plan type review'},
+    {header:false,text:'Balanced Funding NSA eligible - Plan type review'},
+    {header:false,text:'Fully Insured NSA eligible - Plan type review'},
+    {header:false,text:'Fully Insured (Opt In) NSA eligible - Plan type review'},
+    {header:false,text:'Exchange/Marketplace NSA eligible - Plan type review'},
+    {header:false,text:'Fully Insured BlueCard NSA eligible - Plan type review'},
+    {header:false,text:'VOB pending. Verified, no evidence'},
+    {header:false,text:'Additional Information Requested'},
+
+    {header:true,text:'BATCH CASE DIFFERENT PLAN TYPE'},
+
+    {header:false,text:'Plan type review'},
+
+    {header:true,text:'REVIEW'},
+
+    {header:false,text:'Reviewed, no action required'},
+    {header:false,text:'VOB verified, no change to NSA jurisdiction'},
+    {header:false,text:'Reviewed. Eligible. IDR Initiation document attached'},
+
+    {header:true,text:'CLOSURE/CLOSED'},
+
+    {header:false,text:'Email sent for closure'},
+    {header:false,text:'Arbit ID AppID - Ineligible, closure has been verified'},
+    {
+        header:false,
+        text:'IDRE sent email. DISP-XXXX has been closed',
+        needsDisp:true
+    }
+];
+
+const old=document.getElementById('afCommentPopup');
+
+if(old){
+    old.remove();
+}
+
+const popup=document.createElement('div');
+
+popup.id='afCommentPopup';
+
+popup.style.cssText=
+    'position:fixed;' +
+    'top:50%;' +
+    'left:50%;' +
+    'transform:translate(-50%,-50%);' +
+    'width:1100px;' +
+    'max-width:95vw;' +
+    'max-height:85vh;' +
+    'overflow:auto;' +
+    'background:#fff;' +
+    'border:4px solid #000;' +
+    'padding:15px;' +
+    'z-index:9999999;' +
+    'font-family:Arial,sans-serif;' +
+    'border-radius:10px;' +
+    'box-shadow:0 0 25px rgba(0,0,0,.6);';
+
+popup.innerHTML=
+    '<div style="font-size:30px;font-weight:bold;color:#000;text-align:center;margin-bottom:15px;">AF COMMENTS</div>';
+
+const initialsWrap=document.createElement('div');
+
+initialsWrap.style.cssText=
+    'position:absolute;' +
+    'top:10px;' +
+    'left:10px;' +
+    'display:flex;' +
+    'align-items:center;' +
+    'gap:5px;';
+
+const initialsInput=document.createElement('input');
+
+initialsInput.type='text';
+initialsInput.placeholder='Initials';
+initialsInput.maxLength=10;
+initialsInput.value=localStorage.getItem('afCommentInitials')||'AF';
+
+initialsInput.style.cssText=
+    'width:80px;' +
+    'padding:6px;' +
+    'border:1px solid #000;' +
+    'border-radius:4px;' +
+    'font-weight:bold;' +
+    'text-transform:uppercase;';
+
+const saveBtn=document.createElement('button');
+
+saveBtn.textContent='Save';
+
+saveBtn.style.cssText=
+    'padding:6px 10px;' +
+    'background:#1976d2;' +
+    'color:#fff;' +
+    'border:none;' +
+    'border-radius:4px;' +
+    'cursor:pointer;' +
+    'font-weight:bold;';
+
+saveBtn.onclick=function(){
+
+    const val=initialsInput.value
+        .trim()
+        .toUpperCase();
+
+    if(!val){
+        alert('Enter initials first.');
         return;
     }
 
-    const text = el.value || '';
-
-    const m = text.match(/(\d{1,2}\/\d{1,2}\/\d{4})/);
-
-    if (!m) {
-        showPopup(
-            '✅ GOOD TO PROCESS',
-            `
-                <b>No MM/DD/YYYY date found.</b>
-                <br><br>
-                Continuing to comment selection...
-            `,
-            '#2e7d32',
-            true,
-            startCommentProcess
-        );
-        return;
-    }
-
-    const p = m[1].split('/');
-
-    const foundDate = new Date(
-        p[2],
-        p[0] - 1,
-        p[1]
+    localStorage.setItem(
+        'afCommentInitials',
+        val
     );
 
-    const phNow = new Date(
-        new Date().toLocaleString(
-            'en-US',
-            {
-                timeZone: 'Asia/Manila'
-            }
-        )
-    );
+    alert('Initials saved: '+val);
+};
 
-    const days = Math.floor(
-        (phNow - foundDate) / (1000 * 60 * 60 * 24)
-    );
+initialsWrap.appendChild(initialsInput);
+initialsWrap.appendChild(saveBtn);
 
-    if (days < 3) {
-        showPopup(
-            '⚠ WARNING',
-            `
-                <b>Date Found:</b><br>${m[1]}<br><br>
+popup.appendChild(initialsWrap);
 
-                <span style="
-                    color:#d32f2f;
-                    font-size:22px;
-                    font-weight:bold;
-                ">
-                    GAGO 2 DAYS PA LANG YAN NGANI 😫
-                </span>
+const topClose=document.createElement('button');
 
-                <br><br>
+topClose.textContent='✕';
 
-                Age: <b>${days}</b> day(s)
-            `,
-            '#d32f2f'
-        );
+topClose.style.cssText=
+    'position:absolute;' +
+    'top:10px;' +
+    'right:10px;' +
+    'width:40px;' +
+    'height:40px;' +
+    'background:#000;' +
+    'color:#fff;' +
+    'border:none;' +
+    'border-radius:6px;' +
+    'font-size:22px;' +
+    'font-weight:bold;' +
+    'cursor:pointer;';
+
+topClose.onclick=function(){
+    popup.remove();
+};
+
+popup.appendChild(topClose);
+
+items.forEach(function(item){
+
+    if(item.header){
+
+        const h=document.createElement('div');
+
+        h.textContent=item.text;
+
+        h.style.cssText=
+            'background:#1976d2;' +
+            'color:#fff;' +
+            'font-weight:bold;' +
+            'font-size:20px;' +
+            'text-align:center;' +
+            'padding:10px;' +
+            'margin:10px 0 5px;' +
+            'border-radius:6px;';
+
+        popup.appendChild(h);
 
         return;
     }
 
-    showPopup(
-        '✅ GOOD TO PROCESS',
-        `
-            <b>Date:</b> ${m[1]}<br><br>
-            <b>Age:</b> ${days} day(s)
-        `,
-        '#2e7d32',
-        true,
-        startCommentProcess
-    );
+    const btn=document.createElement('button');
 
-    function startCommentProcess() {
+    btn.textContent=item.text;
 
-          const items = [
-            'Self-Funded NSA eligible - Plan type review',
-            'Balanced Funding NSA eligible - Plan type review',
-            'Fully Insured NSA eligible - Plan type review',
-            'Fully Insured (Opt In) NSA eligible - Plan type review',
-            'Exchange/Marketplace NSA eligible - Plan type review',
-            'Fully Insured BlueCard NSA eligible - Plan type review',
-            'VOB pending. Verified, no evidence',
-            'Additional Information Requested',
-            'Plan type review',
-            'Reviewed, no action required',
-            'VOB verified, no change to NSA jurisdiction',
-            'Reviewed. Eligible. IDR Initiation document attached',
-            'Email sent for closure',
-            'Arbit ID AppID - Ineligible, closure has been verified',
-            'IDRE sent email. DISP-XXXX has been closed'
-        ];
+    btn.style.cssText=
+        'display:block;' +
+        'width:100%;' +
+        'text-align:left;' +
+        'margin:5px 0;' +
+        'padding:12px;' +
+        'border:2px solid #000;' +
+        'border-radius:6px;' +
+        'background:#f5f5f5;' +
+        'cursor:pointer;' +
+        'font-weight:bold;' +
+        'font-size:18px;' +
+        'line-height:1.5;' +
+        'color:#000;';
 
-        let menu = 'WFA COMMENTS\n\n';
+    btn.onmouseover=function(){
+        this.style.background='#e8e8e8';
+    };
 
-        items.forEach(function (item, index) {
-            menu += (index + 1) + '. ' + item + '\n';
-        });
+    btn.onmouseout=function(){
+        this.style.background='#f5f5f5';
+    };
 
-        const choice = prompt(menu, '');
-
-        if (choice === null) {
+    btn.onclick=function(){
+                if(!checkRecentComment(el)){
             return;
         }
 
-        const idx = parseInt(choice, 10) - 1;
+        let finalComment=item.text;
 
-        if (idx < 0 || idx >= items.length) {
-            showPopup(
-                'ERROR',
-                'Invalid selection.',
-                '#d32f2f'
-            );
-            return;
-        }
+        if(item.needsDisp){
 
-        if (!checkRecentComment(el)) {
-            return;
-        }
-
-        let finalComment = items[idx];
-
-        if (finalComment.includes('DISP-XXXX')) {
-            const disp = prompt(
-                'Enter Dispute Number',
+            const disp=prompt(
+                'Enter Dispute Number (example: DISP-6731470)',
                 ''
             );
 
-            if (disp === null) {
+            if(disp===null){
                 return;
             }
 
-            if (!disp.trim()) {
-                showPopup(
-                    'ERROR',
-                    'Dispute Number is required.',
-                    '#d32f2f'
-                );
+            if(disp.trim()===''){
+                alert('Dispute Number is required.');
                 return;
             }
 
-            finalComment = finalComment.replace(
+            finalComment=finalComment.replace(
                 'DISP-XXXX',
                 disp.trim()
             );
         }
 
-        if ((el.value || '').includes(finalComment)) {
-            const proceed = confirm(
+        if((el.value||'').includes(finalComment)){
+
+            const proceed=confirm(
                 'WARNING\n\n' +
-                'This comment already exists.\n\n' +
-                'Do you want to continue anyway?'
+                'This comment already exists in the comment box.\n\n' +
+                'Do you want to proceed anyway?'
             );
 
-            if (!proceed) {
+            if(!proceed){
                 return;
             }
         }
 
-        const initials = (
-            localStorage.getItem('afCommentInitials') || 'AF'
+        const initials=(
+            localStorage.getItem('afCommentInitials') ||
+            'AF'
         )
-            .trim()
-            .toUpperCase();
+        .trim()
+        .toUpperCase();
 
-        const parts = new Intl.DateTimeFormat(
-            'en-US',
-            {
-                timeZone: 'Asia/Manila',
-                month: '2-digit',
-                day: '2-digit',
-                year: '2-digit'
-            }
-        ).formatToParts(new Date());
+        const d=new Date();
 
-        const mm = parts.find(x => x.type === 'month').value;
-        const dd = parts.find(x => x.type === 'day').value;
-        const yy = parts.find(x => x.type === 'year').value;
+        d.setDate(
+            d.getDate()+1
+        );
 
-        const note =
-            mm +
-            '/' +
-            dd +
-            '/' +
-            yy +
-            ' - ' +
-            finalComment +
-            ' - ' +
+        const mm=String(
+            d.getMonth()+1
+        ).padStart(2,'0');
+
+        const dd=String(
+            d.getDate()
+        ).padStart(2,'0');
+
+        const yy=String(
+            d.getFullYear()
+        ).slice(-2);
+
+        const note=
+            mm+'/'+dd+'/'+yy+
+            ' - '+
+            finalComment+
+            ' - '+
             initials;
 
-        el.value =
-            note +
+        el.value=
+            note+
             (
                 el.value.trim()
-                    ? '\n\n' + el.value
-                    : ''
+                ? '\n\n'+el.value
+                : ''
             );
 
         el.dispatchEvent(
-            new Event('input', {
-                bubbles: true
-            })
+            new Event(
+                'input',
+                {bubbles:true}
+            )
         );
 
         el.dispatchEvent(
-            new Event('change', {
-                bubbles: true
-            })
+            new Event(
+                'change',
+                {bubbles:true}
+            )
         );
 
-        showPopup(
-            '✅ SUCCESS',
-            `
-                Comment added successfully.
-                <br><br>
-                <b>${finalComment}</b>
-            `,
-            '#2e7d32'
-        );
-    }
+        popup.remove();
+    };
+
+    popup.appendChild(btn);
+});
+
+const close=document.createElement('button');
+
+close.textContent='CLOSE';
+
+close.style.cssText=
+    'margin-top:10px;' +
+    'padding:12px 25px;' +
+    'background:#000;' +
+    'color:#fff;' +
+    'font-weight:bold;' +
+    'font-size:16px;' +
+    'border:none;' +
+    'border-radius:6px;' +
+    'cursor:pointer;';
+
+close.onclick=function(){
+    popup.remove();
+};
+
+popup.appendChild(close);
+
+document.body.appendChild(popup);
 
 })();
