@@ -3,7 +3,11 @@
 <head>
 <meta charset="utf-8">
 <title>Lucky Bookmarklet Library</title>
-
+<script>
+if (sessionStorage.getItem('adminLoggedIn') !== 'yes') {
+    window.location.href = 'admin.html';
+}
+</script>
 <style>
 body{
     font-family:Arial,sans-serif;
@@ -77,6 +81,22 @@ button,a{
 </head>
 
 <body>
+
+    <button onclick="logoutAdmin()"
+style="
+    position:fixed;
+    top:10px;
+    right:10px;
+    background:#d32f2f;
+    color:white;
+    border:none;
+    padding:10px 15px;
+    border-radius:6px;
+    cursor:pointer;
+    font-weight:bold;
+">
+    Logout
+</button>
 
 <h1>📚 Lucky Bookmarklet Library</h1>
 
