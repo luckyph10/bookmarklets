@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Lucky Bookmarklet Library</title>
 
 <style>
@@ -13,127 +13,162 @@
 }
 
 body{
-    font-family:Arial,sans-serif;
     margin:0;
     padding:20px;
-    background:#f4f4f4;
+    font-family:Arial,sans-serif;
+    background:#f5f5f5;
 }
 
 /* LOGIN */
 
 #loginPage{
-    min-height:100vh;
     display:flex;
     justify-content:center;
     align-items:center;
+    min-height:100vh;
 }
 
-.login-card{
-    width:400px;
-    max-width:95%;
+.loginCard{
+    width:420px;
     background:#fff;
     padding:25px;
-    border-radius:12px;
-    box-shadow:0 0 20px rgba(0,0,0,.2);
+    border-radius:10px;
+    box-shadow:0 0 20px rgba(0,0,0,.15);
 }
 
-.login-card h2{
+.loginCard h2{
+    margin-top:0;
     text-align:center;
-    margin-bottom:20px;
 }
 
-.login-card input{
+.loginCard input{
     width:100%;
     padding:12px;
-    margin-bottom:12px;
+    margin-bottom:10px;
     border:1px solid #ccc;
     border-radius:6px;
 }
 
-.login-card button{
+.loginCard button{
     width:100%;
     padding:12px;
     background:#1976d2;
-    color:white;
+    color:#fff;
     border:none;
     border-radius:6px;
     font-weight:bold;
     cursor:pointer;
 }
 
-/* LIBRARY */
+/* MAIN */
 
 #mainPage{
     display:none;
 }
 
-h1{
-    text-align:center;
-}
-
-.search{
-    width:100%;
-    padding:12px;
-    border:1px solid #ccc;
-    border-radius:6px;
+.header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
     margin-bottom:20px;
 }
 
+.logoutBtn{
+    background:#d32f2f;
+    color:#fff;
+    border:none;
+    padding:10px 15px;
+    border-radius:6px;
+    cursor:pointer;
+    font-weight:bold;
+}
+
 .card{
-    background:white;
-    border-radius:10px;
+    background:#fff;
     padding:15px;
+    border-radius:10px;
     margin-bottom:15px;
-    box-shadow:0 2px 6px rgba(0,0,0,.15);
+    box-shadow:0 2px 8px rgba(0,0,0,.12);
+}
+
+input,
+textarea{
+    width:100%;
+    padding:10px;
+    border:1px solid #ccc;
+    border-radius:6px;
+    margin-bottom:10px;
+}
+
+textarea{
+    resize:vertical;
+}
+
+.saveBtn{
+    background:#1976d2;
+    color:white;
+    border:none;
+    padding:12px 20px;
+    border-radius:6px;
+    cursor:pointer;
+    font-weight:bold;
 }
 
 .title{
     font-size:22px;
     font-weight:bold;
-    margin-bottom:8px;
+    margin-bottom:10px;
 }
 
 .desc{
-    color:#555;
-    margin-bottom:12px;
+    color:#444;
+    margin-bottom:10px;
 }
 
-.buttons{
+.actions{
     display:flex;
     gap:10px;
     flex-wrap:wrap;
 }
 
-.copy{
-    background:#1976d2;
-    color:white;
-}
-
-.raw{
+.copyBtn{
     background:#2e7d32;
     color:white;
-}
-
-button,
-a{
-    padding:10px 15px;
     border:none;
+    padding:10px 15px;
     border-radius:6px;
-    text-decoration:none;
     cursor:pointer;
     font-weight:bold;
 }
 
-.logout{
-    position:fixed;
-    top:15px;
-    right:15px;
-    background:#d32f2f;
+.editBtn{
+    background:#ff9800;
     color:white;
+    border:none;
+    padding:10px 15px;
+    border-radius:6px;
+    cursor:pointer;
+    font-weight:bold;
 }
 
-.code{
-    display:none;
+.deleteBtn{
+    background:#d32f2f;
+    color:white;
+    border:none;
+    padding:10px 15px;
+    border-radius:6px;
+    cursor:pointer;
+    font-weight:bold;
+}
+
+.searchBox{
+    margin-bottom:20px;
+}
+
+.small{
+    color:#666;
+    font-size:13px;
+    margin-top:8px;
 }
 
 </style>
@@ -141,23 +176,23 @@ a{
 
 <body>
 
-<!-- LOGIN PAGE -->
+<!-- LOGIN -->
 
 <div id="loginPage">
 
-    <div class="login-card">
+    <div class="loginCard">
 
-        <h2>Lucky Bookmarklets Login</h2>
+        <h2>Lucky Bookmarklet Library</h2>
 
         <input
-            type="text"
             id="username"
+            type="text"
             placeholder="Username"
         >
 
         <input
-            type="password"
             id="password"
+            type="password"
             placeholder="Password"
         >
 
@@ -169,117 +204,72 @@ a{
 
 </div>
 
-<!-- MAIN PAGE -->
+<!-- MAIN -->
 
 <div id="mainPage">
 
-    <button class="logout" onclick="logout()">
-        Logout
-    </button>
+    <div class="header">
+        <h1>📚 Bookmarklet Library</h1>
 
-    <h1>📚 Lucky Bookmarklet Library</h1>
+        <button
+            class="logoutBtn"
+            onclick="logout()"
+        >
+            Logout
+        </button>
+    </div>
+
+    <!-- ADD / EDIT -->
+
+    <div class="card">
+
+        <h2>Add / Edit Bookmarklet</h2>
+
+        <input
+            id="bmName"
+            type="text"
+            placeholder="Bookmarklet Name"
+        >
+
+        <textarea
+            id="bmDesc"
+            rows="4"
+            placeholder="Description"
+        ></textarea>
+
+        <textarea
+            id="bmCode"
+            rows="8"
+            placeholder="Bookmarklet Code"
+        ></textarea>
+
+        <button
+            class="saveBtn"
+            onclick="saveBookmarklet()"
+        >
+            Save Bookmarklet
+        </button>
+
+        <div class="small">
+            Example:
+            javascript:(()=>{alert('Hello');})();
+        </div>
+
+    </div>
+
+    <!-- SEARCH -->
 
     <input
-        type="text"
         id="search"
-        class="search"
+        class="searchBox"
+        type="text"
         placeholder="Search bookmarklets..."
+        onkeyup="filterBookmarks()"
     >
 
-    <!-- WFA -->
+    <!-- LIST -->
 
-    <div class="card">
-
-        <div class="title">
-            WFA Comments
-        </div>
-
-        <div class="desc">
-            WFA NSA comment helper with initials,
-            business-day validation and comment templates.
-        </div>
-
-        <div class="buttons">
-
-            <button
-                class="copy"
-                onclick="copyCode(this)"
-            >
-                Copy Bookmarklet
-            </button>
-
-            https://luckyph10.github.io/bookmarklets/wfac.js
-
-        </div>
-
-        <div class="code">
-javascript:(()=>{const s=document.createElement('script');s.src='https://luckyph10.github.io/bookmarklets/wfac.js?'+Date.now();document.head.appendChild(s);})();
-        </div>
-
-    </div>
-
-    <!-- VOB -->
-
-    <div class="card">
-
-        <div class="title">
-            VOB Comments
-        </div>
-
-        <div class="desc">
-            VOB comment helper with password protection,
-            dispute prompts and custom initials.
-        </div>
-
-        <div class="buttons">
-
-            <button
-                class="copy"
-                onclick="copyCode(this)"
-            >
-                Copy Bookmarklet
-            </button>
-
-            https://luckyph10.github.io/bookmarklets/vobcml.js
-                Open JS
-            </a>
-
-        </div>
-
-        <div class="code">
-javascript:(()=>{const s=document.createElement('script');s.src='https://luckyph10.github.io/bookmarklets/vobcml.js?'+Date.now();document.head.appendChild(s);})();
-        </div>
-
-    </div>
-
-    <!-- LIBRARY -->
-
-    <div class="card">
-
-        <div class="title">
-            Bookmarklet Library Launcher
-        </div>
-
-        <div class="desc">
-            Opens this bookmarklet library page.
-        </div>
-
-        <div class="buttons">
-
-            <button
-                class="copy"
-                onclick="copyCode(this)"
-            >
-                Copy Bookmarklet
-            </button>
-
-        </div>
-
-        <div class="code">
-javascript:(function(){window.open('https://luckyph10.github.io/bookmarklets/','_blank');})();
-        </div>
-
-    </div>
+    <div id="bookmarkletContainer"></div>
 
 </div>
 
@@ -288,33 +278,21 @@ javascript:(function(){window.open('https://luckyph10.github.io/bookmarklets/','
 const ADMIN_USER = "luckyph10";
 const ADMIN_PASS = "naturespringph100808";
 
-function showMain(){
+let editIndex = -1;
 
-    document.getElementById(
-        "loginPage"
-    ).style.display="none";
-
-    document.getElementById(
-        "mainPage"
-    ).style.display="block";
-}
+/* LOGIN */
 
 function login(){
 
     const user =
-        document
-        .getElementById("username")
-        .value
-        .trim();
+        document.getElementById("username").value.trim();
 
     const pass =
-        document
-        .getElementById("password")
-        .value;
+        document.getElementById("password").value;
 
     if(
-        user===ADMIN_USER &&
-        pass===ADMIN_PASS
+        user === ADMIN_USER &&
+        pass === ADMIN_PASS
     ){
 
         sessionStorage.setItem(
@@ -326,8 +304,23 @@ function login(){
 
     }else{
 
-        alert("Invalid username or password.");
+        alert(
+            "Invalid username or password."
+        );
     }
+}
+
+function showMain(){
+
+    document.getElementById(
+        "loginPage"
+    ).style.display = "none";
+
+    document.getElementById(
+        "mainPage"
+    ).style.display = "block";
+
+    loadBookmarklets();
 }
 
 function logout(){
@@ -342,64 +335,276 @@ function logout(){
 if(
     sessionStorage.getItem(
         "adminLoggedIn"
-    )==="yes"
+    ) === "yes"
 ){
     showMain();
 }
 
 document
 .getElementById("password")
-.addEventListener("keydown",function(e){
+.addEventListener(
+    "keydown",
+    function(e){
 
-    if(e.key==="Enter"){
-        login();
+        if(e.key === "Enter"){
+            login();
+        }
     }
-});
+);
 
-function copyCode(btn){
+/* BOOKMARKLETS */
 
-    const code =
-        btn.parentElement
-        .parentElement
-        .querySelector(".code")
-        .textContent
-        .trim();
+function getBookmarks(){
 
-    navigator.clipboard.writeText(code);
-
-    const oldText = btn.textContent;
-
-    btn.textContent = "Copied!";
-
-    setTimeout(function(){
-
-        btn.textContent = oldText;
-
-    },1500);
+    return JSON.parse(
+        localStorage.getItem(
+            "bookmarklets"
+        ) || "[]"
+    );
 }
 
-document
-.getElementById("search")
-.addEventListener("input",function(){
+function saveBookmarks(data){
+
+    localStorage.setItem(
+        "bookmarklets",
+        JSON.stringify(data)
+    );
+}
+
+function loadBookmarklets(){
+
+    const container =
+        document.getElementById(
+            "bookmarkletContainer"
+        );
+
+    container.innerHTML = "";
+
+    const list =
+        getBookmarks();
+
+    list.forEach((item,index)=>{
+
+        const card =
+            document.createElement("div");
+
+        card.className = "card";
+
+        card.innerHTML = `
+            <div class="title">
+                ${item.name}
+            </div>
+
+            <div class="desc">
+                ${item.desc}
+            </div>
+
+            <div class="actions">
+
+                <button
+                    class="copyBtn"
+                    onclick="copyBookmarklet(${index})"
+                >
+                    Copy
+                </button>
+
+                <button
+                    class="editBtn"
+                    onclick="editBookmarklet(${index})"
+                >
+                    Edit
+                </button>
+
+                <button
+                    class="deleteBtn"
+                    onclick="deleteBookmarklet(${index})"
+                >
+                    Delete
+                </button>
+
+            </div>
+        `;
+
+        container.appendChild(card);
+
+    });
+
+}
+
+function saveBookmarklet(){
+
+    const name =
+        document.getElementById(
+            "bmName"
+        ).value.trim();
+
+    const desc =
+        document.getElementById(
+            "bmDesc"
+        ).value.trim();
+
+    const code =
+        document.getElementById(
+            "bmCode"
+        ).value.trim();
+
+    if(!name || !code){
+
+        alert(
+            "Name and Code are required."
+        );
+
+        return;
+    }
+
+    const data = getBookmarks();
+
+    const item = {
+        name:name,
+        desc:desc,
+        code:code
+    };
+
+    if(editIndex >= 0){
+
+        data[editIndex] = item;
+
+        editIndex = -1;
+
+    }else{
+
+        data.push(item);
+    }
+
+    saveBookmarks(data);
+
+    document.getElementById(
+        "bmName"
+    ).value = "";
+
+    document.getElementById(
+        "bmDesc"
+    ).value = "";
+
+    document.getElementById(
+        "bmCode"
+    ).value = "";
+
+    loadBookmarklets();
+
+    alert("Saved!");
+}
+
+function editBookmarklet(index){
+
+    const data =
+        getBookmarks();
+
+    const item =
+        data[index];
+
+    document.getElementById(
+        "bmName"
+    ).value = item.name;
+
+    document.getElementById(
+        "bmDesc"
+    ).value = item.desc;
+
+    document.getElementById(
+        "bmCode"
+    ).value = item.code;
+
+    editIndex = index;
+
+    window.scrollTo({
+        top:0,
+        behavior:"smooth"
+    });
+}
+
+function deleteBookmarklet(index){
+
+    if(
+        !confirm(
+            "Delete this bookmarklet?"
+        )
+    ){
+        return;
+    }
+
+    const data =
+        getBookmarks();
+
+    data.splice(index,1);
+
+    saveBookmarks(data);
+
+    loadBookmarklets();
+}
+
+function copyBookmarklet(index){
+
+    const data =
+        getBookmarks();
+
+    navigator.clipboard.writeText(
+        data[index].code
+    );
+
+    alert(
+        "Bookmarklet copied."
+    );
+}
+
+function filterBookmarks(){
 
     const search =
-        this.value.toLowerCase();
+        document
+        .getElementById("search")
+        .value
+        .toLowerCase();
 
     document
-    .querySelectorAll(".card")
-    .forEach(function(card){
+    .querySelectorAll(
+        "#bookmarkletContainer .card"
+    )
+    .forEach(card=>{
 
-        const txt =
-            card.textContent
-            .toLowerCase();
+        const text =
+            card.textContent.toLowerCase();
 
         card.style.display =
-            txt.includes(search)
+            text.includes(search)
             ? ""
             : "none";
     });
+}
 
-});
+/* DEFAULT BOOKMARKS */
+
+if(
+    !localStorage.getItem(
+        "bookmarklets"
+    )
+){
+
+    saveBookmarks([
+
+        {
+            name:"WFA Comments",
+            desc:"WFA Comment Helper",
+            code:"javascript:(()=>{const s=document.createElement('script');s.src='https://luckyph10.github.io/bookmarklets/wfac.js?'+Date.now();document.head.appendChild(s);})();"
+        },
+
+        {
+            name:"VOB Comments",
+            desc:"VOB Comment Helper",
+            code:"javascript:(()=>{const s=document.createElement('script');s.src='https://luckyph10.github.io/bookmarklets/vobcml.js?'+Date.now();document.head.appendChild(s);})();"
+        }
+
+    ]);
+}
 
 </script>
 
