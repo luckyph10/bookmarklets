@@ -65,7 +65,7 @@ function checkRecentComment(textarea){
         today
     );
 
-    if(days<=2){
+    if(days<=3){
         return confirm(
             'WARNING\n\n' +
             'A recent comment was found.\n\n' +
@@ -345,11 +345,11 @@ items.forEach(function(item){
         ).slice(-2);
 
         const note=
-            mm+'/'+dd+'/'+yy+
-            ' - '+
-            finalComment+
-            ' - '+
-            initials;
+    finalComment+
+    ' - '+
+    mm+'/'+dd+'/'+yy+
+    ' - '+
+    initials;
 
         el.value=
             note+
