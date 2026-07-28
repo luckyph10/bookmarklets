@@ -1,3 +1,16 @@
+function getPHDate() {
+    const now = new Date();
+
+    // Convert current time to Philippine Time
+    const phTime = new Date(
+        now.toLocaleString('en-US', {
+            timeZone: 'Asia/Manila'
+        })
+    );
+
+    return phTime;
+}
+
 (function () {
 
 const selectors = [
@@ -72,8 +85,8 @@ function checkRecentComment(textarea){
         return true;
     }
 
-    const today=new Date();
-    today.setHours(0,0,0,0);
+const today=getPHDate();
+today.setHours(0,0,0,0);
 
     const days=businessDaysBetween(
         newest,
@@ -341,11 +354,7 @@ items.forEach(function(item){
         .trim()
         .toUpperCase();
 
-        const d=new Date();
-
-        d.setDate(
-            d.getDate()+1
-        );
+        const d=getPHDate();
 
         const mm=String(
             d.getMonth()+1
