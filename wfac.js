@@ -167,7 +167,7 @@ popup.style.cssText=
     'box-shadow:0 0 25px rgba(0,0,0,.6);';
 
 popup.innerHTML=
-    '<div style="font-size:30px;font-weight:bold;color:#000;text-align:center;margin-bottom:15px;">PALN TYPE COMMENTS</div>';
+    '<div style="font-size:30px;font-weight:bold;color:#000;text-align:center;margin-bottom:15px;"> PALAN TYPE COMMENTS</div>';
 
 const initialsWrap=document.createElement('div');
 
