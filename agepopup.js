@@ -2,61 +2,72 @@
     var selector =
         "#ngForm > fieldset > div:nth-child(5) > div:nth-child(1) > div:nth-child(2) > app-vob-history > div > div:nth-child(3) > div.small.text-muted.d-inline-flex.align-items-center.gap-1.user-select-none";
 
-    var tries = 0,
-        maxTries = 20;
+    var tries = 0;
+    var maxTries = 20;
 
     function showAgePopup() {
-        var e = document.querySelector("#DOB");
-        if (!e) return;
+        var dobElement = document.querySelector("#DOB");
+        if (!dobElement) return;
 
-        var dob = e.value || e.textContent || e.innerText;
-        var d = new Date(dob);
+        var dobValue =
+            dobElement.value ||
+            dobElement.textContent ||
+            dobElement.innerText;
 
-        if (isNaN(d)) return;
+        var dob = new Date(dobValue);
+
+        if (isNaN(dob)) return;
 
         var today = new Date();
 
-        // Calculate Age
-        var age = today.getFullYear() - d.getFullYear();
+        // Calculate age
+        var age = today.getFullYear() - dob.getFullYear();
 
         if (
-            today.getMonth() < d.getMonth() ||
-            (today.getMonth() === d.getMonth() &&
-                today.getDate() < d.getDate())
+            today.getMonth() < dob.getMonth() ||
+            (today.getMonth() === dob.getMonth() &&
+                today.getDate() < dob.getDate())
         ) {
             age--;
         }
 
         // Calculate 65th birthday
-        var sixtyFifthBirthday = new Date(d);
-        sixtyFifthBirthday.setFullYear(d.getFullYear() + 65);
+        var sixtyFifthBirthday = new Date(dob);
+        sixtyFifthBirthday.setFullYear(dob.getFullYear() + 65);
 
-        var currentDate = new Date(today);
-        currentDate.setHours(0, 0, 0, 0);
+        var todayOnly = new Date();
+        todayOnly.setHours(0, 0, 0, 0);
 
-        var birthday65 = new Date(sixtyFifthBirthday);
-        birthday65.setHours(0, 0, 0, 0);
+        var birthdayOnly = new Date(sixtyFifthBirthday);
+        birthdayOnly.setHours(0, 0, 0, 0);
 
         var diffDays = Math.ceil(
-            (birthday65.getTime() - currentDate.getTime()) /
+            (birthdayOnly - todayOnly) /
                 (1000 * 60 * 60 * 24)
         );
 
-        var rangeText = "";
+        var statusText = "";
+        var indicatorColor = "#2ecc71";
 
         if (age >= 65) {
-            rangeText = "✅ 65+ Eligible";
+            statusText = "✅ 65+ Eligible";
+            indicatorColor = "#ff4d4f";
         } else if (diffDays === 1) {
-            rangeText = "🎂 Turns 65 Tomorrow";
+            statusText = "🎂 Turns 65 Tomorrow";
         } else {
-            rangeText = "🎂 Turns 65 in " + diffDays + " days";
+            statusText = "🎂 Turns 65 in " + diffDays + " days";
         }
 
-        var old = document.getElementById("agePopupBookmarklet");
-        if (old) old.remove();
+        // Remove existing popup
+        var existingPopup = document.getElementById(
+            "agePopupBookmarklet"
+        );
 
-        var color = age >= 65 ? "#ff4d4f" : "#2ecc71";
+        if (existingPopup) {
+            existingPopup.remove();
+        }
 
+        // Create popup
         var popup = document.createElement("div");
         popup.id = "agePopupBookmarklet";
 
@@ -66,57 +77,73 @@
             "left:50%;" +
             "transform:translateX(-50%);" +
             "z-index:99999999;" +
-            "background:rgba(0,0,0,.88);" +
+            "background:rgba(0,0,0,0.88);" +
             "backdrop-filter:blur(10px);" +
-            "padding:18px 26px;" +
+            "padding:20px 28px;" +
             "border-radius:16px;" +
             "box-shadow:0 10px 30px rgba(0,0,0,.45);" +
-            "font-family:Segoe UI,Arial,sans-serif;" +
+            "font-family:'Segoe UI',Arial,sans-serif;" +
             "color:#fff;" +
             "text-align:center;" +
-            "position:relative;" +
-            "min-width:240px;";
+            "min-width:250px;" +
+            "position:fixed;";
 
-        popup.innerHTML =
-            '<button style="' +
-            'position:absolute;' +
-            'top:6px;' +
-            'right:10px;' +
-            'background:none;' +
-            'border:none;' +
-            'color:#fff;' +
-            'font-size:22px;' +
-            'font-weight:bold;' +
-            'cursor:pointer;' +
-            'padding:0;">&times;</button>' +
+        popup.innerHTML = `
+            <button
+                style="
+                    position:absolute;
+                    top:8px;
+                    right:10px;
+                    background:none;
+                    border:none;
+                    color:white;
+                    font-size:20px;
+                    cursor:pointer;
+                    font-weight:bold;
+                "
+            >&times;</button>
 
-            '<div style="display:flex;flex-direction:column;align-items:center;">' +
+            <div
+                style="
+                    display:flex;
+                    flex-direction:column;
+                    align-items:center;
+                    justify-content:center;
+                "
+            >
+                <div
+                    style="
+                        width:16px;
+                        height:16px;
+                        border-radius:50%;
+                        background:${indicatorColor};
+                        box-shadow:0 0 12px ${indicatorColor};
+                        margin-bottom:10px;
+                    "
+                ></div>
 
-            '<span style="' +
-            'width:16px;' +
-            'height:16px;' +
-            'border-radius:50%;' +
-            'background:' + color + ';' +
-            'box-shadow:0 0 12px ' + color + ';' +
-            'margin-bottom:10px;">' +
-            '</span>' +
+                <div
+                    style="
+                        font-size:32px;
+                        font-weight:900;
+                        line-height:1;
+                        margin-bottom:8px;
+                    "
+                >
+                    AGE: ${age}
+                </div>
 
-            '<div style="' +
-            'font-size:32px;' +
-            'font-weight:900;' +
-            'line-height:1.1;">' +
-            'AGE: ' + age +
-            '</div>' +
-
-            '<div style="' +
-            'font-size:15px;' +
-            'margin-top:8px;' +
-            'font-weight:600;' +
-            'color:#ffd666;">' +
-            rangeText +
-            '</div>' +
-
-            '</div>';
+                <div
+                    style="
+                        font-size:15px;
+                        font-weight:600;
+                        color:#ffd666;
+                    "
+                >
+                    ${statusText}
+                </div>
+            </div>
+        `;
 
         document.body.appendChild(popup);
 
@@ -125,23 +152,27 @@
         };
 
         setTimeout(function () {
-            var p = document.getElementById("agePopupBookmarklet");
-            if (p) p.remove();
+            var popupExists =
+                document.getElementById("agePopupBookmarklet");
+
+            if (popupExists) {
+                popupExists.remove();
+            }
         }, 5000);
     }
 
     var interval = setInterval(function () {
-        var el = document.querySelector(selector);
+        var element = document.querySelector(selector);
 
-        if (el) {
+        if (element) {
             clearInterval(interval);
 
-            el.scrollIntoView({
+            element.scrollIntoView({
                 behavior: "smooth",
                 block: "center"
             });
 
-            el.dispatchEvent(
+            element.dispatchEvent(
                 new MouseEvent("click", {
                     bubbles: true,
                     cancelable: true,
@@ -149,7 +180,7 @@
                 })
             );
 
-            el.style.outline = "3px solid orange";
+            element.style.outline = "3px solid orange";
 
             showAgePopup();
         }
