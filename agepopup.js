@@ -16,7 +16,7 @@
 
         var today = new Date();
 
-        // Calculate current age
+        // Calculate Age
         var age = today.getFullYear() - d.getFullYear();
 
         if (
@@ -31,7 +31,6 @@
         var sixtyFifthBirthday = new Date(d);
         sixtyFifthBirthday.setFullYear(d.getFullYear() + 65);
 
-        // Remove time values for accurate day count
         var currentDate = new Date(today);
         currentDate.setHours(0, 0, 0, 0);
 
@@ -43,21 +42,14 @@
                 (1000 * 60 * 60 * 24)
         );
 
-        var ageInfo = "";
+        var rangeText = "";
 
         if (age >= 65) {
-            ageInfo =
-                '<div style="font-size:14px;color:#ffb3b3;margin-top:4px;">✅ 65+ Eligible</div>';
+            rangeText = "✅ 65+ Eligible";
+        } else if (diffDays === 1) {
+            rangeText = "🎂 Turns 65 Tomorrow";
         } else {
-            if (diffDays === 1) {
-                ageInfo =
-                    '<div style="font-size:14px;color:#ffd666;margin-top:4px;">🎂 Turns 65: Tomorrow</div>';
-            } else {
-                ageInfo =
-                    '<div style="font-size:14px;color:#ffd666;margin-top:4px;">🎂 Turns 65 in <b>' +
-                    diffDays +
-                    '</b> days</div>';
-            }
+            rangeText = "🎂 Turns 65 in " + diffDays + " days";
         }
 
         var old = document.getElementById("agePopupBookmarklet");
@@ -74,30 +66,57 @@
             "left:50%;" +
             "transform:translateX(-50%);" +
             "z-index:99999999;" +
-            "background:rgba(0,0,0,.85);" +
-            "backdrop-filter:blur(8px);" +
-            "padding:14px 22px;" +
-            "border-radius:14px;" +
-            "box-shadow:0 8px 24px rgba(0,0,0,.4);" +
-            "display:flex;" +
-            "align-items:center;" +
-            "gap:12px;" +
+            "background:rgba(0,0,0,.88);" +
+            "backdrop-filter:blur(10px);" +
+            "padding:18px 26px;" +
+            "border-radius:16px;" +
+            "box-shadow:0 10px 30px rgba(0,0,0,.45);" +
             "font-family:Segoe UI,Arial,sans-serif;" +
-            "color:#fff;";
+            "color:#fff;" +
+            "text-align:center;" +
+            "position:relative;" +
+            "min-width:240px;";
 
         popup.innerHTML =
-            '<span style="width:14px;height:14px;border-radius:50%;background:' +
-            color +
-            ";box-shadow:0 0 10px " +
-            color +
-            ';"></span>' +
-            '<div>' +
-            '<div style="font-size:28px;font-weight:900;line-height:1;">AGE: ' +
-            age +
-            "</div>" +
-            ageInfo +
-            "</div>" +
-            '<button style="margin-left:8px;background:none;border:none;color:#fff;font-size:24px;font-weight:bold;cursor:pointer;padding:0 4px;">&times;</button>';
+            '<button style="' +
+            'position:absolute;' +
+            'top:6px;' +
+            'right:10px;' +
+            'background:none;' +
+            'border:none;' +
+            'color:#fff;' +
+            'font-size:22px;' +
+            'font-weight:bold;' +
+            'cursor:pointer;' +
+            'padding:0;">&times;</button>' +
+
+            '<div style="display:flex;flex-direction:column;align-items:center;">' +
+
+            '<span style="' +
+            'width:16px;' +
+            'height:16px;' +
+            'border-radius:50%;' +
+            'background:' + color + ';' +
+            'box-shadow:0 0 12px ' + color + ';' +
+            'margin-bottom:10px;">' +
+            '</span>' +
+
+            '<div style="' +
+            'font-size:32px;' +
+            'font-weight:900;' +
+            'line-height:1.1;">' +
+            'AGE: ' + age +
+            '</div>' +
+
+            '<div style="' +
+            'font-size:15px;' +
+            'margin-top:8px;' +
+            'font-weight:600;' +
+            'color:#ffd666;">' +
+            rangeText +
+            '</div>' +
+
+            '</div>';
 
         document.body.appendChild(popup);
 
@@ -108,7 +127,7 @@
         setTimeout(function () {
             var p = document.getElementById("agePopupBookmarklet");
             if (p) p.remove();
-        }, 4000);
+        }, 5000);
     }
 
     var interval = setInterval(function () {
@@ -119,14 +138,14 @@
 
             el.scrollIntoView({
                 behavior: "smooth",
-                block: "center",
+                block: "center"
             });
 
             el.dispatchEvent(
                 new MouseEvent("click", {
                     bubbles: true,
                     cancelable: true,
-                    view: window,
+                    view: window
                 })
             );
 
