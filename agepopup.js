@@ -50,12 +50,12 @@
         var indicatorColor = "#2ecc71";
 
         if (age >= 65) {
-            statusText = "✅ 65+ Eligible";
+            statusText = "❌ Applicant is 65+ years old and is ineligible to proceed with VOB verification.";
             indicatorColor = "#ff4d4f";
         } else if (diffDays === 1) {
-            statusText = "🎂 Turns 65 Tomorrow";
+            statusText = "Turns 65 Tomorrow";
         } else {
-            statusText = "🎂 Turns 65 in " + diffDays + " days";
+            statusText = "Turns 65 in " + diffDays + " days";
         }
 
         // Remove existing popup
