@@ -31,7 +31,7 @@
             age--;
         }
 
-        // Calculate 65th birthday
+        // Calculate 65th birthday (logic preserved)
         var sixtyFifthBirthday = new Date(dob);
         sixtyFifthBirthday.setFullYear(dob.getFullYear() + 65);
 
@@ -46,16 +46,11 @@
                 (1000 * 60 * 60 * 24)
         );
 
-        var statusText = "";
+        // Indicator logic preserved
         var indicatorColor = "#2ecc71";
 
         if (age >= 65) {
-            statusText = "❌ Applicant is 65+ years old and is ineligible to proceed with VOB verification.";
             indicatorColor = "#ff4d4f";
-        } else if (diffDays === 1) {
-            statusText = "Turns 65 Tomorrow";
-        } else {
-            statusText = "Turns 65 in " + diffDays + " days";
         }
 
         // Remove existing popup
@@ -85,8 +80,7 @@
             "font-family:'Segoe UI',Arial,sans-serif;" +
             "color:#fff;" +
             "text-align:center;" +
-            "min-width:250px;" +
-            "position:fixed;";
+            "min-width:250px;";
 
         popup.innerHTML = `
             <button
@@ -127,20 +121,9 @@
                         font-size:32px;
                         font-weight:900;
                         line-height:1;
-                        margin-bottom:8px;
                     "
                 >
                     AGE: ${age}
-                </div>
-
-                <div
-                    style="
-                        font-size:15px;
-                        font-weight:600;
-                        color:#ffd666;
-                    "
-                >
-                    ${statusText}
                 </div>
             </div>
         `;
