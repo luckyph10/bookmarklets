@@ -2,31 +2,9 @@ javascript
 (function () {
     "use strict";
 
-    /* ==========================================
-       SELECTORS
-    ========================================== */
+    const POPUP_ID = "agePopupBookmarklet";
 
-    const openerSelector =
-        "#ngForm > fieldset > div:nth-child(5) > div:nth-child(1) > div:nth-child(2) > app-vob-history > div > div:nth-child(3) > div.small.text-muted.d-inline-flex.align-items-center.gap-1.user-select-none";
-
-    const openContentSelector =
-        "#ngForm > fieldset > div:nth-child(5) > div:nth-child(1) > div:nth-child(2) > app-vob-history > div > div:nth-child(3) > div.collapse.mt-1.small.show";
-
-    const primaryPlanSelector =
-        "#ngForm > fieldset > div:nth-child(5) > div:nth-child(1) > div:nth-child(2) > div:nth-child(6) > select";
-
-    const secondaryPlanSelector =
-        "#ngForm > fieldset > div:nth-child(5) > div:nth-child(1) > div:nth-child(2) > div:nth-child(7) > select";
-
-    const historyTextSelector =
-        "#ngForm > fieldset > div:nth-child(5) > div:nth-child(1) > div:nth-child(2) > app-vob-history > div > div:nth-child(3) > div.collapse.mt-1.small.show > div > div > div.d-flex.flex-wrap.gap-3.mb-1 > span:nth-child(1), " +
-        "#ngForm > fieldset > div:nth-child(5) > div:nth-child(1) > div:nth-child(2) > app-vob-history > div > div:nth-child(3) > div.collapse.mt-1.small.show > div > div > div.text-muted.fst-italic";
-
-    /* ==========================================
-       SELF-FUNDED KEYWORDS
-    ========================================== */
-
-    const selfFundedKeywords = [
+    const SELF_FUNDED_KEYWORDS = [
         "self funded",
         "self-funded",
         "self insured",
@@ -67,68 +45,77 @@ javascript
         "t97"
     ];
 
-    /* ==========================================
-       GET SELECTED PLAN TEXT
-    ========================================== */
+    function clean(value) {
+        return String(value || "")
+            .replace(/\s+/g, " ")
+            .trim();
+    }
 
-    function getSelectedPlan(selectElement) {
-        if (!selectElement) {
+    function escapeHtml(value) {
+        return String(value || "")
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
+
+    function getValue(element) {
+        if (!element) {
             return "";
         }
 
         if (
-            selectElement.options &&
-            selectElement.selectedIndex >= 0 &&
-            selectElement.options[selectElement.selectedIndex]
+            typeof element.value !== "undefined" &&
+            element.value
         ) {
-            return (
-                selectElement.options[selectElement.selectedIndex].text || ""
-            ).trim();
+            return clean(element.value);
         }
 
-        return (selectElement.value || "").trim();
+        return clean(
+            element.textContent ||
+            element.innerText ||
+            ""
+        );
     }
 
-    /* ==========================================
-       GET HISTORY TEXT
-    ========================================== */
-
-    function getHistoryText() {
-        let text = "";
-
-        document
-            .querySelectorAll(historyTextSelector)
-            .forEach(function (element) {
-                text += " " + (element.innerText || element.textContent || "");
-            });
-
-        return text.trim().toLowerCase();
-    }
-
-    /* ==========================================
-       CHECK SELF-FUNDED KEYWORDS
-    ========================================== */
-
-    function findSelfFundedEvidence(text) {
-        for (let i = 0; i < selfFundedKeywords.length; i++) {
-            const keyword = selfFundedKeywords[i];
-
-            if (text.indexOf(keyword.toLowerCase()) > -1) {
-                return keyword;
-            }
+    function getSelectedText(select) {
+        if (!select) {
+            return "";
         }
 
-        return "";
+        if (
+            select.options &&
+            select.selectedIndex >= 0 &&
+            select.options[select.selectedIndex]
+        ) {
+            return clean(
+                select.options[select.selectedIndex].text
+            );
+        }
+
+        return clean(select.value);
     }
 
-    /* ==========================================
-       CALCULATE AGE
-    ========================================== */
+    function getAge(value) {
+        if (!value) {
+            return null;
+        }
 
-    function calculateAge(dobValue) {
-        const dobDate = new Date(dobValue);
+        let date = null;
 
-        if (isNaN(dobDate.getTime())) {
+        if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+            const parts = value.split("-");
+            date = new Date(
+                Number(parts[0]),
+                Number(parts[1]) - 1,
+                Number(parts[2])
+            );
+        } else {
+            date = new Date(value);
+        }
+
+        if (isNaN(date.getTime())) {
             return null;
         }
 
@@ -136,153 +123,291 @@ javascript
 
         let age =
             today.getFullYear() -
-            dobDate.getFullYear();
+            date.getFullYear();
 
-        if (
-            today.getMonth() < dobDate.getMonth() ||
+        const birthdayPassed =
+            today.getMonth() > date.getMonth() ||
             (
-                today.getMonth() === dobDate.getMonth() &&
-                today.getDate() < dobDate.getDate()
-            )
-        ) {
+                today.getMonth() === date.getMonth() &&
+                today.getDate() >= date.getDate()
+            );
+
+        if (!birthdayPassed) {
             age--;
         }
 
         return age;
     }
 
-    /* ==========================================
-       MAIN LOGIC
-    ========================================== */
+    function findDOB() {
+        const selectors = [
+            "#DOB",
+            "input#DOB",
+            "input[name='DOB']",
+            "input[name='dob']",
+            "input[formcontrolname='DOB']",
+            "input[formControlName='DOB']",
+            "input[formcontrolname='dob']",
+            "input[formControlName='dob']"
+        ];
 
-    function runLogic() {
-        /* --------------------------------------
-           DOB
-        -------------------------------------- */
+        for (let i = 0; i < selectors.length; i++) {
+            const element =
+                document.querySelector(selectors[i]);
 
-        const dob = document.querySelector("#DOB");
+            if (element) {
+                const value = getValue(element);
 
-        if (!dob) {
-            alert("DOB not found");
-            return;
-        }
-
-        const dobValue =
-            dob.value ||
-            dob.textContent ||
-            dob.innerText ||
-            "";
-
-        const age = calculateAge(dobValue);
-
-        if (age === null) {
-            alert("Invalid DOB");
-            return;
-        }
-
-        /* --------------------------------------
-           PLAN TYPES
-        -------------------------------------- */
-
-        const primaryPlan =
-            document.querySelector(primaryPlanSelector);
-
-        const secondaryPlan =
-            document.querySelector(secondaryPlanSelector);
-
-        let planType =
-            getSelectedPlan(primaryPlan) || "Unknown";
-
-        const secondaryPlanType =
-            getSelectedPlan(secondaryPlan);
-
-        /* --------------------------------------
-           HISTORY TEXT
-        -------------------------------------- */
-
-        const text = getHistoryText();
-
-        /* --------------------------------------
-           PLAN TYPE MATCHING
-        -------------------------------------- */
-
-        let ptMatch = false;
-        let matchedEvidence = "";
-
-        /*
-         * PRIMARY PLAN
-         */
-
-        if (
-            planType.toLowerCase() === "self funded" ||
-            planType.toLowerCase() === "self funded (opt out)"
-        ) {
-            const evidence =
-                findSelfFundedEvidence(text);
-
-            if (evidence) {
-                ptMatch = true;
-                matchedEvidence = evidence;
-            }
-
-        } else if (
-            planType !== "Unknown" &&
-            planType !== ""
-        ) {
-            if (
-                text.indexOf(
-                    planType.toLowerCase()
-                ) > -1
-            ) {
-                ptMatch = true;
-                matchedEvidence = planType;
-            }
-        }
-
-        /*
-         * SECONDARY PLAN FALLBACK
-         *
-         * If the primary plan did not match,
-         * check the secondary plan.
-         */
-
-        if (
-            !ptMatch &&
-            secondaryPlanType &&
-            secondaryPlanType !== "Unknown"
-        ) {
-            /*
-             * Direct secondary-plan match
-             */
-
-            if (
-                text.indexOf(
-                    secondaryPlanType.toLowerCase()
-                ) > -1
-            ) {
-                ptMatch = true;
-                matchedEvidence =
-                    secondaryPlanType;
-            }
-
-            /*
-             * Self-funded keyword fallback
-             */
-
-            if (!ptMatch) {
-                const evidence =
-                    findSelfFundedEvidence(text);
-
-                if (evidence) {
-                    ptMatch = true;
-                    matchedEvidence = evidence;
+                if (value) {
+                    return {
+                        element: element,
+                        value: value
+                    };
                 }
             }
         }
 
-        /* --------------------------------------
-           COLORS
-        -------------------------------------- */
+        return null;
+    }
+
+    function findPlanSelects() {
+        const selects =
+            Array.from(document.querySelectorAll("select"));
+
+        let primary = null;
+        let secondary = null;
+
+        const primarySelector =
+            "#ngForm > fieldset > div:nth-child(5) > div:nth-child(1) > div:nth-child(2) > div:nth-child(6) > select";
+
+        const secondarySelector =
+            "#ngForm > fieldset > div:nth-child(5) > div:nth-child(1) > div:nth-child(2) > div:nth-child(7) > select";
+
+        primary =
+            document.querySelector(primarySelector);
+
+        secondary =
+            document.querySelector(secondarySelector);
+
+        if (!primary || !secondary) {
+            const ngForm =
+                document.querySelector("#ngForm");
+
+            if (ngForm) {
+                const nearbySelects =
+                    Array.from(
+                        ngForm.querySelectorAll("select")
+                    );
+
+                const insuranceSelects =
+                    nearbySelects.filter(function (select) {
+                        const text =
+                            clean(
+                                select.parentElement
+                                    ? select.parentElement.parentElement
+                                        ?.innerText
+                                    : ""
+                            ).toLowerCase();
+
+                        return (
+                            text.includes("plan") ||
+                            text.includes("insurance") ||
+                            text.includes("primary") ||
+                            text.includes("secondary")
+                        );
+                    });
+
+                if (!primary && insuranceSelects[0]) {
+                    primary = insuranceSelects[0];
+                }
+
+                if (!secondary && insuranceSelects[1]) {
+                    secondary = insuranceSelects[1];
+                }
+            }
+        }
+
+        if (!primary && selects.length >= 6) {
+            primary = selects[5];
+        }
+
+        if (!secondary && selects.length >= 7) {
+            secondary = selects[6];
+        }
+
+        return {
+            primary: primary,
+            secondary: secondary
+        };
+    }
+
+    function findHistoryComponent() {
+        return document.querySelector(
+            "app-vob-history"
+        );
+    }
+
+    function getHistoryText() {
+        const component =
+            findHistoryComponent();
+
+        if (!component) {
+            return "";
+        }
+
+        const visible =
+            Array.from(
+                component.querySelectorAll("*")
+            ).filter(function (element) {
+                const style =
+                    window.getComputedStyle(element);
+
+                return (
+                    style.display !== "none" &&
+                    style.visibility !== "hidden" &&
+                    element.offsetParent !== null
+                );
+            });
+
+        let text = "";
+
+        visible.forEach(function (element) {
+            const value =
+                clean(
+                    element.innerText ||
+                    element.textContent ||
+                    ""
+                );
+
+            if (value) {
+                text += " " + value;
+            }
+        });
+
+        if (!text.trim()) {
+            text =
+                clean(
+                    component.innerText ||
+                    component.textContent ||
+                    ""
+                );
+        }
+
+        return text
+            .replace(/\s+/g, " ")
+            .trim()
+            .toLowerCase();
+    }
+
+    function findEvidence(text) {
+        for (
+            let i = 0;
+            i < SELF_FUNDED_KEYWORDS.length;
+            i++
+        ) {
+            const keyword =
+                SELF_FUNDED_KEYWORDS[i];
+
+            if (
+                text.indexOf(
+                    keyword.toLowerCase()
+                ) !== -1
+            ) {
+                return keyword;
+            }
+        }
+
+        return "";
+    }
+
+    function isSelfFunded(plan) {
+        const value =
+            clean(plan).toLowerCase();
+
+        return (
+            value === "self funded" ||
+            value === "self-funded" ||
+            value === "self funded (opt out)" ||
+            value === "self-funded (opt out)"
+        );
+    }
+
+    function getPlanMatch(
+        primaryPlan,
+        secondaryPlan,
+        historyText
+    ) {
+        let matched = false;
+        let evidence = "";
+
+        if (isSelfFunded(primaryPlan)) {
+            evidence =
+                findEvidence(historyText);
+
+            if (evidence) {
+                matched = true;
+            }
+        } else if (
+            primaryPlan &&
+            primaryPlan.toLowerCase() !== "unknown"
+        ) {
+            if (
+                historyText.indexOf(
+                    primaryPlan.toLowerCase()
+                ) !== -1
+            ) {
+                matched = true;
+                evidence = primaryPlan;
+            }
+        }
+
+        if (!matched && secondaryPlan) {
+            if (
+                historyText.indexOf(
+                    secondaryPlan.toLowerCase()
+                ) !== -1
+            ) {
+                matched = true;
+                evidence = secondaryPlan;
+            }
+        }
+
+        if (!matched && secondaryPlan) {
+            evidence =
+                findEvidence(historyText);
+
+            if (evidence) {
+                matched = true;
+            }
+        }
+
+        return {
+            matched: matched,
+            evidence: evidence
+        };
+    }
+
+    function removePopup() {
+        const popup =
+            document.getElementById(POPUP_ID);
+
+        if (popup) {
+            popup.remove();
+        }
+    }
+
+    function showPopup(
+        age,
+        planType,
+        ptMatch,
+        evidence
+    ) {
+        removePopup();
+
+        const popup =
+            document.createElement("div");
+
+        popup.id = POPUP_ID;
 
         const ageColor =
             age >= 65
@@ -294,71 +419,45 @@ javascript
                 ? "#2ecc71"
                 : "#ff4d4f";
 
-        /* --------------------------------------
-           REMOVE EXISTING POPUP
-        -------------------------------------- */
-
-        const oldPopup =
-            document.getElementById(
-                "agePopupBookmarklet"
-            );
-
-        if (oldPopup) {
-            oldPopup.remove();
-        }
-
-        /* --------------------------------------
-           CREATE POPUP
-        -------------------------------------- */
-
-        const popup =
-            document.createElement("div");
-
-        popup.id =
-            "agePopupBookmarklet";
-
         popup.style.cssText =
             "position:fixed;" +
             "top:100px;" +
             "left:50%;" +
             "transform:translateX(-50%);" +
-            "background:rgba(0,0,0,.92);" +
-            "color:#fff;" +
+            "background:rgba(0,0,0,.94);" +
+            "color:white;" +
             "padding:20px 24px;" +
             "border-radius:16px;" +
-            "z-index:99999999;" +
+            "z-index:2147483647;" +
             "font-family:Segoe UI,Arial,sans-serif;" +
-            "box-shadow:0 10px 30px rgba(0,0,0,.4);" +
-            "max-width:500px;" +
-            "min-width:280px;" +
+            "box-shadow:0 10px 35px rgba(0,0,0,.5);" +
+            "min-width:300px;" +
+            "max-width:520px;" +
             "box-sizing:border-box;";
 
         popup.innerHTML =
-            '<button ' +
-            'type="button" ' +
+            '<button type="button" ' +
             'style="' +
             'position:absolute;' +
+            'right:8px;' +
             'top:5px;' +
-            'right:10px;' +
             'background:none;' +
-            'border:none;' +
-            'color:#fff;' +
-            'font-size:20px;' +
+            'border:0;' +
+            'color:white;' +
+            'font-size:24px;' +
             'cursor:pointer;' +
-            'line-height:1;' +
             '">×</button>' +
 
             '<div style="' +
             'font-size:24px;' +
-            'font-weight:bold;' +
+            'font-weight:700;' +
             'display:flex;' +
             'align-items:center;' +
             'gap:10px;' +
-            'padding-right:20px;' +
             '">' +
             'AGE: ' +
-            age +
-            ' <span style="' +
+            escapeHtml(age) +
+            '<span style="' +
             'width:14px;' +
             'height:14px;' +
             'border-radius:50%;' +
@@ -366,22 +465,20 @@ javascript
             ageColor +
             ';' +
             'display:inline-block;' +
-            'flex-shrink:0;' +
             '"></span>' +
             '</div>' +
 
             '<div style="' +
-            'margin-top:10px;' +
             'font-size:24px;' +
-            'font-weight:bold;' +
+            'font-weight:700;' +
             'display:flex;' +
             'align-items:center;' +
             'gap:10px;' +
-            'padding-right:20px;' +
+            'margin-top:10px;' +
             '">' +
             'PT: ' +
             escapeHtml(planType) +
-            ' <span style="' +
+            '<span style="' +
             'width:14px;' +
             'height:14px;' +
             'border-radius:50%;' +
@@ -389,107 +486,188 @@ javascript
             ptColor +
             ';' +
             'display:inline-block;' +
-            'flex-shrink:0;' +
             '"></span>' +
             '</div>' +
 
             (
-                matchedEvidence
+                evidence
                     ? '<div style="' +
-                      'margin-top:8px;' +
+                      'margin-top:10px;' +
                       'font-size:14px;' +
                       'color:#90ee90;' +
                       'word-break:break-word;' +
-                      '">Evidence: ' +
-                      escapeHtml(matchedEvidence) +
+                      '">' +
+                      'Evidence: ' +
+                      escapeHtml(evidence) +
                       '</div>'
-                    : ''
+                    : ""
             );
 
         document.body.appendChild(popup);
 
-        /* --------------------------------------
-           CLOSE BUTTON
-        -------------------------------------- */
-
-        const closeButton =
+        const button =
             popup.querySelector("button");
 
-        if (closeButton) {
-            closeButton.onclick = function () {
-                popup.remove();
-            };
+        if (button) {
+            button.onclick =
+                removePopup;
         }
 
-        /* --------------------------------------
-           AUTO CLOSE
-        -------------------------------------- */
-
         setTimeout(function () {
-            const currentPopup =
-                document.getElementById(
-                    "agePopupBookmarklet"
-                );
-
-            if (currentPopup) {
-                currentPopup.remove();
-            }
+            removePopup();
         }, 7000);
     }
 
-    /* ==========================================
-       HTML ESCAPE
-       Prevents plan/evidence text from being
-       interpreted as HTML.
-    ========================================== */
+    function run() {
+        const dob =
+            findDOB();
 
-    function escapeHtml(value) {
-        return String(value)
-            .replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;")
-            .replace(/"/g, "&quot;")
-            .replace(/'/g, "&#039;");
-    }
+        if (!dob) {
+            alert("DOB not found");
+            return;
+        }
 
-    /* ==========================================
-       OPEN VOB HISTORY IF NECESSARY
-    ========================================== */
+        const age =
+            getAge(dob.value);
 
-    const alreadyOpen =
-        document.querySelector(
-            openContentSelector
+        if (
+            age === null ||
+            age < 0 ||
+            age > 130
+        ) {
+            alert(
+                "Invalid DOB: " +
+                dob.value
+            );
+            return;
+        }
+
+        const plans =
+            findPlanSelects();
+
+        const primaryPlan =
+            getSelectedText(
+                plans.primary
+            ) || "Unknown";
+
+        const secondaryPlan =
+            getSelectedText(
+                plans.secondary
+            );
+
+        const historyText =
+            getHistoryText();
+
+        const result =
+            getPlanMatch(
+                primaryPlan,
+                secondaryPlan,
+                historyText
+            );
+
+        showPopup(
+            age,
+            primaryPlan,
+            result.matched,
+            result.evidence
         );
-
-    if (alreadyOpen) {
-        runLogic();
-        return;
     }
 
-    const opener =
-        document.querySelector(
-            openerSelector
-        );
+    function openHistory() {
+        const component =
+            findHistoryComponent();
 
-    if (opener) {
-        opener.scrollIntoView({
-            behavior: "smooth",
-            block: "center"
-        });
+        if (!component) {
+            run();
+            return;
+        }
 
-        opener.click();
+        const openContent =
+            component.querySelector(
+                ".collapse.show"
+            );
 
-        /*
-         * Give Angular/Bootstrap time to
-         * render the expanded history.
-         */
+        if (openContent) {
+            waitForHistory();
+            return;
+        }
 
-        setTimeout(function () {
-            runLogic();
-        }, 250);
+        const possibleOpeners =
+            Array.from(
+                component.querySelectorAll("*")
+            ).filter(function (element) {
+                const text =
+                    clean(
+                        element.innerText ||
+                        element.textContent ||
+                        ""
+                    ).toLowerCase();
 
-    } else {
-        runLogic();
+                return (
+                    text.includes("history") ||
+                    element.classList.contains(
+                        "user-select-none"
+                    )
+                );
+            });
+
+        let opener =
+            possibleOpeners[
+                possibleOpeners.length - 1
+            ];
+
+        if (!opener) {
+            opener =
+                component.querySelector(
+                    "[data-bs-toggle='collapse']"
+                );
+        }
+
+        if (opener) {
+            try {
+                opener.scrollIntoView({
+                    behavior: "smooth",
+                    block: "center"
+                });
+            } catch (e) {}
+
+            opener.click();
+        }
+
+        waitForHistory();
     }
 
+    function waitForHistory() {
+        let attempts = 0;
+
+        const timer =
+            setInterval(function () {
+                attempts++;
+
+                const component =
+                    findHistoryComponent();
+
+                const text =
+                    getHistoryText();
+
+                const openContent =
+                    component
+                        ? component.querySelector(
+                            ".collapse.show"
+                        )
+                        : null;
+
+                if (
+                    text.length > 0 ||
+                    openContent ||
+                    attempts >= 20
+                ) {
+                    clearInterval(timer);
+                    run();
+                }
+            }, 150);
+    }
+
+    openHistory();
 })();
+
