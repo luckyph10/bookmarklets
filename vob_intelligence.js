@@ -235,7 +235,7 @@
                 p.remove();
             }
 
-        }, 0);
+        }, 7000);
 
     }
 
@@ -266,7 +266,7 @@
 
             setTimeout(
                 runLogic,
-                0
+                1500
             );
 
         } else {
