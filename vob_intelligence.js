@@ -1,7 +1,13 @@
 (function () {
 
-    const openerSelector =
-        "#ngForm > fieldset > div:nth-child(5) > div:nth-child(1) > div:nth-child(2) > app-vob-history > div > div:nth-child(3) > div.small.text-muted.d-inline-flex.align-items-center.gap-1.user-select-none";
+
+   const openerSelector =
+       "#ngForm > fieldset > div:nth-child(5) > div:nth-child(1) > div:nth-child(2) > app-vob-history > div > div:nth-child(3) > div.small.text-muted.d-inline-flex.align-items-center.gap-1.user-select-none";
+
+   const alternativeSelector =
+       "#ngForm > fieldset > div:nth-child(5) > div:nth-child(1) > div:nth-child(2) > div:nth-child(7) > select";
+
+
 
     const openContentSelector =
         "#ngForm > fieldset > div:nth-child(5) > div:nth-child(1) > div:nth-child(2) > app-vob-history > div > div:nth-child(3) > div.collapse.mt-1.small.show";
