@@ -84,6 +84,8 @@
         ) {
 
             var selfFundedKeywords = [
+                "N859",
+                "RARC code N859 is present, indicating NSA jurisdiction",
                 "self funded",
                 "self-funded",
                 "self insured",
