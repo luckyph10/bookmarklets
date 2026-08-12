@@ -272,7 +272,7 @@
 
             setTimeout(
                 runLogic,
-                1500
+                0
             );
 
         } else {
