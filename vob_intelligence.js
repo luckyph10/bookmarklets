@@ -88,6 +88,7 @@
             );
 
         if (stateElement) {
+
             state =
                 stateElement.selectedOptions[0]?.text ||
                 stateElement.value ||
@@ -99,6 +100,8 @@
 
 
         /*
+         * BIFURCATED STATES
+         *
          * ADD YOUR BIFURCATED STATES HERE.
          *
          * Example:
@@ -107,8 +110,6 @@
          *     "Texas",
          *     "California"
          * ];
-         *
-         * Until the list is provided, this is empty.
          */
 
         var bifurcatedStates = [];
@@ -119,10 +120,12 @@
 
         var isBifurcated =
             bifurcatedStates.some(function (bifurcatedState) {
+
                 return (
                     stateLower ===
                     bifurcatedState.toLowerCase().trim()
                 );
+
             });
 
 
@@ -156,6 +159,7 @@
         historyText =
             historyText.toLowerCase();
 
+
         var caseNotesText = "";
 
         var caseNotesElement =
@@ -164,8 +168,10 @@
             );
 
         if (caseNotesElement) {
+
             caseNotesText =
                 caseNotesElement.innerText.toLowerCase();
+
         }
 
 
@@ -330,7 +336,11 @@
 
         var isRedPlanType =
             redPlanTypeKeywords.some(function (keyword) {
-                return planTypeLower.indexOf(keyword) > -1;
+
+                return (
+                    planTypeLower.indexOf(keyword) > -1
+                );
+
             });
 
 
@@ -412,12 +422,16 @@
 
         popup.innerHTML =
 
-            /* Close button */
+            /* ==========================================
+               CLOSE BUTTON
+               ========================================== */
 
             '<button style="position:absolute;top:5px;right:10px;background:none;border:none;color:#fff;font-size:20px;cursor:pointer;">×</button>' +
 
 
-            /* AGE */
+            /* ==========================================
+               AGE
+               ========================================== */
 
             '<div style="font-size:24px;font-weight:bold;display:flex;align-items:center;gap:10px;">AGE: ' +
             age +
@@ -426,7 +440,9 @@
             ';display:inline-block;"></span></div>' +
 
 
-            /* PT */
+            /* ==========================================
+               PT
+               ========================================== */
 
             '<div style="margin-top:10px;font-size:24px;font-weight:bold;display:flex;align-items:center;gap:10px;">PT: ' +
             planType +
@@ -435,23 +451,9 @@
             ';display:inline-block;"></span></div>' +
 
 
-            /* STATE */
-
-            '<div style="margin-top:10px;font-size:20px;font-weight:bold;display:flex;align-items:center;gap:10px;">STATE: ' +
-            '<span style="width:14px;height:14px;border-radius:50%;background:' +
-            stateColor +
-            ';display:inline-block;"></span>' +
-            '</div>' +
-
-            '<div style="margin-top:4px;font-size:16px;color:#fff;">' +
-            state +
-            ' (' +
-            stateStatus +
-            ')' +
-            '</div>' +
-
-
-            /* HISTORY EVIDENCE */
+            /* ==========================================
+               HISTORY EVIDENCE
+               ========================================== */
 
             (
                 historyEvidence.length
@@ -462,7 +464,9 @@
             ) +
 
 
-            /* CASE NOTES EVIDENCE */
+            /* ==========================================
+               CASE NOTES EVIDENCE
+               ========================================== */
 
             (
                 caseNotesEvidence.length
@@ -495,7 +499,26 @@
                     "</div>"
 
                     : '<div style="margin-top:6px;font-size:14px;color:#ff6b6b;">No evidence found / textarea is empty.</div>'
-            );
+            ) +
+
+
+            /* ==========================================
+               STATE
+               ========================================== */
+
+            '<div style="margin-top:14px;font-size:20px;font-weight:bold;display:flex;align-items:center;gap:10px;">' +
+            'STATE: ' +
+            '<span style="width:14px;height:14px;border-radius:50%;background:' +
+            stateColor +
+            ';display:inline-block;"></span>' +
+            '</div>' +
+
+            '<div style="margin-top:4px;font-size:16px;color:#fff;">' +
+            state +
+            ' (' +
+            stateStatus +
+            ')' +
+            '</div>';
 
 
         document.body.appendChild(
