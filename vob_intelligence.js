@@ -99,24 +99,42 @@
         }
 
 
-        /*
-         * BIFURCATED STATES
-         *
-         * ADD YOUR BIFURCATED STATES HERE.
-         *
-         * Example:
-         *
-         * var bifurcatedStates = [
-         *     "Texas",
-         *     "California"
-         * ];
-         */
+        /* ==========================================
+           BIFURCATED STATES
+           
+           These are the states identified for
+           bifurcated Federal/State IDR jurisdiction.
+           ========================================== */
 
-        var bifurcatedStates = [];
+        var bifurcatedStates = [
+            "Alaska",
+            "California",
+            "Colorado",
+            "Connecticut",
+            "Delaware",
+            "Florida",
+            "Georgia",
+            "Illinois",
+            "Maine",
+            "Maryland",
+            "Michigan",
+            "Missouri",
+            "Nebraska",
+            "Nevada",
+            "New Hampshire",
+            "New Jersey",
+            "New Mexico",
+            "New York",
+            "Ohio",
+            "Texas",
+            "Virginia",
+            "Washington"
+        ];
 
 
         var stateLower =
             state.toLowerCase().trim();
+
 
         var isBifurcated =
             bifurcatedStates.some(function (bifurcatedState) {
@@ -128,6 +146,16 @@
 
             });
 
+
+        /* ==========================================
+           STATE INDICATOR
+           
+           RED =
+           Bifurcated state
+
+           GREEN =
+           Non-Bifurcated state
+           ========================================== */
 
         var stateColor;
 
@@ -153,7 +181,10 @@
         document.querySelectorAll(
             "#ngForm > fieldset > div:nth-child(5) > div:nth-child(1) > div:nth-child(2) > app-vob-history > div > div:nth-child(3) > div.collapse.mt-1.small.show > div > div > div.d-flex.flex-wrap.gap-3.mb-1 > span:nth-child(1), #ngForm > fieldset > div:nth-child(5) > div:nth-child(1) > div:nth-child(2) > app-vob-history > div > div:nth-child(3) > div.collapse.mt-1.small.show > div > div > div.text-muted.fst-italic"
         ).forEach(function (e) {
-            historyText += " " + e.innerText;
+
+            historyText +=
+                " " + e.innerText;
+
         });
 
         historyText =
@@ -318,6 +349,22 @@
 
         /* ==========================================
            PT INDICATOR LOGIC
+
+           RED:
+           - Exchange/Marketplace-State
+           - Other
+           - Unknown
+           - Government
+           - State
+           - Federal
+           - Medicaid
+           - Medicare
+
+           GREEN:
+           Normal plan type + evidence
+
+           ORANGE:
+           Normal plan type + no evidence
            ========================================== */
 
         var redPlanTypeKeywords = [
@@ -504,6 +551,8 @@
 
             /* ==========================================
                STATE
+
+               STATE IS AFTER INELIGIBILITY EVIDENCE
                ========================================== */
 
             '<div style="margin-top:14px;font-size:20px;font-weight:bold;display:flex;align-items:center;gap:10px;">' +
