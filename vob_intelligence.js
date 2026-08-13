@@ -3,9 +3,6 @@
     const openerSelector =
         "#ngForm > fieldset > div:nth-child(5) > div:nth-child(1) > div:nth-child(2) > app-vob-history > div > div:nth-child(3) > div.small.text-muted.d-inline-flex.align-items-center.gap-1.user-select-none";
 
-    const ptSelector =
-        "#ngForm > fieldset > div:nth-child(5) > div:nth-child(1) > div:nth-child(2) > div:nth-child(7) > select";
-
     const openContentSelector =
         "#ngForm > fieldset > div:nth-child(5) > div:nth-child(1) > div:nth-child(2) > app-vob-history > div > div:nth-child(3) > div.collapse.mt-1.small.show";
 
@@ -54,17 +51,19 @@
 
         var planType = "Unknown";
 
-        var plan =
-            document.querySelector(ptSelector);
+        /* Plan Type selector - KEEPING YOUR WORKING LOGIC */
+        var plan = Array.from(
+            document.querySelectorAll("select")
+        ).find(function (s) {
+            return (
+                s.parentElement &&
+                s.parentElement.innerText.indexOf("Plan Type") > -1
+            );
+        });
 
         if (plan) {
             planType =
-                (
-                    plan.options &&
-                    plan.options[plan.selectedIndex]
-                        ? plan.options[plan.selectedIndex].text
-                        : plan.value || ""
-                ).trim();
+                plan.options[plan.selectedIndex].text;
         }
 
         var historyText = "";
@@ -297,54 +296,54 @@
     }
 
     const historyIsOpen =
-    document.querySelector(
-        openContentSelector
+        document.querySelector(
+            openContentSelector
+        );
+
+    const caseNotesIsOpen =
+        document.querySelector(
+            caseNotesSelector
+        );
+
+    const historyButton =
+        document.querySelector(
+            openerSelector
+        );
+
+    const caseNotesButton =
+        document.querySelector(
+            caseNotesButtonSelector
+        );
+
+    if (
+        !historyIsOpen &&
+        historyButton
+    ) {
+        historyButton.scrollIntoView({
+            behavior: "smooth",
+            block: "center"
+        });
+
+        historyButton.click();
+    }
+
+    if (
+        !caseNotesIsOpen &&
+        caseNotesButton
+    ) {
+        caseNotesButton.scrollIntoView({
+            behavior: "smooth",
+            block: "center"
+        });
+
+        caseNotesButton.click();
+    }
+
+    setTimeout(
+        function () {
+            runLogic();
+        },
+        500
     );
-
-const caseNotesIsOpen =
-    document.querySelector(
-        caseNotesSelector
-    );
-
-const historyButton =
-    document.querySelector(
-        openerSelector
-    );
-
-const caseNotesButton =
-    document.querySelector(
-        caseNotesButtonSelector
-    );
-
-if (
-    !historyIsOpen &&
-    historyButton
-) {
-    historyButton.scrollIntoView({
-        behavior: "smooth",
-        block: "center"
-    });
-
-    historyButton.click();
-}
-
-if (
-    !caseNotesIsOpen &&
-    caseNotesButton
-) {
-    caseNotesButton.scrollIntoView({
-        behavior: "smooth",
-        block: "center"
-    });
-
-    caseNotesButton.click();
-}
-
-setTimeout(
-    function () {
-        runLogic();
-    },
-    500
-);
 
 })();
