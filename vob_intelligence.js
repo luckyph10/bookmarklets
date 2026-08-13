@@ -101,9 +101,6 @@
 
         /* ==========================================
            BIFURCATED STATES
-           
-           These are the states identified for
-           bifurcated Federal/State IDR jurisdiction.
            ========================================== */
 
         var bifurcatedStates = [
@@ -149,12 +146,6 @@
 
         /* ==========================================
            STATE INDICATOR
-           
-           RED =
-           Bifurcated state
-
-           GREEN =
-           Non-Bifurcated state
            ========================================== */
 
         var stateColor;
@@ -176,6 +167,10 @@
                 : "Non-Bifurcated";
 
 
+        /* ==========================================
+           HISTORY TEXT
+           ========================================== */
+
         var historyText = "";
 
         document.querySelectorAll(
@@ -190,6 +185,10 @@
         historyText =
             historyText.toLowerCase();
 
+
+        /* ==========================================
+           CASE NOTES TEXT
+           ========================================== */
 
         var caseNotesText = "";
 
@@ -349,22 +348,6 @@
 
         /* ==========================================
            PT INDICATOR LOGIC
-
-           RED:
-           - Exchange/Marketplace-State
-           - Other
-           - Unknown
-           - Government
-           - State
-           - Federal
-           - Medicaid
-           - Medicare
-
-           GREEN:
-           Normal plan type + evidence
-
-           ORANGE:
-           Normal plan type + no evidence
            ========================================== */
 
         var redPlanTypeKeywords = [
@@ -500,11 +483,15 @@
 
             /* ==========================================
                HISTORY EVIDENCE
+               
+               HEADER = WHITE
+               EVIDENCE = GREEN
                ========================================== */
 
             (
                 historyEvidence.length
-                    ? '<div style="margin-top:10px;font-size:14px;color:#90ee90;"><strong>History Evidence:</strong><br>' +
+                    ? '<div style="margin-top:10px;font-size:14px;color:#90ee90;">' +
+                    '<strong style="color:#ffffff;">History Evidence:</strong><br>' +
                     historyEvidence.join("<br>") +
                     "</div>"
                     : ""
@@ -513,11 +500,15 @@
 
             /* ==========================================
                CASE NOTES EVIDENCE
+               
+               HEADER = WHITE
+               EVIDENCE = GREEN
                ========================================== */
 
             (
                 caseNotesEvidence.length
-                    ? '<div style="margin-top:10px;font-size:14px;color:#90ee90;"><strong>Case Notes:</strong><br>' +
+                    ? '<div style="margin-top:10px;font-size:14px;color:#90ee90;">' +
+                    '<strong style="color:#ffffff;">Case Notes:</strong><br>' +
                     caseNotesEvidence.join("<br>") +
                     "</div>"
                     : ""
@@ -551,8 +542,6 @@
 
             /* ==========================================
                STATE
-
-               STATE IS AFTER INELIGIBILITY EVIDENCE
                ========================================== */
 
             '<div style="margin-top:14px;font-size:20px;font-weight:bold;display:flex;align-items:center;gap:10px;">' +
