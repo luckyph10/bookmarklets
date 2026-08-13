@@ -8,9 +8,9 @@
 
     const openContentSelector =
         "#ngForm > fieldset > div:nth-child(5) > div:nth-child(1) > div:nth-child(2) > app-vob-history > div > div:nth-child(3) > div.collapse.mt-1.small.show";
-    
+
     const caseNotesSelector =
-    "#ngForm > fieldset > div:nth-child(24) > div.collapse.show > div > div:nth-child(3) > div > div > table > tbody > tr:nth-child(1)";
+        "#ngForm > fieldset > div:nth-child(24) > div.collapse.show > div > div:nth-child(3) > div > div > table > tbody > tr:nth-child(1)";
 
     function runLogic() {
 
@@ -51,7 +51,8 @@
 
         var planType = "Unknown";
 
-        var plan = document.querySelector(ptSelector);
+        var plan =
+            document.querySelector(ptSelector);
 
         if (plan) {
             planType =
@@ -64,121 +65,137 @@
         }
 
         var historyText = "";
-        var caseNotesText = "";
 
         document.querySelectorAll(
-    "#ngForm > fieldset > div:nth-child(5) > div:nth-child(1) > div:nth-child(2) > app-vob-history > div > div:nth-child(3) > div.collapse.mt-1.small.show > div > div > div.d-flex.flex-wrap.gap-3.mb-1 > span:nth-child(1), #ngForm > fieldset > div:nth-child(5) > div:nth-child(1) > div:nth-child(2) > app-vob-history > div > div:nth-child(3) > div.collapse.mt-1.small.show > div > div > div.text-muted.fst-italic"
-     ).forEach(function (e) {
-    historyText += " " + e.innerText;
-     });
+            "#ngForm > fieldset > div:nth-child(5) > div:nth-child(1) > div:nth-child(2) > app-vob-history > div > div:nth-child(3) > div.collapse.mt-1.small.show > div > div > div.d-flex.flex-wrap.gap-3.mb-1 > span:nth-child(1), #ngForm > fieldset > div:nth-child(5) > div:nth-child(1) > div:nth-child(2) > app-vob-history > div > div:nth-child(3) > div.collapse.mt-1.small.show > div > div > div.text-muted.fst-italic"
+        ).forEach(function (e) {
+            historyText += " " + e.innerText;
+        });
 
-     historyText = historyText.toLowerCase();
+        historyText =
+            historyText.toLowerCase();
 
-     var caseNotesElement =
-    document.querySelector(caseNotesSelector);
+        var caseNotesText = "";
 
-     if (caseNotesElement) {
-     caseNotesText =
-        caseNotesElement.innerText.toLowerCase();
-     }
+        var caseNotesElement =
+            document.querySelector(
+                caseNotesSelector
+            );
+
+        if (caseNotesElement) {
+            caseNotesText =
+                caseNotesElement.innerText.toLowerCase();
+        }
 
         var ptMatch = false;
 
-       var historyEvidence = [];
-       var caseNotesEvidence = [];
+        var historyEvidence = [];
+        var caseNotesEvidence = [];
+
+        var selfFundedKeywords = [
+            "N859",
+            "RARC code N859 is present, indicating NSA jurisdiction",
+            "self funded",
+            "self-funded",
+            "self insured",
+            "self-insured",
+            "unitedhealthcare choice plus",
+            "united healthcare choice",
+            "uhc choice plus",
+            "ucqn",
+            "umr",
+            "boon chapman",
+            "boon-chapman",
+            "allied benefit systems",
+            "oa managed choice pos",
+            "aso",
+            "meritain",
+            "uhss",
+            "commercial plans can have tiers with self funded",
+            "n859",
+            "n860",
+            "n862",
+            "n863",
+            "n864",
+            "n865",
+            "n866",
+            "n869",
+            "n870",
+            "n874",
+            "n875",
+            "n876",
+            "n877",
+            "253",
+            "ma44",
+            "n599",
+            "n858",
+            "n867",
+            "n871",
+            "n883",
+            "t97"
+        ];
 
         if (
             planType === "Self Funded" ||
             planType === "Self Funded (Opt Out)"
         ) {
 
-            var selfFundedKeywords = [
-                "N859",
-                "RARC code N859 is present, indicating NSA jurisdiction",
-                "self funded",
-                "self-funded",
-                "self insured",
-                "self-insured",
-                "unitedhealthcare choice plus",
-                "united healthcare choice",
-                "uhc choice plus",
-                "ucqn",
-                "umr",
-                "boon chapman",
-                "boon-chapman",
-                "allied benefit systems",
-                "oa managed choice pos",
-                "aso",
-                "meritain",
-                "uhss",
-                "commercial plans can have tiers with self funded",
-                "n859",
-                "n860",
-                "n862",
-                "n863",
-                "n864",
-                "n865",
-                "n866",
-                "n869",
-                "n870",
-                "n874",
-                "n875",
-                "n876",
-                "n877",
-                "253",
-                "ma44",
-                "n599",
-                "n858",
-                "n867",
-                "n871",
-                "n883",
-                "t97"
-            ];
+            selfFundedKeywords.forEach(function (keyword) {
 
-            for (
-    var i = 0;
-    i < selfFundedKeywords.length;
-    i++
-) {
+                var search =
+                    keyword.toLowerCase();
 
-    var keyword =
-    selfFundedKeywords[i].toLowerCase();
+                if (
+                    historyText.indexOf(search) > -1
+                ) {
 
-if (
-    historyText.indexOf(keyword) > -1
-) {
+                    ptMatch = true;
 
-    ptMatch = true;
+                    if (
+                        historyEvidence.indexOf(keyword) === -1
+                    ) {
+                        historyEvidence.push(keyword);
+                    }
+                }
 
-    historyEvidence.push(
-        selfFundedKeywords[i]
-    );
-}
+                if (
+                    caseNotesText.indexOf(search) > -1
+                ) {
 
-if (
-    caseNotesText.indexOf(keyword) > -1
-) {
+                    ptMatch = true;
 
-    ptMatch = true;
+                    if (
+                        caseNotesEvidence.indexOf(keyword) === -1
+                    ) {
+                        caseNotesEvidence.push(keyword);
+                    }
+                }
 
-    caseNotesEvidence.push(
-        selfFundedKeywords[i]
-    );
-}
-
-}
+            });
 
         } else {
 
-            ptMatch =
-                planType !== "Unknown" &&
-                text.indexOf(
-                    planType.toLowerCase()
-                ) > -1;
+            var search =
+                planType.toLowerCase();
 
-            if (ptMatch) {
-    matchedEvidence.push(planType);
-}
+            if (
+                historyText.indexOf(search) > -1
+            ) {
+
+                ptMatch = true;
+
+                historyEvidence.push(planType);
+            }
+
+            if (
+                caseNotesText.indexOf(search) > -1
+            ) {
+
+                ptMatch = true;
+
+                caseNotesEvidence.push(planType);
+            }
+
         }
 
         var ageColor =
@@ -236,21 +253,20 @@ if (
             ';display:inline-block;"></span></div>' +
 
             (
-    (
-    historyEvidence.length
-        ? '<div style="margin-top:8px;font-size:14px;color:#90ee90;">History Evidence:<br>' +
-          historyEvidence.join("<br>") +
-          "</div>"
-        : ""
-) +
+                historyEvidence.length
+                    ? '<div style="margin-top:10px;font-size:14px;color:#90ee90;"><strong>History Evidence:</strong><br>' +
+                    historyEvidence.join("<br>") +
+                    "</div>"
+                    : ""
+            ) +
 
-(
-    caseNotesEvidence.length
-        ? '<div style="margin-top:8px;font-size:14px;color:#90ee90;">Case Notes:<br>' +
-          caseNotesEvidence.join("<br>") +
-          "</div>"
-        : ""
-);
+            (
+                caseNotesEvidence.length
+                    ? '<div style="margin-top:10px;font-size:14px;color:#90ee90;"><strong>Case Notes:</strong><br>' +
+                    caseNotesEvidence.join("<br>") +
+                    "</div>"
+                    : ""
+            );
 
         document.body.appendChild(
             popup
