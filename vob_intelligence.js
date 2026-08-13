@@ -16,6 +16,10 @@
     const ineligibilityReasonsSelector =
         "#ngForm > fieldset > div:nth-child(15) > div:nth-child(3) > div:nth-child(2) > div > div:nth-child(2) > textarea";
 
+    /* State selector */
+    const stateSelector =
+        "#ngForm > fieldset > div:nth-child(15) > div:nth-child(3) > div.col-lg-6.justify-content-end.mb-4 > div:nth-child(1) > select";
+
 
     function runLogic() {
 
@@ -70,6 +74,76 @@
             planType =
                 plan.options[plan.selectedIndex].text;
         }
+
+
+        /* ==========================================
+           STATE
+           ========================================== */
+
+        var state = "Unknown";
+
+        var stateElement =
+            document.querySelector(
+                stateSelector
+            );
+
+        if (stateElement) {
+            state =
+                stateElement.selectedOptions[0]?.text ||
+                stateElement.value ||
+                "Unknown";
+
+            state =
+                state.trim();
+        }
+
+
+        /*
+         * ADD YOUR BIFURCATED STATES HERE.
+         *
+         * Example:
+         *
+         * var bifurcatedStates = [
+         *     "Texas",
+         *     "California"
+         * ];
+         *
+         * Until the list is provided, this is empty.
+         */
+
+        var bifurcatedStates = [];
+
+
+        var stateLower =
+            state.toLowerCase().trim();
+
+        var isBifurcated =
+            bifurcatedStates.some(function (bifurcatedState) {
+                return (
+                    stateLower ===
+                    bifurcatedState.toLowerCase().trim()
+                );
+            });
+
+
+        var stateColor;
+
+        if (isBifurcated) {
+
+            stateColor = "#ff4d4f";
+
+        } else {
+
+            stateColor = "#2ecc71";
+
+        }
+
+
+        var stateStatus =
+            isBifurcated
+                ? "Bifurcated"
+                : "Non-Bifurcated";
+
 
         var historyText = "";
 
@@ -238,25 +312,6 @@
 
         /* ==========================================
            PT INDICATOR LOGIC
-
-           RED:
-           - Exchange/Marketplace-State
-           - Other
-           - Unknown
-           - Government
-           - State
-           - Federal
-           - Medicaid
-           - Medicare
-
-           Also catches similar plan names containing
-           these words.
-
-           GREEN:
-           Any other plan type WITH evidence.
-
-           ORANGE:
-           Any other plan type WITHOUT evidence.
            ========================================== */
 
         var redPlanTypeKeywords = [
@@ -378,6 +433,22 @@
             ' <span style="width:14px;height:14px;border-radius:50%;background:' +
             ptColor +
             ';display:inline-block;"></span></div>' +
+
+
+            /* STATE */
+
+            '<div style="margin-top:10px;font-size:20px;font-weight:bold;display:flex;align-items:center;gap:10px;">STATE: ' +
+            '<span style="width:14px;height:14px;border-radius:50%;background:' +
+            stateColor +
+            ';display:inline-block;"></span>' +
+            '</div>' +
+
+            '<div style="margin-top:4px;font-size:16px;color:#fff;">' +
+            state +
+            ' (' +
+            stateStatus +
+            ')' +
+            '</div>' +
 
 
             /* HISTORY EVIDENCE */
