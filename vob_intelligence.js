@@ -8,6 +8,9 @@
 
     const openContentSelector =
         "#ngForm > fieldset > div:nth-child(5) > div:nth-child(1) > div:nth-child(2) > app-vob-history > div > div:nth-child(3) > div.collapse.mt-1.small.show";
+    
+    const caseNotesSelector =
+    "#ngForm > fieldset > div:nth-child(24) > div.collapse.show > div > div:nth-child(3) > div > div > table > tbody > tr:nth-child(1)";
 
     function runLogic() {
 
@@ -60,18 +63,29 @@
                 ).trim();
         }
 
-        var text = "";
+        var historyText = "";
+        var caseNotesText = "";
 
         document.querySelectorAll(
-            "#ngForm > fieldset > div:nth-child(5) > div:nth-child(1) > div:nth-child(2) > app-vob-history > div > div:nth-child(3) > div.collapse.mt-1.small.show > div > div > div.d-flex.flex-wrap.gap-3.mb-1 > span:nth-child(1), #ngForm > fieldset > div:nth-child(5) > div:nth-child(1) > div:nth-child(2) > app-vob-history > div > div:nth-child(3) > div.collapse.mt-1.small.show > div > div > div.text-muted.fst-italic"
-        ).forEach(function (e) {
-            text += " " + e.innerText;
-        });
+    "#ngForm > fieldset > div:nth-child(5) > div:nth-child(1) > div:nth-child(2) > app-vob-history > div > div:nth-child(3) > div.collapse.mt-1.small.show > div > div > div.d-flex.flex-wrap.gap-3.mb-1 > span:nth-child(1), #ngForm > fieldset > div:nth-child(5) > div:nth-child(1) > div:nth-child(2) > app-vob-history > div > div:nth-child(3) > div.collapse.mt-1.small.show > div > div > div.text-muted.fst-italic"
+     ).forEach(function (e) {
+    historyText += " " + e.innerText;
+     });
 
-        text = text.toLowerCase();
+     historyText = historyText.toLowerCase();
+
+     var caseNotesElement =
+    document.querySelector(caseNotesSelector);
+
+     if (caseNotesElement) {
+     caseNotesText =
+        caseNotesElement.innerText.toLowerCase();
+     }
 
         var ptMatch = false;
-        var matchedEvidence = [];
+
+       var historyEvidence = [];
+       var caseNotesEvidence = [];
 
         if (
             planType === "Self Funded" ||
@@ -127,19 +141,31 @@
     i++
 ) {
 
-    if (
-        text.indexOf(
-            selfFundedKeywords[i]
-                .toLowerCase()
-        ) > -1
-    ) {
+    var keyword =
+    selfFundedKeywords[i].toLowerCase();
 
-        ptMatch = true;
+if (
+    historyText.indexOf(keyword) > -1
+) {
 
-        matchedEvidence.push(
-            selfFundedKeywords[i]
-        );
-    }
+    ptMatch = true;
+
+    historyEvidence.push(
+        selfFundedKeywords[i]
+    );
+}
+
+if (
+    caseNotesText.indexOf(keyword) > -1
+) {
+
+    ptMatch = true;
+
+    caseNotesEvidence.push(
+        selfFundedKeywords[i]
+    );
+}
+
 }
 
         } else {
@@ -210,9 +236,18 @@
             ';display:inline-block;"></span></div>' +
 
             (
-    matchedEvidence.length
-        ? '<div style="margin-top:8px;font-size:14px;color:#90ee90;">Evidence:<br>' +
-          matchedEvidence.join("<br>") +
+    (
+    historyEvidence.length
+        ? '<div style="margin-top:8px;font-size:14px;color:#90ee90;">History Evidence:<br>' +
+          historyEvidence.join("<br>") +
+          "</div>"
+        : ""
+) +
+
+(
+    caseNotesEvidence.length
+        ? '<div style="margin-top:8px;font-size:14px;color:#90ee90;">Case Notes:<br>' +
+          caseNotesEvidence.join("<br>") +
           "</div>"
         : ""
 );
