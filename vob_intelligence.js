@@ -12,6 +12,9 @@
     const caseNotesSelector =
         "#ngForm > fieldset > div:nth-child(24) > div.collapse.show > div > div:nth-child(3) > div > div > table > tbody";
 
+    const caseNotesButtonSelector =
+        "#ngForm > fieldset > div:nth-child(24) > div.d-flex.mb-2 > button";
+
     function runLogic() {
 
         var dob = document.querySelector("#DOB");
@@ -293,41 +296,55 @@
 
     }
 
-    const alreadyOpen =
-        document.querySelector(
-            openContentSelector
-        );
+    const historyIsOpen =
+    document.querySelector(
+        openContentSelector
+    );
 
-    if (alreadyOpen) {
+const caseNotesIsOpen =
+    document.querySelector(
+        caseNotesSelector
+    );
 
+const historyButton =
+    document.querySelector(
+        openerSelector
+    );
+
+const caseNotesButton =
+    document.querySelector(
+        caseNotesButtonSelector
+    );
+
+if (
+    !historyIsOpen &&
+    historyButton
+) {
+    historyButton.scrollIntoView({
+        behavior: "smooth",
+        block: "center"
+    });
+
+    historyButton.click();
+}
+
+if (
+    !caseNotesIsOpen &&
+    caseNotesButton
+) {
+    caseNotesButton.scrollIntoView({
+        behavior: "smooth",
+        block: "center"
+    });
+
+    caseNotesButton.click();
+}
+
+setTimeout(
+    function () {
         runLogic();
-
-    } else {
-
-        const opener =
-            document.querySelector(
-                openerSelector
-            );
-
-        if (opener) {
-
-            opener.scrollIntoView({
-                behavior: "smooth",
-                block: "center"
-            });
-
-            opener.click();
-
-            setTimeout(
-                runLogic,
-                300
-            );
-
-        } else {
-
-            runLogic();
-
-        }
-    }
+    },
+    500
+);
 
 })();
