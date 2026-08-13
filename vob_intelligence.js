@@ -12,6 +12,11 @@
     const caseNotesButtonSelector =
         "#ngForm > fieldset > div:nth-child(24) > div.d-flex.mb-2 > button";
 
+    /* Ineligibility Reasons textarea */
+    const ineligibilityReasonsSelector =
+        "#ngForm > fieldset > div:nth-child(15) > div:nth-child(3) > div:nth-child(2) > div > div:nth-child(2) > textarea";
+
+
     function runLogic() {
 
         var dob = document.querySelector("#DOB");
@@ -88,6 +93,29 @@
             caseNotesText =
                 caseNotesElement.innerText.toLowerCase();
         }
+
+
+        /* ==========================================
+           INELIGIBILITY REASONS
+           ========================================== */
+
+        var ineligibilityReasonsText = "";
+
+        var ineligibilityReasonsElement =
+            document.querySelector(
+                ineligibilityReasonsSelector
+            );
+
+        if (ineligibilityReasonsElement) {
+            ineligibilityReasonsText =
+                ineligibilityReasonsElement.value ||
+                ineligibilityReasonsElement.textContent ||
+                "";
+
+            ineligibilityReasonsText =
+                ineligibilityReasonsText.trim();
+        }
+
 
         var ptMatch = false;
 
@@ -210,6 +238,14 @@
                 ? "#2ecc71"
                 : "#ff4d4f";
 
+
+        /* Ineligibility Reasons indicator */
+        var ineligibilityColor =
+            ineligibilityReasonsText
+                ? "#2ecc71"
+                : "#ff4d4f";
+
+
         var old =
             document.getElementById(
                 "agePopupBookmarklet"
@@ -239,6 +275,7 @@
             "box-shadow:0 10px 30px rgba(0,0,0,.4);" +
             "max-width:500px;";
 
+
         popup.innerHTML =
             '<button style="position:absolute;top:5px;right:10px;background:none;border:none;color:#fff;font-size:20px;cursor:pointer;">×</button>' +
 
@@ -254,6 +291,7 @@
             ptColor +
             ';display:inline-block;"></span></div>' +
 
+
             (
                 historyEvidence.length
                     ? '<div style="margin-top:10px;font-size:14px;color:#90ee90;"><strong>History Evidence:</strong><br>' +
@@ -262,13 +300,36 @@
                     : ""
             ) +
 
+
             (
                 caseNotesEvidence.length
                     ? '<div style="margin-top:10px;font-size:14px;color:#90ee90;"><strong>Case Notes:</strong><br>' +
                     caseNotesEvidence.join("<br>") +
                     "</div>"
                     : ""
+            ) +
+
+
+            /* ==========================================
+               INELIGIBILITY REASONS
+               Appears AFTER Case Notes Evidence
+               ========================================== */
+
+            '<div style="margin-top:14px;font-size:16px;font-weight:bold;display:flex;align-items:center;gap:8px;">' +
+            'Ineligibility Reasons:' +
+            '<span style="width:14px;height:14px;border-radius:50%;background:' +
+            ineligibilityColor +
+            ';display:inline-block;"></span>' +
+            '</div>' +
+
+            (
+                ineligibilityReasonsText
+                    ? '<div style="margin-top:6px;font-size:14px;color:#90ee90;white-space:pre-wrap;word-break:break-word;">' +
+                    ineligibilityReasonsText.replace(/</g, "&lt;").replace(/>/g, "&gt;") +
+                    "</div>"
+                    : '<div style="margin-top:6px;font-size:14px;color:#ff6b6b;">No evidence found / textarea is empty.</div>'
             );
+
 
         document.body.appendChild(
             popup
@@ -279,6 +340,7 @@
         ).onclick = function () {
             popup.remove();
         };
+
 
         setTimeout(function () {
 
@@ -294,6 +356,7 @@
         }, 7000);
 
     }
+
 
     const historyIsOpen =
         document.querySelector(
@@ -315,6 +378,7 @@
             caseNotesButtonSelector
         );
 
+
     if (
         !historyIsOpen &&
         historyButton
@@ -327,6 +391,7 @@
         historyButton.click();
     }
 
+
     if (
         !caseNotesIsOpen &&
         caseNotesButton
@@ -338,6 +403,7 @@
 
         caseNotesButton.click();
     }
+
 
     setTimeout(
         function () {
