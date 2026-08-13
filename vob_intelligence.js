@@ -71,7 +71,7 @@
         text = text.toLowerCase();
 
         var ptMatch = false;
-        var matchedEvidence = "";
+        var matchedEvidence = [];
 
         if (
             planType === "Self Funded" ||
@@ -122,24 +122,25 @@
             ];
 
             for (
-                var i = 0;
-                i < selfFundedKeywords.length;
-                i++
-            ) {
+    var i = 0;
+    i < selfFundedKeywords.length;
+    i++
+) {
 
-                if (
-                    text.indexOf(
-                        selfFundedKeywords[i].toLowerCase()
-                    ) > -1
-                ) {
+    if (
+        text.indexOf(
+            selfFundedKeywords[i]
+                .toLowerCase()
+        ) > -1
+    ) {
 
-                    ptMatch = true;
-                    matchedEvidence =
-                        selfFundedKeywords[i];
+        ptMatch = true;
 
-                    break;
-                }
-            }
+        matchedEvidence.push(
+            selfFundedKeywords[i]
+        );
+    }
+}
 
         } else {
 
@@ -150,8 +151,8 @@
                 ) > -1;
 
             if (ptMatch) {
-                matchedEvidence = planType;
-            }
+    matchedEvidence.push(planType);
+}
         }
 
         var ageColor =
@@ -209,12 +210,12 @@
             ';display:inline-block;"></span></div>' +
 
             (
-                matchedEvidence
-                    ? '<div style="margin-top:8px;font-size:14px;color:#90ee90;">Evidence: ' +
-                    matchedEvidence +
-                    "</div>"
-                    : ""
-            );
+    matchedEvidence.length
+        ? '<div style="margin-top:8px;font-size:14px;color:#90ee90;">Evidence:<br>' +
+          matchedEvidence.join("<br>") +
+          "</div>"
+        : ""
+);
 
         document.body.appendChild(
             popup
