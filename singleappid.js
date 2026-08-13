@@ -4,9 +4,7 @@
     );
 
     if (el) {
-        el.target = '_self';   // open in current tab
-        el.removeAttribute('target');
-        el.click();
+        window.open(el.href, '_blank');
     } else {
         alert('Element not found');
     }
