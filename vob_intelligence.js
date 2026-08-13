@@ -107,6 +107,7 @@
             );
 
         if (ineligibilityReasonsElement) {
+
             ineligibilityReasonsText =
                 ineligibilityReasonsElement.value ||
                 ineligibilityReasonsElement.textContent ||
@@ -121,6 +122,7 @@
 
         var historyEvidence = [];
         var caseNotesEvidence = [];
+
 
         var selfFundedKeywords = [
             "N859",
@@ -164,6 +166,11 @@
             "n883",
             "t97"
         ];
+
+
+        /* ==========================================
+           EXISTING PT EVIDENCE LOGIC
+           ========================================== */
 
         if (
             planType === "Self Funded" ||
@@ -228,23 +235,90 @@
 
         }
 
+
+        /* ==========================================
+           PT INDICATOR LOGIC
+
+           RED:
+           - Exchange/Marketplace-State
+           - Other
+           - Unknown
+           - Government
+           - State
+           - Federal
+           - Medicaid
+           - Medicare
+
+           Also catches similar plan names containing
+           these words.
+
+           GREEN:
+           Any other plan type WITH evidence.
+
+           ORANGE:
+           Any other plan type WITHOUT evidence.
+           ========================================== */
+
+        var redPlanTypeKeywords = [
+            "exchange/marketplace-state",
+            "other",
+            "unknown",
+            "government",
+            "state",
+            "federal",
+            "medicaid",
+            "medicare"
+        ];
+
+        var planTypeLower =
+            planType.toLowerCase();
+
+        var isRedPlanType =
+            redPlanTypeKeywords.some(function (keyword) {
+                return planTypeLower.indexOf(keyword) > -1;
+            });
+
+
+        var ptColor;
+
+        if (isRedPlanType) {
+
+            ptColor = "#ff4d4f";
+
+        } else if (ptMatch) {
+
+            ptColor = "#2ecc71";
+
+        } else {
+
+            ptColor = "#f39c12";
+
+        }
+
+
+        /* ==========================================
+           AGE INDICATOR
+           ========================================== */
+
         var ageColor =
             age >= 65
                 ? "#ff4d4f"
                 : "#2ecc71";
 
-        var ptColor =
-            ptMatch
-                ? "#2ecc71"
-                : "#ff4d4f";
 
+        /* ==========================================
+           INELIGIBILITY REASONS INDICATOR
+           ========================================== */
 
-        /* Ineligibility Reasons indicator */
         var ineligibilityColor =
             ineligibilityReasonsText
                 ? "#2ecc71"
                 : "#ff4d4f";
 
+
+        /* ==========================================
+           REMOVE OLD POPUP
+           ========================================== */
 
         var old =
             document.getElementById(
@@ -254,6 +328,11 @@
         if (old) {
             old.remove();
         }
+
+
+        /* ==========================================
+           CREATE POPUP
+           ========================================== */
 
         var popup =
             document.createElement("div");
@@ -277,7 +356,13 @@
 
 
         popup.innerHTML =
+
+            /* Close button */
+
             '<button style="position:absolute;top:5px;right:10px;background:none;border:none;color:#fff;font-size:20px;cursor:pointer;">×</button>' +
+
+
+            /* AGE */
 
             '<div style="font-size:24px;font-weight:bold;display:flex;align-items:center;gap:10px;">AGE: ' +
             age +
@@ -285,12 +370,17 @@
             ageColor +
             ';display:inline-block;"></span></div>' +
 
+
+            /* PT */
+
             '<div style="margin-top:10px;font-size:24px;font-weight:bold;display:flex;align-items:center;gap:10px;">PT: ' +
             planType +
             ' <span style="width:14px;height:14px;border-radius:50%;background:' +
             ptColor +
             ';display:inline-block;"></span></div>' +
 
+
+            /* HISTORY EVIDENCE */
 
             (
                 historyEvidence.length
@@ -300,6 +390,8 @@
                     : ""
             ) +
 
+
+            /* CASE NOTES EVIDENCE */
 
             (
                 caseNotesEvidence.length
@@ -312,7 +404,6 @@
 
             /* ==========================================
                INELIGIBILITY REASONS
-               Appears AFTER Case Notes Evidence
                ========================================== */
 
             '<div style="margin-top:14px;font-size:16px;font-weight:bold;display:flex;align-items:center;gap:8px;">' +
@@ -322,11 +413,16 @@
             ';display:inline-block;"></span>' +
             '</div>' +
 
+
             (
                 ineligibilityReasonsText
+
                     ? '<div style="margin-top:6px;font-size:14px;color:#90ee90;white-space:pre-wrap;word-break:break-word;">' +
-                    ineligibilityReasonsText.replace(/</g, "&lt;").replace(/>/g, "&gt;") +
+                    ineligibilityReasonsText
+                        .replace(/</g, "&lt;")
+                        .replace(/>/g, "&gt;") +
                     "</div>"
+
                     : '<div style="margin-top:6px;font-size:14px;color:#ff6b6b;">No evidence found / textarea is empty.</div>'
             );
 
@@ -335,12 +431,21 @@
             popup
         );
 
+
+        /* ==========================================
+           CLOSE BUTTON
+           ========================================== */
+
         popup.querySelector(
             "button"
         ).onclick = function () {
             popup.remove();
         };
 
+
+        /* ==========================================
+           AUTO CLOSE AFTER 7 SECONDS
+           ========================================== */
 
         setTimeout(function () {
 
@@ -358,20 +463,39 @@
     }
 
 
+    /* ==========================================
+       CHECK IF HISTORY IS OPEN
+       ========================================== */
+
     const historyIsOpen =
         document.querySelector(
             openContentSelector
         );
+
+
+    /* ==========================================
+       CHECK IF CASE NOTES ARE OPEN
+       ========================================== */
 
     const caseNotesIsOpen =
         document.querySelector(
             caseNotesSelector
         );
 
+
+    /* ==========================================
+       FIND HISTORY BUTTON
+       ========================================== */
+
     const historyButton =
         document.querySelector(
             openerSelector
         );
+
+
+    /* ==========================================
+       FIND CASE NOTES BUTTON
+       ========================================== */
 
     const caseNotesButton =
         document.querySelector(
@@ -379,10 +503,15 @@
         );
 
 
+    /* ==========================================
+       OPEN HISTORY
+       ========================================== */
+
     if (
         !historyIsOpen &&
         historyButton
     ) {
+
         historyButton.scrollIntoView({
             behavior: "smooth",
             block: "center"
@@ -392,10 +521,15 @@
     }
 
 
+    /* ==========================================
+       OPEN CASE NOTES
+       ========================================== */
+
     if (
         !caseNotesIsOpen &&
         caseNotesButton
     ) {
+
         caseNotesButton.scrollIntoView({
             behavior: "smooth",
             block: "center"
@@ -404,6 +538,10 @@
         caseNotesButton.click();
     }
 
+
+    /* ==========================================
+       RUN AFTER CONTENT OPENS
+       ========================================== */
 
     setTimeout(
         function () {
