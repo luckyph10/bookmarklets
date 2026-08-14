@@ -60,19 +60,27 @@
 
         var planType = "Unknown";
 
-        /* Plan Type selector - KEEPING YOUR WORKING LOGIC */
+
+        /* ==========================================
+           PLAN TYPE
+           ========================================== */
+
         var plan = Array.from(
             document.querySelectorAll("select")
         ).find(function (s) {
+
             return (
                 s.parentElement &&
                 s.parentElement.innerText.indexOf("Plan Type") > -1
             );
+
         });
 
         if (plan) {
+
             planType =
                 plan.options[plan.selectedIndex].text;
+
         }
 
 
@@ -96,6 +104,7 @@
 
             state =
                 state.trim();
+
         }
 
 
@@ -225,14 +234,20 @@
 
             ineligibilityReasonsText =
                 ineligibilityReasonsText.trim();
+
         }
 
 
         var ptMatch = false;
 
         var historyEvidence = [];
+
         var caseNotesEvidence = [];
 
+
+        /* ==========================================
+           SELF FUNDED KEYWORDS
+           ========================================== */
 
         var selfFundedKeywords = [
             "N859",
@@ -302,9 +317,13 @@
                     if (
                         historyEvidence.indexOf(keyword) === -1
                     ) {
+
                         historyEvidence.push(keyword);
+
                     }
+
                 }
+
 
                 if (
                     caseNotesText.indexOf(search) > -1
@@ -315,8 +334,11 @@
                     if (
                         caseNotesEvidence.indexOf(keyword) === -1
                     ) {
+
                         caseNotesEvidence.push(keyword);
+
                     }
+
                 }
 
             });
@@ -333,7 +355,9 @@
                 ptMatch = true;
 
                 historyEvidence.push(planType);
+
             }
+
 
             if (
                 caseNotesText.indexOf(search) > -1
@@ -342,6 +366,7 @@
                 ptMatch = true;
 
                 caseNotesEvidence.push(planType);
+
             }
 
         }
@@ -362,8 +387,10 @@
             "medicare"
         ];
 
+
         var planTypeLower =
             planType.toLowerCase();
+
 
         var isRedPlanType =
             redPlanTypeKeywords.some(function (keyword) {
@@ -453,16 +480,12 @@
 
         popup.innerHTML =
 
-            /* ==========================================
-               CLOSE BUTTON
-               ========================================== */
+            /* CLOSE BUTTON */
 
             '<button style="position:absolute;top:5px;right:10px;background:none;border:none;color:#fff;font-size:20px;cursor:pointer;">×</button>' +
 
 
-            /* ==========================================
-               AGE
-               ========================================== */
+            /* AGE */
 
             '<div style="font-size:24px;font-weight:bold;display:flex;align-items:center;gap:10px;">AGE: ' +
             age +
@@ -471,9 +494,7 @@
             ';display:inline-block;"></span></div>' +
 
 
-            /* ==========================================
-               PT
-               ========================================== */
+            /* PT */
 
             '<div style="margin-top:10px;font-size:24px;font-weight:bold;display:flex;align-items:center;gap:10px;">PT: ' +
             planType +
@@ -482,12 +503,7 @@
             ';display:inline-block;"></span></div>' +
 
 
-            /* ==========================================
-               HISTORY EVIDENCE
-               
-               HEADER = WHITE
-               EVIDENCE = GREEN
-               ========================================== */
+            /* HISTORY EVIDENCE */
 
             (
                 historyEvidence.length
@@ -499,12 +515,7 @@
             ) +
 
 
-            /* ==========================================
-               CASE NOTES EVIDENCE
-               
-               HEADER = WHITE
-               EVIDENCE = GREEN
-               ========================================== */
+            /* CASE NOTES EVIDENCE */
 
             (
                 caseNotesEvidence.length
@@ -516,9 +527,7 @@
             ) +
 
 
-            /* ==========================================
-               INELIGIBILITY REASONS
-               ========================================== */
+            /* INELIGIBILITY REASONS */
 
             '<div style="margin-top:14px;font-size:16px;font-weight:bold;display:flex;align-items:center;gap:8px;">' +
             'Ineligibility Reasons:' +
@@ -541,9 +550,7 @@
             ) +
 
 
-            /* ==========================================
-               STATE
-               ========================================== */
+            /* STATE */
 
             '<div style="margin-top:14px;font-size:20px;font-weight:bold;display:flex;align-items:center;gap:10px;">' +
             'STATE: ' +
@@ -572,7 +579,9 @@
         popup.querySelector(
             "button"
         ).onclick = function () {
+
             popup.remove();
+
         };
 
 
@@ -651,6 +660,7 @@
         });
 
         historyButton.click();
+
     }
 
 
@@ -669,18 +679,292 @@
         });
 
         caseNotesButton.click();
+
     }
 
 
     /* ==========================================
-       RUN AFTER CONTENT OPENS
+       RUN MAIN LOGIC AFTER CONTENT OPENS
        ========================================== */
 
     setTimeout(
         function () {
+
             runLogic();
+
         },
         100
     );
+
+})();
+
+
+/* ============================================================
+   VOB OPENER
+   ============================================================ */
+
+(function () {
+
+    /* ==========================================
+       OPEN FILES LIST
+       ========================================== */
+
+    const filesBtn =
+        document.querySelector(
+            'button[title="Toggle the Files list"]'
+        );
+
+    if (filesBtn) {
+
+        if (
+            filesBtn.getAttribute("aria-expanded") === "false"
+        ) {
+
+            filesBtn.click();
+
+        }
+
+        filesBtn.scrollIntoView({
+            behavior: "smooth",
+            block: "center"
+        });
+
+    }
+
+
+    /* ==========================================
+       OPEN NOTES SECTION
+       ========================================== */
+
+    const notesBtn =
+        document.querySelector(
+            'button[title="Toggle Notes section"]'
+        );
+
+    if (notesBtn) {
+
+        if (
+            notesBtn.getAttribute("aria-expanded") === "false"
+        ) {
+
+            notesBtn.click();
+
+        }
+
+        const container =
+            notesBtn.closest("div");
+
+        if (container) {
+
+            container.scrollIntoView({
+                behavior: "smooth",
+                block: "start"
+            });
+
+            window.scrollBy(0, 500);
+
+        }
+
+    }
+
+
+    /* ==========================================
+       REMOVE OLD VOB POPUP
+       ========================================== */
+
+    const old =
+        document.getElementById(
+            "vobPopup"
+        );
+
+    if (old) {
+
+        old.remove();
+
+    }
+
+
+    /* ==========================================
+       FIND VOB BUTTONS
+       ========================================== */
+
+    const vobs =
+        [...document.querySelectorAll("button.btn-modal")]
+            .filter(function (btn) {
+
+                return (
+                    btn.title?.toLowerCase().includes("view vob") ||
+                    btn.textContent.toLowerCase().includes("vob")
+                );
+
+            });
+
+
+    /* ==========================================
+       NO VOB BUTTONS FOUND
+       ========================================== */
+
+    if (!vobs.length) {
+
+        alert("No VOB buttons found.");
+
+        return;
+
+    }
+
+
+    /* ==========================================
+       CREATE VOB POPUP
+       ========================================== */
+
+    const popup =
+        document.createElement("div");
+
+    popup.id =
+        "vobPopup";
+
+
+    popup.style.cssText =
+        "position:fixed;" +
+        "top:20px;" +
+        "left:50%;" +
+        "transform:translateX(-50%);" +
+        "width:220px;" +
+        "background:#111827;" +
+        "border:1px solid #374151;" +
+        "border-radius:10px;" +
+        "box-shadow:0 6px 18px rgba(0,0,0,.5);" +
+        "z-index:999999999;" +
+        "font-family:Segoe UI,Arial;" +
+        "font-size:12px;" +
+        "color:#e5e7eb;";
+
+
+    /* ==========================================
+       CREATE POPUP HTML
+       ========================================== */
+
+    let html =
+
+        '<div style="padding:8px;border-bottom:1px solid #374151;font-weight:600;text-align:center;">' +
+
+        'VOB Opener' +
+
+        '<span id="closeVob" style="float:right;cursor:pointer;">✕</span>' +
+
+        '</div>' +
+
+        '<div style="padding:10px;">';
+
+
+    /* ==========================================
+       CREATE VOB BUTTONS
+       ========================================== */
+
+    vobs.forEach(function (v, i) {
+
+        html +=
+
+            '<button class="vobBtn" data-index="' +
+            i +
+            '" style="width:100%;padding:8px;background:#2563eb;color:#fff;border:none;border-radius:5px;cursor:pointer;font-weight:600;margin-bottom:5px;">' +
+
+            '📄 VOB ' +
+
+            (i + 1) +
+
+            '</button>';
+
+    });
+
+
+    html +=
+        "</div>";
+
+
+    popup.innerHTML =
+        html;
+
+
+    document.body.appendChild(
+        popup
+    );
+
+
+    /* ==========================================
+       AUTO CLOSE VOB POPUP
+       ========================================== */
+
+    setTimeout(function () {
+
+        const p =
+            document.getElementById(
+                "vobPopup"
+            );
+
+        if (p) {
+
+            p.remove();
+
+        }
+
+    }, 5000);
+
+
+    /* ==========================================
+       CLOSE VOB POPUP
+       ========================================== */
+
+    const closeVob =
+        document.getElementById(
+            "closeVob"
+        );
+
+    if (closeVob) {
+
+        closeVob.onclick =
+            function () {
+
+                popup.remove();
+
+            };
+
+    }
+
+
+    /* ==========================================
+       VOB BUTTON CLICK LOGIC
+       ========================================== */
+
+    popup
+        .querySelectorAll(".vobBtn")
+        .forEach(function (btn) {
+
+            btn.onclick =
+                function () {
+
+                    const index =
+                        parseInt(
+                            btn.dataset.index,
+                            10
+                        );
+
+                    const v =
+                        vobs[index];
+
+                    if (v) {
+
+                        v.scrollIntoView({
+                            behavior: "smooth",
+                            block: "center"
+                        });
+
+                        v.click();
+
+                    }
+
+                };
+
+        });
 
 })();
