@@ -929,7 +929,7 @@
 
                 '<div style="margin-top:6px;font-size:13px;color:#ff6b6b;">' +
 
-                "No VOB buttons found." +
+                "No VOB files found." +
 
                 "</div>" +
 
