@@ -1,5 +1,9 @@
 (function () {
 
+    /* ============================================================
+       SELECTORS
+       ============================================================ */
+
     const openerSelector =
         "#ngForm > fieldset > div:nth-child(5) > div:nth-child(1) > div:nth-child(2) > app-vob-history > div > div:nth-child(3) > div.small.text-muted.d-inline-flex.align-items-center.gap-1.user-select-none";
 
@@ -21,86 +25,335 @@
         "#ngForm > fieldset > div:nth-child(15) > div:nth-child(3) > div.col-lg-6.justify-content-end.mb-4 > div:nth-child(1) > select";
 
 
+    /* ============================================================
+       VOB SECTION BUTTON
+       ============================================================ */
+
+    const vobSectionButtonSelector =
+        "#ngForm > fieldset > div:nth-child(22) > div.d-flex.mb-2 > button";
+
+
+    /* ============================================================
+       FILES BUTTON
+       ============================================================ */
+
+    const filesButtonSelector =
+        'button[title="Toggle the Files list"]';
+
+
+    /* ============================================================
+       NOTES BUTTON
+       ============================================================ */
+
+    const notesButtonSelector =
+        'button[title="Toggle Notes section"]';
+
+
+    /* ============================================================
+       OPEN VOB SECTION
+       ============================================================ */
+
+    function openVobSection() {
+
+        const vobSectionButton =
+            document.querySelector(
+                vobSectionButtonSelector
+            );
+
+        if (vobSectionButton) {
+
+            /*
+             * If the button controls an expandable section,
+             * attempt to determine whether it is already open.
+             */
+
+            const ariaExpanded =
+                vobSectionButton.getAttribute(
+                    "aria-expanded"
+                );
+
+            if (
+                ariaExpanded === "false"
+            ) {
+
+                vobSectionButton.scrollIntoView({
+                    behavior: "smooth",
+                    block: "center"
+                });
+
+                vobSectionButton.click();
+
+            } else if (
+                ariaExpanded === null
+            ) {
+
+                /*
+                 * If aria-expanded does not exist,
+                 * click the button so the VOB section opens.
+                 */
+
+                vobSectionButton.scrollIntoView({
+                    behavior: "smooth",
+                    block: "center"
+                });
+
+                vobSectionButton.click();
+
+            }
+
+        }
+
+    }
+
+
+    /* ============================================================
+       OPEN FILES
+       ============================================================ */
+
+    function openFilesSection() {
+
+        const filesBtn =
+            document.querySelector(
+                filesButtonSelector
+            );
+
+        if (filesBtn) {
+
+            if (
+                filesBtn.getAttribute(
+                    "aria-expanded"
+                ) === "false"
+            ) {
+
+                filesBtn.click();
+
+            }
+
+            filesBtn.scrollIntoView({
+                behavior: "smooth",
+                block: "center"
+            });
+
+        }
+
+    }
+
+
+    /* ============================================================
+       OPEN NOTES
+       ============================================================ */
+
+    function openNotesSection() {
+
+        const notesBtn =
+            document.querySelector(
+                notesButtonSelector
+            );
+
+        if (notesBtn) {
+
+            if (
+                notesBtn.getAttribute(
+                    "aria-expanded"
+                ) === "false"
+            ) {
+
+                notesBtn.click();
+
+            }
+
+            const container =
+                notesBtn.closest("div");
+
+            if (container) {
+
+                container.scrollIntoView({
+                    behavior: "smooth",
+                    block: "start"
+                });
+
+                window.scrollBy(
+                    0,
+                    500
+                );
+
+            }
+
+        }
+
+    }
+
+
+    /* ============================================================
+       FIND VOB BUTTONS
+       ============================================================ */
+
+    function findVobButtons() {
+
+        return [
+            ...document.querySelectorAll(
+                "button.btn-modal"
+            )
+        ].filter(function (btn) {
+
+            const title =
+                (
+                    btn.title ||
+                    ""
+                ).toLowerCase();
+
+            const text =
+                (
+                    btn.textContent ||
+                    ""
+                ).toLowerCase();
+
+            return (
+                title.includes("view vob") ||
+                text.includes("vob")
+            );
+
+        });
+
+    }
+
+
+    /* ============================================================
+       MAIN LOGIC
+       ============================================================ */
+
     function runLogic() {
 
-        var dob = document.querySelector("#DOB");
+        /* ========================================================
+           DOB
+           ======================================================== */
+
+        var dob =
+            document.querySelector(
+                "#DOB"
+            );
 
         if (!dob) {
-            alert("DOB not found");
+
+            alert(
+                "DOB not found"
+            );
+
             return;
+
         }
+
 
         var dobValue =
             dob.value ||
             dob.textContent ||
             dob.innerText;
 
-        var dobDate = new Date(dobValue);
+
+        var dobDate =
+            new Date(
+                dobValue
+            );
+
 
         if (isNaN(dobDate)) {
-            alert("Invalid DOB");
+
+            alert(
+                "Invalid DOB"
+            );
+
             return;
+
         }
 
-        var today = new Date();
+
+        /* ========================================================
+           AGE
+           ======================================================== */
+
+        var today =
+            new Date();
+
 
         var age =
             today.getFullYear() -
             dobDate.getFullYear();
 
+
         if (
-            today.getMonth() < dobDate.getMonth() ||
+            today.getMonth() <
+                dobDate.getMonth() ||
             (
-                today.getMonth() === dobDate.getMonth() &&
-                today.getDate() < dobDate.getDate()
+                today.getMonth() ===
+                    dobDate.getMonth() &&
+                today.getDate() <
+                    dobDate.getDate()
             )
         ) {
+
             age--;
+
         }
 
-        var planType = "Unknown";
 
-
-        /* ==========================================
+        /* ========================================================
            PLAN TYPE
-           ========================================== */
+           ======================================================== */
 
-        var plan = Array.from(
-            document.querySelectorAll("select")
-        ).find(function (s) {
+        var planType =
+            "Unknown";
 
-            return (
-                s.parentElement &&
-                s.parentElement.innerText.indexOf("Plan Type") > -1
-            );
 
-        });
+        var plan =
+            Array.from(
+                document.querySelectorAll(
+                    "select"
+                )
+            ).find(function (s) {
+
+                return (
+                    s.parentElement &&
+                    s.parentElement.innerText.indexOf(
+                        "Plan Type"
+                    ) > -1
+                );
+
+            });
+
 
         if (plan) {
 
             planType =
-                plan.options[plan.selectedIndex].text;
+                plan.options[
+                    plan.selectedIndex
+                ].text;
 
         }
 
 
-        /* ==========================================
+        /* ========================================================
            STATE
-           ========================================== */
+           ======================================================== */
 
-        var state = "Unknown";
+        var state =
+            "Unknown";
+
 
         var stateElement =
             document.querySelector(
                 stateSelector
             );
 
+
         if (stateElement) {
 
             state =
-                stateElement.selectedOptions[0]?.text ||
+                stateElement
+                    .selectedOptions[0]
+                    ?.text ||
                 stateElement.value ||
                 "Unknown";
+
 
             state =
                 state.trim();
@@ -108,11 +361,12 @@
         }
 
 
-        /* ==========================================
+        /* ========================================================
            BIFURCATED STATES
-           ========================================== */
+           ======================================================== */
 
         var bifurcatedStates = [
+
             "Alaska",
             "California",
             "Colorado",
@@ -135,37 +389,48 @@
             "Texas",
             "Virginia",
             "Washington"
+
         ];
 
 
         var stateLower =
-            state.toLowerCase().trim();
+            state
+                .toLowerCase()
+                .trim();
 
 
         var isBifurcated =
-            bifurcatedStates.some(function (bifurcatedState) {
+            bifurcatedStates.some(
+                function (
+                    bifurcatedState
+                ) {
 
-                return (
-                    stateLower ===
-                    bifurcatedState.toLowerCase().trim()
-                );
+                    return (
+                        stateLower ===
+                        bifurcatedState
+                            .toLowerCase()
+                            .trim()
+                    );
 
-            });
+                }
+            );
 
 
-        /* ==========================================
+        /* ========================================================
            STATE INDICATOR
-           ========================================== */
+           ======================================================== */
 
         var stateColor;
 
         if (isBifurcated) {
 
-            stateColor = "#ff4d4f";
+            stateColor =
+                "#ff4d4f";
 
         } else {
 
-            stateColor = "#2ecc71";
+            stateColor =
+                "#2ecc71";
 
         }
 
@@ -176,61 +441,80 @@
                 : "Non-Bifurcated";
 
 
-        /* ==========================================
+        /* ========================================================
            HISTORY TEXT
-           ========================================== */
+           ======================================================== */
 
-        var historyText = "";
+        var historyText =
+            "";
+
 
         document.querySelectorAll(
+
             "#ngForm > fieldset > div:nth-child(5) > div:nth-child(1) > div:nth-child(2) > app-vob-history > div > div:nth-child(3) > div.collapse.mt-1.small.show > div > div > div.d-flex.flex-wrap.gap-3.mb-1 > span:nth-child(1), #ngForm > fieldset > div:nth-child(5) > div:nth-child(1) > div:nth-child(2) > app-vob-history > div > div:nth-child(3) > div.collapse.mt-1.small.show > div > div > div.text-muted.fst-italic"
-        ).forEach(function (e) {
 
-            historyText +=
-                " " + e.innerText;
+        ).forEach(
+            function (e) {
 
-        });
+                historyText +=
+                    " " +
+                    e.innerText;
+
+            }
+        );
+
 
         historyText =
             historyText.toLowerCase();
 
 
-        /* ==========================================
+        /* ========================================================
            CASE NOTES TEXT
-           ========================================== */
+           ======================================================== */
 
-        var caseNotesText = "";
+        var caseNotesText =
+            "";
+
 
         var caseNotesElement =
             document.querySelector(
                 caseNotesSelector
             );
 
+
         if (caseNotesElement) {
 
             caseNotesText =
-                caseNotesElement.innerText.toLowerCase();
+                caseNotesElement
+                    .innerText
+                    .toLowerCase();
 
         }
 
 
-        /* ==========================================
+        /* ========================================================
            INELIGIBILITY REASONS
-           ========================================== */
+           ======================================================== */
 
-        var ineligibilityReasonsText = "";
+        var ineligibilityReasonsText =
+            "";
+
 
         var ineligibilityReasonsElement =
             document.querySelector(
                 ineligibilityReasonsSelector
             );
 
-        if (ineligibilityReasonsElement) {
+
+        if (
+            ineligibilityReasonsElement
+        ) {
 
             ineligibilityReasonsText =
                 ineligibilityReasonsElement.value ||
                 ineligibilityReasonsElement.textContent ||
                 "";
+
 
             ineligibilityReasonsText =
                 ineligibilityReasonsText.trim();
@@ -238,18 +522,28 @@
         }
 
 
-        var ptMatch = false;
+        /* ========================================================
+           PT MATCH
+           ======================================================== */
 
-        var historyEvidence = [];
+        var ptMatch =
+            false;
 
-        var caseNotesEvidence = [];
+
+        var historyEvidence =
+            [];
 
 
-        /* ==========================================
+        var caseNotesEvidence =
+            [];
+
+
+        /* ========================================================
            SELF FUNDED KEYWORDS
-           ========================================== */
+           ======================================================== */
 
         var selfFundedKeywords = [
+
             "N859",
             "RARC code N859 is present, indicating NSA jurisdiction",
             "self funded",
@@ -291,92 +585,128 @@
             "n871",
             "n883",
             "t97"
+
         ];
 
 
-        /* ==========================================
+        /* ========================================================
            EXISTING PT EVIDENCE LOGIC
-           ========================================== */
+           ======================================================== */
 
         if (
-            planType === "Self Funded" ||
-            planType === "Self Funded (Opt Out)"
+            planType ===
+                "Self Funded" ||
+            planType ===
+                "Self Funded (Opt Out)"
         ) {
 
-            selfFundedKeywords.forEach(function (keyword) {
+            selfFundedKeywords.forEach(
+                function (keyword) {
 
-                var search =
-                    keyword.toLowerCase();
+                    var search =
+                        keyword.toLowerCase();
 
-                if (
-                    historyText.indexOf(search) > -1
-                ) {
-
-                    ptMatch = true;
 
                     if (
-                        historyEvidence.indexOf(keyword) === -1
+                        historyText.indexOf(
+                            search
+                        ) > -1
                     ) {
 
-                        historyEvidence.push(keyword);
+                        ptMatch =
+                            true;
+
+
+                        if (
+                            historyEvidence.indexOf(
+                                keyword
+                            ) === -1
+                        ) {
+
+                            historyEvidence.push(
+                                keyword
+                            );
+
+                        }
+
+                    }
+
+
+                    if (
+                        caseNotesText.indexOf(
+                            search
+                        ) > -1
+                    ) {
+
+                        ptMatch =
+                            true;
+
+
+                        if (
+                            caseNotesEvidence.indexOf(
+                                keyword
+                            ) === -1
+                        ) {
+
+                            caseNotesEvidence.push(
+                                keyword
+                            );
+
+                        }
 
                     }
 
                 }
-
-
-                if (
-                    caseNotesText.indexOf(search) > -1
-                ) {
-
-                    ptMatch = true;
-
-                    if (
-                        caseNotesEvidence.indexOf(keyword) === -1
-                    ) {
-
-                        caseNotesEvidence.push(keyword);
-
-                    }
-
-                }
-
-            });
+            );
 
         } else {
 
             var search =
                 planType.toLowerCase();
 
+
             if (
-                historyText.indexOf(search) > -1
+                historyText.indexOf(
+                    search
+                ) > -1
             ) {
 
-                ptMatch = true;
+                ptMatch =
+                    true;
 
-                historyEvidence.push(planType);
+
+                historyEvidence.push(
+                    planType
+                );
 
             }
 
 
             if (
-                caseNotesText.indexOf(search) > -1
+                caseNotesText.indexOf(
+                    search
+                ) > -1
             ) {
 
-                ptMatch = true;
+                ptMatch =
+                    true;
 
-                caseNotesEvidence.push(planType);
+
+                caseNotesEvidence.push(
+                    planType
+                );
 
             }
 
         }
 
 
-        /* ==========================================
-           PT INDICATOR LOGIC
-           ========================================== */
+        /* ========================================================
+           PT INDICATOR
+           ======================================================== */
 
         var redPlanTypeKeywords = [
+
             "exchange/marketplace-state",
             "other",
             "unknown",
@@ -385,6 +715,7 @@
             "federal",
             "medicaid",
             "medicare"
+
         ];
 
 
@@ -393,35 +724,43 @@
 
 
         var isRedPlanType =
-            redPlanTypeKeywords.some(function (keyword) {
+            redPlanTypeKeywords.some(
+                function (keyword) {
 
-                return (
-                    planTypeLower.indexOf(keyword) > -1
-                );
+                    return (
+                        planTypeLower.indexOf(
+                            keyword
+                        ) > -1
+                    );
 
-            });
+                }
+            );
 
 
         var ptColor;
 
+
         if (isRedPlanType) {
 
-            ptColor = "#ff4d4f";
+            ptColor =
+                "#ff4d4f";
 
         } else if (ptMatch) {
 
-            ptColor = "#2ecc71";
+            ptColor =
+                "#2ecc71";
 
         } else {
 
-            ptColor = "#f39c12";
+            ptColor =
+                "#f39c12";
 
         }
 
 
-        /* ==========================================
+        /* ========================================================
            AGE INDICATOR
-           ========================================== */
+           ======================================================== */
 
         var ageColor =
             age >= 65
@@ -429,9 +768,9 @@
                 : "#2ecc71";
 
 
-        /* ==========================================
-           INELIGIBILITY REASONS INDICATOR
-           ========================================== */
+        /* ========================================================
+           INELIGIBILITY INDICATOR
+           ======================================================== */
 
         var ineligibilityColor =
             ineligibilityReasonsText
@@ -439,44 +778,209 @@
                 : "#ff4d4f";
 
 
-        /* ==========================================
-           REMOVE OLD POPUP
-           ========================================== */
+        /* ========================================================
+           FIND VOB BUTTONS
+           ======================================================== */
+
+        var vobs =
+            findVobButtons();
+
+
+        /* ========================================================
+           REMOVE OLD MAIN POPUP
+           ======================================================== */
 
         var old =
             document.getElementById(
                 "agePopupBookmarklet"
             );
 
+
         if (old) {
+
             old.remove();
+
         }
 
 
-        /* ==========================================
-           CREATE POPUP
-           ========================================== */
+        /* ========================================================
+           CREATE MAIN POPUP
+           ======================================================== */
 
         var popup =
-            document.createElement("div");
+            document.createElement(
+                "div"
+            );
+
 
         popup.id =
             "agePopupBookmarklet";
 
+
         popup.style.cssText =
+
             "position:fixed;" +
             "top:100px;" +
             "left:50%;" +
             "transform:translateX(-50%);" +
-            "background:rgba(0,0,0,.9);" +
+            "background:rgba(0,0,0,.94);" +
             "color:#fff;" +
             "padding:20px;" +
             "border-radius:16px;" +
             "z-index:99999999;" +
-            "font-family:Segoe UI;" +
-            "box-shadow:0 10px 30px rgba(0,0,0,.4);" +
-            "max-width:500px;";
+            "font-family:Segoe UI,Arial,sans-serif;" +
+            "box-shadow:0 10px 30px rgba(0,0,0,.5);" +
+            "max-width:500px;" +
+            "width:calc(100% - 40px);" +
+            "max-height:80vh;" +
+            "overflow-y:auto;";
 
+
+        /* ========================================================
+           ESCAPE HTML HELPER
+           ======================================================== */
+
+        function escapeHtml(
+            text
+        ) {
+
+            return String(
+                text
+            )
+                .replace(
+                    /&/g,
+                    "&amp;"
+                )
+                .replace(
+                    /</g,
+                    "&lt;"
+                )
+                .replace(
+                    />/g,
+                    "&gt;"
+                )
+                .replace(
+                    /"/g,
+                    "&quot;"
+                )
+                .replace(
+                    /'/g,
+                    "&#039;"
+                );
+
+        }
+
+
+        /* ========================================================
+           VOB HTML
+           ======================================================== */
+
+        var vobHtml =
+            "";
+
+
+        if (
+            vobs.length
+        ) {
+
+            vobHtml +=
+
+                '<div style="margin-top:16px;padding-top:12px;border-top:1px solid #374151;">' +
+
+                '<div style="font-size:20px;font-weight:bold;display:flex;align-items:center;gap:8px;">' +
+
+                'VOB' +
+
+                '<span style="font-size:12px;color:#9ca3af;font-weight:normal;">' +
+
+                "(" +
+                vobs.length +
+                " found)" +
+
+                "</span>" +
+
+                "</div>" +
+
+                '<div style="margin-top:8px;">';
+
+
+            vobs.forEach(
+                function (
+                    v,
+                    i
+                ) {
+
+                    var vobTitle =
+                        v.title ||
+                        v.textContent ||
+                        "View VOB";
+
+
+                    vobHtml +=
+
+                        '<button class="mainVobBtn" data-vob-index="' +
+                        i +
+                        '" style="' +
+                        "display:block;" +
+                        "width:100%;" +
+                        "padding:9px 10px;" +
+                        "margin-bottom:6px;" +
+                        "background:#2563eb;" +
+                        "color:#fff;" +
+                        "border:none;" +
+                        "border-radius:6px;" +
+                        "cursor:pointer;" +
+                        "font-weight:600;" +
+                        "font-size:13px;" +
+                        "text-align:left;" +
+                        '">' +
+
+                        "📄 VOB " +
+                        (i + 1) +
+
+                        '<span style="float:right;color:#dbeafe;font-size:11px;">' +
+
+                        escapeHtml(
+                            vobTitle
+                        ) +
+
+                        "</span>" +
+
+                        "</button>";
+
+                }
+            );
+
+
+            vobHtml +=
+                "</div></div>";
+
+        } else {
+
+            vobHtml =
+
+                '<div style="margin-top:16px;padding-top:12px;border-top:1px solid #374151;">' +
+
+                '<div style="font-size:18px;font-weight:bold;">' +
+
+                "VOB" +
+
+                "</div>" +
+
+                '<div style="margin-top:6px;font-size:13px;color:#ff6b6b;">' +
+
+                "No VOB buttons found." +
+
+                "</div>" +
+
+                "</div>";
+
+        }
+
+
+        /* ========================================================
+           POPUP HTML
+           ======================================================== */
 
         popup.innerHTML =
 
@@ -487,127 +991,294 @@
 
             /* AGE */
 
-            '<div style="font-size:24px;font-weight:bold;display:flex;align-items:center;gap:10px;">AGE: ' +
+            '<div style="font-size:24px;font-weight:bold;display:flex;align-items:center;gap:10px;">' +
+
+            "AGE: " +
+
             age +
+
             ' <span style="width:14px;height:14px;border-radius:50%;background:' +
+
             ageColor +
-            ';display:inline-block;"></span></div>' +
+
+            ';display:inline-block;"></span>' +
+
+            "</div>" +
 
 
             /* PT */
 
-            '<div style="margin-top:10px;font-size:24px;font-weight:bold;display:flex;align-items:center;gap:10px;">PT: ' +
-            planType +
+            '<div style="margin-top:10px;font-size:24px;font-weight:bold;display:flex;align-items:center;gap:10px;">' +
+
+            "PT: " +
+
+            escapeHtml(
+                planType
+            ) +
+
             ' <span style="width:14px;height:14px;border-radius:50%;background:' +
+
             ptColor +
-            ';display:inline-block;"></span></div>' +
+
+            ';display:inline-block;"></span>' +
+
+            "</div>" +
 
 
             /* HISTORY EVIDENCE */
 
             (
+
                 historyEvidence.length
-                    ? '<div style="margin-top:10px;font-size:14px;color:#90ee90;">' +
+
+                    ?
+
+                    '<div style="margin-top:10px;font-size:14px;color:#90ee90;">' +
+
                     '<strong style="color:#ffffff;">History Evidence:</strong><br>' +
-                    historyEvidence.join("<br>") +
+
+                    historyEvidence
+                        .map(
+                            escapeHtml
+                        )
+                        .join(
+                            "<br>"
+                        ) +
+
                     "</div>"
-                    : ""
+
+                    :
+
+                    ""
+
             ) +
 
 
-            /* CASE NOTES EVIDENCE */
+            /* CASE NOTES */
 
             (
+
                 caseNotesEvidence.length
-                    ? '<div style="margin-top:10px;font-size:14px;color:#90ee90;">' +
+
+                    ?
+
+                    '<div style="margin-top:10px;font-size:14px;color:#90ee90;">' +
+
                     '<strong style="color:#ffffff;">Case Notes:</strong><br>' +
-                    caseNotesEvidence.join("<br>") +
+
+                    caseNotesEvidence
+                        .map(
+                            escapeHtml
+                        )
+                        .join(
+                            "<br>"
+                        ) +
+
                     "</div>"
-                    : ""
+
+                    :
+
+                    ""
+
             ) +
 
 
-            /* INELIGIBILITY REASONS */
+            /* INELIGIBILITY */
 
             '<div style="margin-top:14px;font-size:16px;font-weight:bold;display:flex;align-items:center;gap:8px;">' +
-            'Ineligibility Reasons:' +
+
+            "Ineligibility Reasons:" +
+
             '<span style="width:14px;height:14px;border-radius:50%;background:' +
+
             ineligibilityColor +
+
             ';display:inline-block;"></span>' +
-            '</div>' +
+
+            "</div>" +
 
 
             (
+
                 ineligibilityReasonsText
 
-                    ? '<div style="margin-top:6px;font-size:14px;color:#90ee90;white-space:pre-wrap;word-break:break-word;">' +
-                    ineligibilityReasonsText
-                        .replace(/</g, "&lt;")
-                        .replace(/>/g, "&gt;") +
+                    ?
+
+                    '<div style="margin-top:6px;font-size:14px;color:#90ee90;white-space:pre-wrap;word-break:break-word;">' +
+
+                    escapeHtml(
+                        ineligibilityReasonsText
+                    ) +
+
                     "</div>"
 
-                    : '<div style="margin-top:6px;font-size:14px;color:#ff6b6b;">No evidence found / textarea is empty.</div>'
+                    :
+
+                    '<div style="margin-top:6px;font-size:14px;color:#ff6b6b;">No evidence found / textarea is empty.</div>'
+
             ) +
 
 
-            /* STATE */
+            /* ====================================================
+               STATE
+               ==================================================== */
 
             '<div style="margin-top:14px;font-size:20px;font-weight:bold;display:flex;align-items:center;gap:10px;">' +
-            'STATE: ' +
+
+            "STATE: " +
+
             '<span style="width:14px;height:14px;border-radius:50%;background:' +
+
             stateColor +
+
             ';display:inline-block;"></span>' +
-            '</div>' +
+
+            "</div>" +
+
 
             '<div style="margin-top:4px;font-size:16px;color:#fff;">' +
-            state +
-            ' (' +
-            stateStatus +
-            ')' +
-            '</div>';
 
+            escapeHtml(
+                state
+            ) +
+
+            " (" +
+
+            stateStatus +
+
+            ")" +
+
+            "</div>" +
+
+
+            /* ====================================================
+               VOB SECTION
+               DIRECTLY BELOW STATE
+               ==================================================== */
+
+            vobHtml;
+
+
+        /* ========================================================
+           ADD POPUP
+           ======================================================== */
 
         document.body.appendChild(
             popup
         );
 
 
-        /* ==========================================
+        /* ========================================================
            CLOSE BUTTON
-           ========================================== */
+           ======================================================== */
 
-        popup.querySelector(
-            "button"
-        ).onclick = function () {
-
-            popup.remove();
-
-        };
+        var closeButton =
+            popup.querySelector(
+                "button"
+            );
 
 
-        /* ==========================================
-           AUTO CLOSE AFTER 7 SECONDS
-           ========================================== */
+        if (closeButton) {
 
-        setTimeout(function () {
+            closeButton.onclick =
+                function () {
 
-            var p =
-                document.getElementById(
-                    "agePopupBookmarklet"
-                );
+                    popup.remove();
 
-            if (p) {
-                p.remove();
-            }
+                };
 
-        }, 7000);
+        }
+
+
+        /* ========================================================
+           VOB BUTTON CLICK EVENTS
+           ======================================================== */
+
+        popup
+            .querySelectorAll(
+                ".mainVobBtn"
+            )
+            .forEach(
+                function (btn) {
+
+                    btn.onclick =
+                        function () {
+
+                            var index =
+                                parseInt(
+                                    btn.getAttribute(
+                                        "data-vob-index"
+                                    ),
+                                    10
+                                );
+
+
+                            var v =
+                                vobs[index];
+
+
+                            if (v) {
+
+                                /*
+                                 * Close the popup first so
+                                 * the actual VOB modal is visible.
+                                 */
+
+                                popup.remove();
+
+
+                                v.scrollIntoView({
+                                    behavior: "smooth",
+                                    block: "center"
+                                });
+
+
+                                setTimeout(
+                                    function () {
+
+                                        v.click();
+
+                                    },
+                                    150
+                                );
+
+                            }
+
+                        };
+
+                }
+            );
+
+
+        /* ========================================================
+           AUTO CLOSE MAIN POPUP
+           ======================================================== */
+
+        setTimeout(
+            function () {
+
+                var p =
+                    document.getElementById(
+                        "agePopupBookmarklet"
+                    );
+
+
+                if (p) {
+
+                    p.remove();
+
+                }
+
+            },
+            7000
+        );
 
     }
 
 
-    /* ==========================================
-       CHECK IF HISTORY IS OPEN
-       ========================================== */
+    /* ============================================================
+       CHECK HISTORY
+       ============================================================ */
 
     const historyIsOpen =
         document.querySelector(
@@ -615,9 +1286,9 @@
         );
 
 
-    /* ==========================================
-       CHECK IF CASE NOTES ARE OPEN
-       ========================================== */
+    /* ============================================================
+       CHECK CASE NOTES
+       ============================================================ */
 
     const caseNotesIsOpen =
         document.querySelector(
@@ -625,9 +1296,9 @@
         );
 
 
-    /* ==========================================
+    /* ============================================================
        FIND HISTORY BUTTON
-       ========================================== */
+       ============================================================ */
 
     const historyButton =
         document.querySelector(
@@ -635,9 +1306,9 @@
         );
 
 
-    /* ==========================================
+    /* ============================================================
        FIND CASE NOTES BUTTON
-       ========================================== */
+       ============================================================ */
 
     const caseNotesButton =
         document.querySelector(
@@ -645,9 +1316,9 @@
         );
 
 
-    /* ==========================================
+    /* ============================================================
        OPEN HISTORY
-       ========================================== */
+       ============================================================ */
 
     if (
         !historyIsOpen &&
@@ -659,14 +1330,15 @@
             block: "center"
         });
 
+
         historyButton.click();
 
     }
 
 
-    /* ==========================================
+    /* ============================================================
        OPEN CASE NOTES
-       ========================================== */
+       ============================================================ */
 
     if (
         !caseNotesIsOpen &&
@@ -678,14 +1350,36 @@
             block: "center"
         });
 
+
         caseNotesButton.click();
 
     }
 
 
-    /* ==========================================
-       RUN MAIN LOGIC AFTER CONTENT OPENS
-       ========================================== */
+    /* ============================================================
+       OPEN VOB SECTION
+       ============================================================ */
+
+    openVobSection();
+
+
+    /* ============================================================
+       OPEN FILES
+       ============================================================ */
+
+    openFilesSection();
+
+
+    /* ============================================================
+       OPEN NOTES
+       ============================================================ */
+
+    openNotesSection();
+
+
+    /* ============================================================
+       RUN MAIN LOGIC
+       ============================================================ */
 
     setTimeout(
         function () {
@@ -693,278 +1387,7 @@
             runLogic();
 
         },
-        100
+        500
     );
-
-})();
-
-
-/* ============================================================
-   VOB OPENER
-   ============================================================ */
-
-(function () {
-
-    /* ==========================================
-       OPEN FILES LIST
-       ========================================== */
-
-    const filesBtn =
-        document.querySelector(
-            'button[title="Toggle the Files list"]'
-        );
-
-    if (filesBtn) {
-
-        if (
-            filesBtn.getAttribute("aria-expanded") === "false"
-        ) {
-
-            filesBtn.click();
-
-        }
-
-        filesBtn.scrollIntoView({
-            behavior: "smooth",
-            block: "center"
-        });
-
-    }
-
-
-    /* ==========================================
-       OPEN NOTES SECTION
-       ========================================== */
-
-    const notesBtn =
-        document.querySelector(
-            'button[title="Toggle Notes section"]'
-        );
-
-    if (notesBtn) {
-
-        if (
-            notesBtn.getAttribute("aria-expanded") === "false"
-        ) {
-
-            notesBtn.click();
-
-        }
-
-        const container =
-            notesBtn.closest("div");
-
-        if (container) {
-
-            container.scrollIntoView({
-                behavior: "smooth",
-                block: "start"
-            });
-
-            window.scrollBy(0, 500);
-
-        }
-
-    }
-
-
-    /* ==========================================
-       REMOVE OLD VOB POPUP
-       ========================================== */
-
-    const old =
-        document.getElementById(
-            "vobPopup"
-        );
-
-    if (old) {
-
-        old.remove();
-
-    }
-
-
-    /* ==========================================
-       FIND VOB BUTTONS
-       ========================================== */
-
-    const vobs =
-        [...document.querySelectorAll("button.btn-modal")]
-            .filter(function (btn) {
-
-                return (
-                    btn.title?.toLowerCase().includes("view vob") ||
-                    btn.textContent.toLowerCase().includes("vob")
-                );
-
-            });
-
-
-    /* ==========================================
-       NO VOB BUTTONS FOUND
-       ========================================== */
-
-    if (!vobs.length) {
-
-        alert("No VOB buttons found.");
-
-        return;
-
-    }
-
-
-    /* ==========================================
-       CREATE VOB POPUP
-       ========================================== */
-
-    const popup =
-        document.createElement("div");
-
-    popup.id =
-        "vobPopup";
-
-
-    popup.style.cssText =
-        "position:fixed;" +
-        "top:20px;" +
-        "left:50%;" +
-        "transform:translateX(-50%);" +
-        "width:220px;" +
-        "background:#111827;" +
-        "border:1px solid #374151;" +
-        "border-radius:10px;" +
-        "box-shadow:0 6px 18px rgba(0,0,0,.5);" +
-        "z-index:999999999;" +
-        "font-family:Segoe UI,Arial;" +
-        "font-size:12px;" +
-        "color:#e5e7eb;";
-
-
-    /* ==========================================
-       CREATE POPUP HTML
-       ========================================== */
-
-    let html =
-
-        '<div style="padding:8px;border-bottom:1px solid #374151;font-weight:600;text-align:center;">' +
-
-        'VOB Opener' +
-
-        '<span id="closeVob" style="float:right;cursor:pointer;">✕</span>' +
-
-        '</div>' +
-
-        '<div style="padding:10px;">';
-
-
-    /* ==========================================
-       CREATE VOB BUTTONS
-       ========================================== */
-
-    vobs.forEach(function (v, i) {
-
-        html +=
-
-            '<button class="vobBtn" data-index="' +
-            i +
-            '" style="width:100%;padding:8px;background:#2563eb;color:#fff;border:none;border-radius:5px;cursor:pointer;font-weight:600;margin-bottom:5px;">' +
-
-            '📄 VOB ' +
-
-            (i + 1) +
-
-            '</button>';
-
-    });
-
-
-    html +=
-        "</div>";
-
-
-    popup.innerHTML =
-        html;
-
-
-    document.body.appendChild(
-        popup
-    );
-
-
-    /* ==========================================
-       AUTO CLOSE VOB POPUP
-       ========================================== */
-
-    setTimeout(function () {
-
-        const p =
-            document.getElementById(
-                "vobPopup"
-            );
-
-        if (p) {
-
-            p.remove();
-
-        }
-
-    }, 5000);
-
-
-    /* ==========================================
-       CLOSE VOB POPUP
-       ========================================== */
-
-    const closeVob =
-        document.getElementById(
-            "closeVob"
-        );
-
-    if (closeVob) {
-
-        closeVob.onclick =
-            function () {
-
-                popup.remove();
-
-            };
-
-    }
-
-
-    /* ==========================================
-       VOB BUTTON CLICK LOGIC
-       ========================================== */
-
-    popup
-        .querySelectorAll(".vobBtn")
-        .forEach(function (btn) {
-
-            btn.onclick =
-                function () {
-
-                    const index =
-                        parseInt(
-                            btn.dataset.index,
-                            10
-                        );
-
-                    const v =
-                        vobs[index];
-
-                    if (v) {
-
-                        v.scrollIntoView({
-                            behavior: "smooth",
-                            block: "center"
-                        });
-
-                        v.click();
-
-                    }
-
-                };
-
-        });
 
 })();
