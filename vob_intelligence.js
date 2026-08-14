@@ -60,46 +60,34 @@
                 vobSectionButtonSelector
             );
 
-        if (vobSectionButton) {
+        if (!vobSectionButton) {
+            return;
+        }
 
-            /*
-             * If the button controls an expandable section,
-             * attempt to determine whether it is already open.
-             */
+        const ariaExpanded =
+            vobSectionButton.getAttribute(
+                "aria-expanded"
+            );
 
-            const ariaExpanded =
-                vobSectionButton.getAttribute(
-                    "aria-expanded"
-                );
+        /*
+         * If aria-expanded exists and is false,
+         * open the section.
+         */
 
-            if (
-                ariaExpanded === "false"
-            ) {
+        if (ariaExpanded === "false") {
 
-                vobSectionButton.scrollIntoView({
-                    behavior: "smooth",
-                    block: "center"
-                });
+            vobSectionButton.click();
 
-                vobSectionButton.click();
+        }
 
-            } else if (
-                ariaExpanded === null
-            ) {
+        /*
+         * If aria-expanded does not exist,
+         * click the button.
+         */
 
-                /*
-                 * If aria-expanded does not exist,
-                 * click the button so the VOB section opens.
-                 */
+        else if (ariaExpanded === null) {
 
-                vobSectionButton.scrollIntoView({
-                    behavior: "smooth",
-                    block: "center"
-                });
-
-                vobSectionButton.click();
-
-            }
+            vobSectionButton.click();
 
         }
 
@@ -117,22 +105,17 @@
                 filesButtonSelector
             );
 
-        if (filesBtn) {
+        if (!filesBtn) {
+            return;
+        }
 
-            if (
-                filesBtn.getAttribute(
-                    "aria-expanded"
-                ) === "false"
-            ) {
+        if (
+            filesBtn.getAttribute(
+                "aria-expanded"
+            ) === "false"
+        ) {
 
-                filesBtn.click();
-
-            }
-
-            filesBtn.scrollIntoView({
-                behavior: "smooth",
-                block: "center"
-            });
+            filesBtn.click();
 
         }
 
@@ -150,34 +133,17 @@
                 notesButtonSelector
             );
 
-        if (notesBtn) {
+        if (!notesBtn) {
+            return;
+        }
 
-            if (
-                notesBtn.getAttribute(
-                    "aria-expanded"
-                ) === "false"
-            ) {
+        if (
+            notesBtn.getAttribute(
+                "aria-expanded"
+            ) === "false"
+        ) {
 
-                notesBtn.click();
-
-            }
-
-            const container =
-                notesBtn.closest("div");
-
-            if (container) {
-
-                container.scrollIntoView({
-                    behavior: "smooth",
-                    block: "start"
-                });
-
-                window.scrollBy(
-                    0,
-                    500
-                );
-
-            }
+            notesBtn.click();
 
         }
 
@@ -214,6 +180,37 @@
             );
 
         });
+
+    }
+
+
+    /* ============================================================
+       ESCAPE HTML
+       ============================================================ */
+
+    function escapeHtml(text) {
+
+        return String(text)
+            .replace(
+                /&/g,
+                "&amp;"
+            )
+            .replace(
+                /</g,
+                "&lt;"
+            )
+            .replace(
+                />/g,
+                "&gt;"
+            )
+            .replace(
+                /"/g,
+                "&quot;"
+            )
+            .replace(
+                /'/g,
+                "&#039;"
+            );
 
     }
 
@@ -348,9 +345,7 @@
         if (stateElement) {
 
             state =
-                stateElement
-                    .selectedOptions[0]
-                    ?.text ||
+                stateElement.selectedOptions[0]?.text ||
                 stateElement.value ||
                 "Unknown";
 
@@ -590,7 +585,7 @@
 
 
         /* ========================================================
-           EXISTING PT EVIDENCE LOGIC
+           PT EVIDENCE LOGIC
            ======================================================== */
 
         if (
@@ -787,7 +782,7 @@
 
 
         /* ========================================================
-           REMOVE OLD MAIN POPUP
+           REMOVE OLD POPUP
            ======================================================== */
 
         var old =
@@ -804,7 +799,7 @@
 
 
         /* ========================================================
-           CREATE MAIN POPUP
+           CREATE POPUP
            ======================================================== */
 
         var popup =
@@ -837,41 +832,6 @@
 
 
         /* ========================================================
-           ESCAPE HTML HELPER
-           ======================================================== */
-
-        function escapeHtml(
-            text
-        ) {
-
-            return String(
-                text
-            )
-                .replace(
-                    /&/g,
-                    "&amp;"
-                )
-                .replace(
-                    /</g,
-                    "&lt;"
-                )
-                .replace(
-                    />/g,
-                    "&gt;"
-                )
-                .replace(
-                    /"/g,
-                    "&quot;"
-                )
-                .replace(
-                    /'/g,
-                    "&#039;"
-                );
-
-        }
-
-
-        /* ========================================================
            VOB HTML
            ======================================================== */
 
@@ -889,7 +849,7 @@
 
                 '<div style="font-size:20px;font-weight:bold;display:flex;align-items:center;gap:8px;">' +
 
-                'VOB' +
+                "VOB" +
 
                 '<span style="font-size:12px;color:#9ca3af;font-weight:normal;">' +
 
@@ -984,7 +944,7 @@
 
         popup.innerHTML =
 
-            /* CLOSE BUTTON */
+            /* CLOSE */
 
             '<button style="position:absolute;top:5px;right:10px;background:none;border:none;color:#fff;font-size:20px;cursor:pointer;">×</button>' +
 
@@ -1152,8 +1112,7 @@
 
 
             /* ====================================================
-               VOB SECTION
-               DIRECTLY BELOW STATE
+               VOB SECTION BELOW STATE
                ==================================================== */
 
             vobHtml;
@@ -1191,7 +1150,7 @@
 
 
         /* ========================================================
-           VOB BUTTON CLICK EVENTS
+           VOB BUTTON EVENTS
            ======================================================== */
 
         popup
@@ -1220,18 +1179,15 @@
                             if (v) {
 
                                 /*
-                                 * Close the popup first so
-                                 * the actual VOB modal is visible.
+                                 * Remove popup first.
                                  */
 
                                 popup.remove();
 
 
-                                v.scrollIntoView({
-                                    behavior: "smooth",
-                                    block: "center"
-                                });
-
+                                /*
+                                 * DO NOT SCROLL.
+                                 */
 
                                 setTimeout(
                                     function () {
@@ -1239,7 +1195,7 @@
                                         v.click();
 
                                     },
-                                    150
+                                    100
                                 );
 
                             }
@@ -1251,7 +1207,7 @@
 
 
         /* ========================================================
-           AUTO CLOSE MAIN POPUP
+           AUTO CLOSE AFTER 7 SECONDS
            ======================================================== */
 
         setTimeout(
@@ -1325,11 +1281,9 @@
         historyButton
     ) {
 
-        historyButton.scrollIntoView({
-            behavior: "smooth",
-            block: "center"
-        });
-
+        /*
+         * No scrolling.
+         */
 
         historyButton.click();
 
@@ -1345,11 +1299,9 @@
         caseNotesButton
     ) {
 
-        caseNotesButton.scrollIntoView({
-            behavior: "smooth",
-            block: "center"
-        });
-
+        /*
+         * No scrolling.
+         */
 
         caseNotesButton.click();
 
@@ -1387,7 +1339,7 @@
             runLogic();
 
         },
-        200
+        500
     );
 
 })();
