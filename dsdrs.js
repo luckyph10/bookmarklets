@@ -62,7 +62,7 @@
         fill(owner, "Airrish Dullas");
 
         setTimeout(function () {
-            fill(note, "Plan Type Validated Post IDR Initiation");
+            fill(note, "VOB verified, no change to NSA jurisdiction");
         }, 20);
     }
 })();
