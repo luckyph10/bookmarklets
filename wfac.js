@@ -35,33 +35,6 @@ if (!el) {
     return;
 }
 
-function businessDaysBetween(startDate,endDate){
-    let count=0;
-
-    let cur=new Date(startDate);
-    cur.setHours(0,0,0,0);
-
-    while(cur<endDate){
-        cur.setDate(cur.getDate()+1);
-
-        const day=cur.getDay();
-
-        if(day!==0 && day!==6){
-            count++;
-        }
-    }
-
-    return count;
-}
-
-function checkRecentComment(textarea){
-
-    const matches=(textarea.value||'').match(/\b\d{2}\/\d{2}\/\d{2}\b/g);
-
-    if(!matches || !matches.length){
-        return true;
-    }
-
     let newest=null;
     let newestText='';
 
@@ -306,9 +279,7 @@ items.forEach(function(item){
     };
 
     btn.onclick=function(){
-                if(!checkRecentComment(el)){
-            return;
-        }
+            
 
         let finalComment=item.text;
 
@@ -336,17 +307,26 @@ items.forEach(function(item){
 
         if((el.value||'').includes(finalComment)){
 
-            const proceed=confirm(
-                'WARNING\n\n' +
-                'This comment already exists in the comment box.\n\n' +
-                'Do you want to proceed anyway?'
-            );
+    setTimeout(function(){
 
-            if(!proceed){
-                return;
-            }
+        const proceed=confirm(
+            'WARNING\n\n' +
+            'This comment already exists in the comment box.\n\n' +
+            'Do you want to proceed anyway?'
+        );
+
+        if(!proceed){
+            return;
         }
 
+        insertComment();
+
+    },2000);
+
+    return;
+}
+
+insertComment();
         const initials=(
             localStorage.getItem('afCommentInitials') ||
             'AF'
