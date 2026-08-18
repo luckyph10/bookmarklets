@@ -1,31 +1,37 @@
 (function () {
     /*
-     * ==========================================
+     * =========================================================
      * HEADS-UP MAINTENANCE NOTICE
-     * ==========================================
+     * =========================================================
      *
-     * ON/OFF SWITCH:
+     * ENABLE / DISABLE
      *
-     * true  = ENABLED
-     * false = DISABLED
+     * true  = SHOW MAINTENANCE NOTICE
+     * false = DISABLE MAINTENANCE NOTICE
      */
 
     const HEADS_UP_MAINTENANCE_ENABLED = true;
 
+
     /*
-     * ==========================================
-     * STOP HERE IF DISABLED
-     * ==========================================
+     * =========================================================
+     * TEST MODE
+     * =========================================================
+     *
+     * true  = SHOW EVERY TIME YOU CLICK THE BOOKMARKLET
+     * false = USE NORMAL 4-HOUR LIMIT
+     *
+     * USE true WHILE TESTING.
+     * CHANGE BACK TO false WHEN FINISHED.
      */
 
-    if (!HEADS_UP_MAINTENANCE_ENABLED) {
-        return;
-    }
+    const TEST_MODE = true;
+
 
     /*
-     * ==========================================
-     * MAINTENANCE DATE & MESSAGE
-     * ==========================================
+     * =========================================================
+     * MAINTENANCE INFORMATION
+     * =========================================================
      */
 
     const MAINTENANCE_DATE = '08/25/2026';
@@ -35,67 +41,102 @@
         MAINTENANCE_DATE +
         '. Please plan accordingly.';
 
+
     /*
-     * ==========================================
+     * =========================================================
      * SETTINGS
-     * ==========================================
+     * =========================================================
      */
 
-    const FOUR_HOURS = 4 * 60 * 60 * 1000;
+    const FOUR_HOURS =
+        4 * 60 * 60 * 1000;
 
-    const AUTO_CLOSE_TIME = 10000;
+    const AUTO_CLOSE_TIME =
+        10000;
+
+
+    /*
+     * IMPORTANT:
+     *
+     * The version number makes this a fresh storage key.
+     * If you previously tested another version, it will
+     * NOT interfere with this one.
+     */
 
     const STORAGE_KEY =
-        'afHeadsUpMaintenanceLastShown';
+        'afHeadsUpMaintenanceLastShown_v2';
+
 
     /*
-     * ==========================================
-     * 4-HOUR CHECK
-     * ==========================================
+     * =========================================================
+     * ON / OFF CHECK
+     * =========================================================
      */
 
-    const now = Date.now();
-
-    const lastShown = parseInt(
-        localStorage.getItem(STORAGE_KEY) || '0',
-        10
-    );
-
-    if (
-        lastShown &&
-        now - lastShown < FOUR_HOURS
-    ) {
+    if (!HEADS_UP_MAINTENANCE_ENABLED) {
         return;
     }
 
-    /*
-     * Save the time immediately.
-     */
-
-    localStorage.setItem(
-        STORAGE_KEY,
-        String(now)
-    );
 
     /*
-     * ==========================================
-     * REMOVE EXISTING NOTICE
-     * ==========================================
+     * =========================================================
+     * REMOVE EXISTING POPUP
+     * =========================================================
      */
 
-    const old =
+    const existingPopup =
         document.getElementById(
             'afHeadsUpMaintenance'
         );
 
-    if (old) {
-        old.remove();
+    if (existingPopup) {
+        existingPopup.remove();
     }
 
+
     /*
-     * ==========================================
+     * =========================================================
+     * 4-HOUR CHECK
+     * =========================================================
+     *
+     * TEST_MODE = true
+     *     -> ignores the 4-hour timer
+     *
+     * TEST_MODE = false
+     *     -> normal 4-hour behavior
+     */
+
+    if (!TEST_MODE) {
+
+        const now = Date.now();
+
+        const lastShown = parseInt(
+            localStorage.getItem(STORAGE_KEY) || '0',
+            10
+        );
+
+        if (
+            lastShown &&
+            now - lastShown < FOUR_HOURS
+        ) {
+            return;
+        }
+
+        /*
+         * Save immediately.
+         */
+
+        localStorage.setItem(
+            STORAGE_KEY,
+            String(now)
+        );
+    }
+
+
+    /*
+     * =========================================================
      * FULL-SCREEN OVERLAY
-     * ==========================================
+     * =========================================================
      */
 
     const overlay =
@@ -110,7 +151,7 @@
         'left:0;' +
         'width:100vw;' +
         'height:100vh;' +
-        'background:rgba(0,0,0,.65);' +
+        'background:rgba(0,0,0,.70);' +
         'display:flex;' +
         'align-items:center;' +
         'justify-content:center;' +
@@ -121,10 +162,11 @@
         'opacity:0;' +
         'transition:opacity .25s ease;';
 
+
     /*
-     * ==========================================
+     * =========================================================
      * GREEN CARD
-     * ==========================================
+     * =========================================================
      */
 
     const card =
@@ -133,7 +175,6 @@
     card.style.cssText =
         'position:relative;' +
         'width:100%;' +
-        'height:auto;' +
         'max-width:900px;' +
         'background:#198754;' +
         'color:#fff;' +
@@ -150,10 +191,11 @@
         'transform:scale(.95);' +
         'transition:transform .25s ease;';
 
+
     /*
-     * ==========================================
+     * =========================================================
      * CLOSE BUTTON
-     * ==========================================
+     * =========================================================
      */
 
     const closeBtn =
@@ -182,18 +224,21 @@
         'line-height:40px;' +
         'z-index:10;';
 
+
     closeBtn.onmouseover = function () {
         this.style.background = '#333';
     };
+
 
     closeBtn.onmouseout = function () {
         this.style.background = '#000';
     };
 
+
     /*
-     * ==========================================
+     * =========================================================
      * TITLE
-     * ==========================================
+     * =========================================================
      */
 
     const title =
@@ -209,10 +254,11 @@
         'line-height:1.2;' +
         'text-shadow:0 2px 4px rgba(0,0,0,.35);';
 
+
     /*
-     * ==========================================
+     * =========================================================
      * DATE LABEL
-     * ==========================================
+     * =========================================================
      */
 
     const dateLabel =
@@ -227,10 +273,11 @@
         'margin-bottom:12px;' +
         'letter-spacing:2px;';
 
+
     /*
-     * ==========================================
+     * =========================================================
      * DATE
-     * ==========================================
+     * =========================================================
      */
 
     const date =
@@ -251,10 +298,11 @@
         'display:inline-block;' +
         'box-shadow:0 5px 20px rgba(0,0,0,.35);';
 
+
     /*
-     * ==========================================
+     * =========================================================
      * MESSAGE
-     * ==========================================
+     * =========================================================
      */
 
     const message =
@@ -269,10 +317,11 @@
         'line-height:1.7;' +
         'max-width:800px;';
 
+
     /*
-     * ==========================================
+     * =========================================================
      * SMALL MESSAGE
-     * ==========================================
+     * =========================================================
      */
 
     const smallMessage =
@@ -287,10 +336,11 @@
         'font-weight:normal;' +
         'opacity:.95;';
 
+
     /*
-     * ==========================================
+     * =========================================================
      * BUILD CARD
-     * ==========================================
+     * =========================================================
      */
 
     card.appendChild(closeBtn);
@@ -304,63 +354,82 @@
 
     document.body.appendChild(overlay);
 
+
     /*
-     * ==========================================
+     * =========================================================
      * SHOW ANIMATION
-     * ==========================================
+     * =========================================================
      */
 
     requestAnimationFrame(function () {
+
         overlay.style.opacity = '1';
-        card.style.transform = 'scale(1)';
+
+        card.style.transform =
+            'scale(1)';
+
     });
 
+
     /*
-     * ==========================================
+     * =========================================================
      * REMOVE FUNCTION
-     * ==========================================
+     * =========================================================
      */
 
     let removed = false;
 
     function removePopup() {
+
         if (removed) {
             return;
         }
 
         removed = true;
 
-        overlay.style.opacity = '0';
-        card.style.transform = 'scale(.95)';
+        overlay.style.opacity =
+            '0';
+
+        card.style.transform =
+            'scale(.95)';
 
         setTimeout(function () {
+
             if (
                 overlay &&
                 overlay.parentNode
             ) {
                 overlay.remove();
             }
+
         }, 250);
     }
 
+
     /*
-     * ==========================================
+     * =========================================================
      * CLOSE BUTTON
-     * ==========================================
+     * =========================================================
      */
 
     closeBtn.onclick = function () {
+
         removePopup();
+
     };
 
+
     /*
-     * ==========================================
-     * AUTOMATICALLY CLOSE AFTER 10 SECONDS
-     * ==========================================
+     * =========================================================
+     * AUTOMATIC CLOSE
+     * =========================================================
      */
 
     setTimeout(function () {
+
         removePopup();
+
     }, AUTO_CLOSE_TIME);
+
 
 })();
