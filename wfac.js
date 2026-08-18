@@ -423,11 +423,6 @@
         declineBtn.onclick = function () {
             warning.remove();
 
-            /*
-             * NEW BEHAVIOR:
-             * When DECLINE is clicked, also close
-             * the entire comment list popup.
-             */
             const commentPopup =
                 document.getElementById(
                     'afCommentPopup'
@@ -789,14 +784,22 @@
                     d.getFullYear()
                 ).slice(-2);
 
+                /*
+                 * UPDATED COMMENT FORMAT:
+                 *
+                 * Comment - MM/DD/YY - INITIALS
+                 *
+                 * Example:
+                 * Reviewed, no action required - 08/18/26 - ALD
+                 */
                 const note =
+                    finalComment +
+                    ' - ' +
                     mm +
                     '/' +
                     dd +
                     '/' +
                     yy +
-                    ' - ' +
-                    finalComment +
                     ' - ' +
                     initials;
 
