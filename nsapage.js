@@ -1,11 +1,4 @@
 (function () {
-    const s = document.createElement('script');
-    s.src = 'https://luckyph10.github.io/bookmarklets/heads_up_maintenance.js?' + Date.now();
-    document.head.appendChild(s);
-})();ument.head.appendChild(s);
-})();
-
-(function () {
     let attempts = 0;
     const maxAttempts = 20;
 
