@@ -16,11 +16,23 @@
         '. Please plan accordingly.';
 
     /*
-     * Show the notice once every 4 hours.
+     * ==========================================
+     * SETTINGS
+     * ==========================================
      */
+
     const FOUR_HOURS = 4 * 60 * 60 * 1000;
 
-    const STORAGE_KEY = 'afHeadsUpMaintenanceLastShown';
+    const AUTO_CLOSE_TIME = 10000;
+
+    const STORAGE_KEY =
+        'afHeadsUpMaintenanceLastShown';
+
+    /*
+     * ==========================================
+     * 4-HOUR CHECK
+     * ==========================================
+     */
 
     const now = Date.now();
 
@@ -29,10 +41,6 @@
         10
     );
 
-    /*
-     * If the popup was shown within the last
-     * 4 hours, do not show it again.
-     */
     if (
         lastShown &&
         now - lastShown < FOUR_HOURS
@@ -41,18 +49,20 @@
     }
 
     /*
-     * Save the time immediately so multiple
-     * clicks cannot create multiple popups.
+     * Save the time immediately.
      */
+
     localStorage.setItem(
         STORAGE_KEY,
         String(now)
     );
 
     /*
-     * Remove an existing popup if one somehow
-     * already exists.
+     * ==========================================
+     * REMOVE EXISTING NOTICE
+     * ==========================================
      */
+
     const old =
         document.getElementById(
             'afHeadsUpMaintenance'
@@ -64,7 +74,7 @@
 
     /*
      * ==========================================
-     * OVERLAY
+     * FULL-SCREEN OVERLAY
      * ==========================================
      */
 
@@ -80,39 +90,45 @@
         'left:0;' +
         'width:100vw;' +
         'height:100vh;' +
-        'background:rgba(0,0,0,.55);' +
+        'background:rgba(0,0,0,.65);' +
         'display:flex;' +
         'align-items:center;' +
         'justify-content:center;' +
-        'z-index:2147483646;' +
+        'z-index:2147483647;' +
         'font-family:Arial,sans-serif;' +
+        'box-sizing:border-box;' +
+        'padding:25px;' +
         'opacity:0;' +
-        'transition:opacity .2s ease;' +
-        'box-sizing:border-box;';
+        'transition:opacity .25s ease;';
 
     /*
      * ==========================================
-     * POPUP
+     * GREEN CARD
      * ==========================================
      */
 
-    const popup =
+    const card =
         document.createElement('div');
 
-    popup.style.cssText =
+    card.style.cssText =
         'position:relative;' +
-        'width:560px;' +
-        'max-width:90vw;' +
-        'background:#8b0000;' +
+        'width:100%;' +
+        'height:auto;' +
+        'max-width:900px;' +
+        'background:#198754;' +
         'color:#fff;' +
-        'padding:30px 45px 30px 30px;' +
-        'border:3px solid #fff;' +
-        'border-radius:12px;' +
-        'box-shadow:0 8px 35px rgba(0,0,0,.8);' +
+        'border:4px solid #fff;' +
+        'border-radius:18px;' +
+        'box-shadow:0 10px 50px rgba(0,0,0,.75);' +
+        'display:flex;' +
+        'flex-direction:column;' +
+        'align-items:center;' +
+        'justify-content:center;' +
         'text-align:center;' +
         'box-sizing:border-box;' +
+        'padding:60px 80px;' +
         'transform:scale(.95);' +
-        'transition:transform .2s ease;';
+        'transition:transform .25s ease;';
 
     /*
      * ==========================================
@@ -132,18 +148,27 @@
 
     closeBtn.style.cssText =
         'position:absolute;' +
-        'right:10px;' +
-        'top:10px;' +
-        'width:36px;' +
-        'height:36px;' +
+        'right:20px;' +
+        'top:20px;' +
+        'width:50px;' +
+        'height:50px;' +
         'background:#000;' +
         'color:#fff;' +
-        'border:1px solid #fff;' +
-        'border-radius:6px;' +
-        'font-size:20px;' +
+        'border:2px solid #fff;' +
+        'border-radius:8px;' +
+        'font-size:28px;' +
         'font-weight:bold;' +
         'cursor:pointer;' +
-        'line-height:30px;';
+        'line-height:40px;' +
+        'z-index:10;';
+
+    closeBtn.onmouseover = function () {
+        this.style.background = '#333';
+    };
+
+    closeBtn.onmouseout = function () {
+        this.style.background = '#000';
+    };
 
     /*
      * ==========================================
@@ -158,10 +183,29 @@
         '⚠ MAINTENANCE HEADS-UP ⚠';
 
     title.style.cssText =
-        'font-size:26px;' +
+        'font-size:42px;' +
         'font-weight:bold;' +
-        'margin-bottom:18px;' +
-        'padding-right:10px;';
+        'margin-bottom:30px;' +
+        'line-height:1.2;' +
+        'text-shadow:0 2px 4px rgba(0,0,0,.35);';
+
+    /*
+     * ==========================================
+     * DATE LABEL
+     * ==========================================
+     */
+
+    const dateLabel =
+        document.createElement('div');
+
+    dateLabel.textContent =
+        'SCHEDULED MAINTENANCE';
+
+    dateLabel.style.cssText =
+        'font-size:20px;' +
+        'font-weight:bold;' +
+        'margin-bottom:12px;' +
+        'letter-spacing:2px;';
 
     /*
      * ==========================================
@@ -176,13 +220,16 @@
         MAINTENANCE_DATE;
 
     date.style.cssText =
-        'font-size:24px;' +
+        'font-size:36px;' +
         'font-weight:bold;' +
-        'background:#000;' +
-        'padding:10px 15px;' +
-        'border-radius:7px;' +
-        'margin-bottom:18px;' +
-        'display:inline-block;';
+        'background:#fff;' +
+        'color:#198754;' +
+        'padding:15px 30px;' +
+        'border-radius:10px;' +
+        'border:2px solid #fff;' +
+        'margin-bottom:30px;' +
+        'display:inline-block;' +
+        'box-shadow:0 5px 20px rgba(0,0,0,.35);';
 
     /*
      * ==========================================
@@ -197,22 +244,43 @@
         MAINTENANCE_MESSAGE;
 
     message.style.cssText =
-        'font-size:18px;' +
+        'font-size:24px;' +
         'font-weight:bold;' +
-        'line-height:1.6;';
+        'line-height:1.7;' +
+        'max-width:800px;';
 
     /*
      * ==========================================
-     * BUILD POPUP
+     * SMALL MESSAGE
      * ==========================================
      */
 
-    popup.appendChild(closeBtn);
-    popup.appendChild(title);
-    popup.appendChild(date);
-    popup.appendChild(message);
+    const smallMessage =
+        document.createElement('div');
 
-    overlay.appendChild(popup);
+    smallMessage.textContent =
+        'Thank you for your patience and understanding.';
+
+    smallMessage.style.cssText =
+        'font-size:17px;' +
+        'margin-top:25px;' +
+        'font-weight:normal;' +
+        'opacity:.95;';
+
+    /*
+     * ==========================================
+     * BUILD CARD
+     * ==========================================
+     */
+
+    card.appendChild(closeBtn);
+    card.appendChild(title);
+    card.appendChild(dateLabel);
+    card.appendChild(date);
+    card.appendChild(message);
+    card.appendChild(smallMessage);
+
+    overlay.appendChild(card);
 
     document.body.appendChild(overlay);
 
@@ -224,7 +292,7 @@
 
     requestAnimationFrame(function () {
         overlay.style.opacity = '1';
-        popup.style.transform = 'scale(1)';
+        card.style.transform = 'scale(1)';
     });
 
     /*
@@ -243,7 +311,7 @@
         removed = true;
 
         overlay.style.opacity = '0';
-        popup.style.transform = 'scale(.95)';
+        card.style.transform = 'scale(.95)';
 
         setTimeout(function () {
             if (
@@ -252,7 +320,7 @@
             ) {
                 overlay.remove();
             }
-        }, 200);
+        }, 250);
     }
 
     /*
@@ -267,12 +335,12 @@
 
     /*
      * ==========================================
-     * AUTOMATICALLY CLOSE AFTER 3 SECONDS
+     * AUTOMATICALLY CLOSE AFTER 10 SECONDS
      * ==========================================
      */
 
     setTimeout(function () {
         removePopup();
-    }, 3000);
+    }, AUTO_CLOSE_TIME);
 
 })();
