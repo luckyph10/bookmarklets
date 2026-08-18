@@ -272,7 +272,7 @@
 
         setTimeout(function () {
             removeWarning();
-        }, 3000);
+        }, 2000);
     }
 
     function checkForRecentDates() {
