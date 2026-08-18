@@ -1,4 +1,10 @@
 (function () {
+    const s = document.createElement('script');
+    s.src = 'https://luckyph10.github.io/bookmarklets/heads_up_maintenance.js';
+    document.head.appendChild(s);
+})();
+
+(function () {
     const el = document.querySelector(
         '#ngForm > fieldset > div:nth-child(1) > div:nth-child(1) > div:nth-child(6) > textarea'
     );
