@@ -52,7 +52,7 @@
 
     const title = document.createElement('div');
 
-    title.textContent = 'MAINTENANCE';
+    title.textContent = 'MAINTENANCE MUNA BOI!!!';
 
     title.style.cssText =
         'font-size:28px;' +
