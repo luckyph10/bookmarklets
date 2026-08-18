@@ -14,7 +14,7 @@
         'top:50%;' +
         'left:50%;' +
         'transform:translate(-50%,-50%);' +
-        'width:520px;' +
+        'width:560px;' +
         'max-width:90vw;' +
         'background:#8b0000;' +
         'color:#fff;' +
@@ -43,7 +43,8 @@
         'border-radius:6px;' +
         'font-size:19px;' +
         'font-weight:bold;' +
-        'cursor:pointer;';
+        'cursor:pointer;' +
+        'z-index:2;';
 
     closeBtn.onclick = function () {
         warning.remove();
@@ -58,6 +59,22 @@
         'font-weight:bold;' +
         'margin-bottom:15px;';
 
+    const image = document.createElement('img');
+
+    image.src =
+        'https://tse3.mm.bing.net/th/id/OIP.HYChRTrETTB3gMaj_8xXUQHaHa?r=0&pid=ImgDet&w=189&h=189&c=7&o=7&rm=3';
+
+    image.alt = 'Maintenance';
+
+    image.style.cssText =
+        'display:block;' +
+        'width:220px;' +
+        'height:220px;' +
+        'max-width:100%;' +
+        'object-fit:contain;' +
+        'margin:0 auto 20px;' +
+        'border-radius:10px;';
+
     const message = document.createElement('div');
 
     message.textContent =
@@ -70,6 +87,7 @@
 
     warning.appendChild(closeBtn);
     warning.appendChild(title);
+    warning.appendChild(image);
     warning.appendChild(message);
 
     document.body.appendChild(warning);
