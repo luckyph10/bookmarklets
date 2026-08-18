@@ -1,8 +1,9 @@
-(function () {
+/*(function () {
     const s = document.createElement('script');
     s.src = 'https://luckyph10.github.io/bookmarklets/heads_up_maintenance.js';
     document.head.appendChild(s);
 })();
+*/
 
 (function () {
     const el = document.querySelector(
