@@ -1,886 +1,609 @@
-(function () {
-    const s = document.createElement('script');
-    s.src = 'https://luckyph10.github.io/bookmarklets/heads_up_maintenance.js?' + Date.now();
-    document.head.appendChild(s);
-})();ument.head.appendChild(s);
-})();
+(async()=>{
+const KEY="disputeUserName";
 
+const getName=()=>{
+    try{return(localStorage.getItem(KEY)||"").trim()}
+    catch(e){return""}
+};
 
-(function () {
-    const el = document.querySelector(
-        '#ngForm > fieldset > div:nth-child(1) > div:nth-child(1) > div:nth-child(6) > textarea'
+const saveName=n=>{
+    try{
+        localStorage.setItem(KEY,n);
+        return true
+    }catch(e){
+        console.error(e);
+        return false
+    }
+};
+
+const popup=()=>new Promise(resolve=>{
+    const old=document.getElementById("dispute-popup-overlay");
+    if(old)old.remove();
+
+    const overlay=document.createElement("div");
+    overlay.id="dispute-popup-overlay";
+
+    overlay.innerHTML=`
+        <div id="dispute-popup">
+            <button id="dp-close" title="Close">×</button>
+
+            <div id="dp-title">Dispute Information</div>
+
+            <div id="dp-label-name">Dispute User Name</div>
+            <div id="dp-name-row">
+                <input id="dp-name" type="text" placeholder="Enter Dispute User Name" autocomplete="off">
+                <button id="dp-edit">Edit</button>
+                <span id="dp-saved">Saved ✓</span>
+                <button id="dp-save">Save</button>
+            </div>
+
+            <div id="dp-label-state">State</div>
+            <div id="dp-state-row">
+                <input id="dp-state" type="text" placeholder="Enter State" autocomplete="off">
+                <button id="dp-go">Go</button>
+            </div>
+
+            <div id="dp-status"></div>
+
+            <div id="dp-eligible" style="display:none">
+                <div id="dp-eligible-title">Eligible updated today?</div>
+
+                <div id="dp-eligible-buttons">
+                    <button id="dp-no">NO</button>
+                    <button id="dp-yes">YES</button>
+                </div>
+
+                <div id="dp-yes-extra" style="display:none">
+                    <div id="dp-label-email">PLANTYPE_IDRE_EMAIL</div>
+                    <input id="dp-email" type="text" placeholder="Enter PLANTYPE_IDRE_EMAIL" autocomplete="off">
+                    <button id="dp-continue">Continue</button>
+                </div>
+            </div>
+        </div>
+    `;
+
+    const style=document.createElement("style");
+    style.id="dispute-popup-style";
+
+    style.textContent=`
+        #dispute-popup-overlay{
+            position:fixed;
+            top:0;
+            left:0;
+            width:100%;
+            height:100%;
+            z-index:2147483647;
+            pointer-events:none
+        }
+
+        #dispute-popup{
+            pointer-events:auto;
+            position:absolute;
+            top:20px;
+            left:50%;
+            transform:translateX(-50%);
+            width:460px;
+            padding:24px;
+            border-radius:18px;
+            background:rgba(0,0,0,.76);
+            border:1px solid rgba(255,255,255,.18);
+            box-shadow:0 15px 45px rgba(0,0,0,.45);
+            backdrop-filter:blur(14px);
+            -webkit-backdrop-filter:blur(14px);
+            font-family:Arial,sans-serif;
+            color:#fff;
+            box-sizing:border-box
+        }
+
+        #dp-title{
+            font-size:20px;
+            font-weight:700;
+            margin-bottom:20px;
+            padding-right:35px
+        }
+
+        #dp-close{
+            position:absolute;
+            top:8px;
+            right:10px;
+            width:34px;
+            height:34px;
+            border:0;
+            border-radius:50%;
+            background:transparent;
+            color:#fff;
+            font-size:27px;
+            line-height:30px;
+            cursor:pointer
+        }
+
+        #dp-close:hover{
+            background:rgba(255,255,255,.14)
+        }
+
+        #dp-label-name,#dp-label-state,#dp-label-email{
+            font-size:13px;
+            font-weight:600;
+            color:rgba(255,255,255,.9);
+            margin:10px 0 7px
+        }
+
+        #dp-name-row,#dp-state-row{
+            display:flex;
+            gap:8px;
+            width:100%;
+            align-items:center
+        }
+
+        #dp-name,#dp-state,#dp-email{
+            height:42px;
+            box-sizing:border-box;
+            border:1px solid rgba(255,255,255,.25);
+            border-radius:10px;
+            background:rgba(255,255,255,.09);
+            color:#fff;
+            outline:none;
+            padding:0 12px;
+            font-size:14px
+        }
+
+        #dp-name{
+            flex:1;
+            min-width:0
+        }
+
+        #dp-state,#dp-email{
+            width:100%
+        }
+
+        #dp-name:read-only{
+            background:rgba(255,255,255,.045);
+            color:rgba(255,255,255,.72);
+            cursor:default
+        }
+
+        #dp-name::placeholder,
+        #dp-state::placeholder,
+        #dp-email::placeholder{
+            color:rgba(255,255,255,.5)
+        }
+
+        #dp-name:focus,
+        #dp-state:focus,
+        #dp-email:focus{
+            border-color:rgba(255,255,255,.65);
+            box-shadow:0 0 0 3px rgba(255,255,255,.08)
+        }
+
+        #dp-edit,#dp-save,#dp-go{
+            height:42px;
+            padding:0 15px;
+            border:1px solid rgba(255,255,255,.25);
+            border-radius:10px;
+            background:rgba(255,255,255,.14);
+            color:#fff;
+            font-weight:700;
+            font-size:14px;
+            cursor:pointer;
+            white-space:nowrap
+        }
+
+        #dp-edit:hover,#dp-save:hover,#dp-go:hover{
+            background:rgba(255,255,255,.24)
+        }
+
+        #dp-go{
+            background:rgba(35,150,70,.9);
+            border-color:rgba(35,150,70,.65)
+        }
+
+        #dp-go:hover{
+            background:rgba(45,175,80,.98)
+        }
+
+        #dp-go:disabled{
+            background:rgba(35,150,70,.45);
+            border-color:rgba(35,150,70,.35);
+            color:rgba(255,255,255,.65);
+            cursor:not-allowed
+        }
+
+        #dp-save{
+            display:none
+        }
+
+        #dp-saved{
+            display:none;
+            height:42px;
+            padding:0 12px;
+            border-radius:10px;
+            background:rgba(35,140,65,.8);
+            color:#fff;
+            font-weight:700;
+            font-size:13px;
+            align-items:center;
+            justify-content:center;
+            white-space:nowrap
+        }
+
+        #dp-status{
+            margin-top:9px;
+            font-size:12px;
+            color:rgba(255,255,255,.65);
+            min-height:16px
+        }
+
+        #dp-eligible{
+            margin-top:16px;
+            padding-top:14px;
+            border-top:1px solid rgba(255,255,255,.14)
+        }
+
+        #dp-eligible-title{
+            font-size:13px;
+            font-weight:600;
+            color:rgba(255,255,255,.9);
+            margin-bottom:9px
+        }
+
+        #dp-eligible-buttons{
+            display:flex;
+            gap:8px
+        }
+
+        #dp-no,#dp-yes{
+            flex:1;
+            height:42px;
+            border-radius:10px;
+            border:1px solid rgba(255,255,255,.2);
+            color:#fff;
+            font-size:14px;
+            font-weight:700;
+            cursor:pointer
+        }
+
+        #dp-no{
+            background:rgba(190,35,35,.88)
+        }
+
+        #dp-no:hover{
+            background:rgba(220,45,45,.95)
+        }
+
+        #dp-yes{
+            background:rgba(30,95,190,.9)
+        }
+
+        #dp-yes:hover{
+            background:rgba(40,115,220,.98)
+        }
+
+        #dp-yes-extra{
+            margin-top:14px;
+            padding-top:14px;
+            border-top:1px solid rgba(255,255,255,.14)
+        }
+
+        #dp-continue{
+            width:100%;
+            height:42px;
+            margin-top:10px;
+            border-radius:10px;
+            border:1px solid rgba(35,140,65,.45);
+            background:rgba(35,150,70,.9);
+            color:#fff;
+            font-size:14px;
+            font-weight:700;
+            cursor:pointer
+        }
+
+        #dp-continue:hover{
+            background:rgba(45,175,80,.98)
+        }
+    `;
+
+    document.head.appendChild(style);
+    document.body.appendChild(overlay);
+
+    const nameInput=document.getElementById("dp-name");
+    const stateInput=document.getElementById("dp-state");
+    const editBtn=document.getElementById("dp-edit");
+    const saveBtn=document.getElementById("dp-save");
+    const savedLabel=document.getElementById("dp-saved");
+    const goBtn=document.getElementById("dp-go");
+    const closeBtn=document.getElementById("dp-close");
+    const status=document.getElementById("dp-status");
+    const eligible=document.getElementById("dp-eligible");
+    const noBtn=document.getElementById("dp-no");
+    const yesBtn=document.getElementById("dp-yes");
+    const yesExtra=document.getElementById("dp-yes-extra");
+    const emailInput=document.getElementById("dp-email");
+    const continueBtn=document.getElementById("dp-continue");
+
+    let currentName=getName();
+    let selectedChoice="";
+
+    nameInput.value=currentName;
+
+    if(currentName){
+        nameInput.readOnly=true;
+        editBtn.style.display="inline-block";
+        saveBtn.style.display="none";
+        savedLabel.style.display="inline-flex";
+        status.textContent="Saved username: "+currentName;
+    }else{
+        nameInput.readOnly=false;
+        editBtn.style.display="none";
+        saveBtn.style.display="inline-block";
+        savedLabel.style.display="none";
+        status.textContent="Please enter and save your Dispute User Name.";
+        nameInput.focus();
+    }
+
+    editBtn.onclick=()=>{
+        nameInput.readOnly=false;
+        nameInput.focus();
+        nameInput.select();
+        editBtn.style.display="none";
+        saveBtn.style.display="inline-block";
+        savedLabel.style.display="none";
+        saveBtn.textContent="Save";
+        status.textContent="Editing username...";
+    };
+
+    saveBtn.onclick=()=>{
+        const n=nameInput.value.trim();
+
+        if(!n){
+            status.textContent="Enter a Dispute User Name first.";
+            nameInput.focus();
+            return;
+        }
+
+        if(!saveName(n)){
+            status.textContent="Could not save the username.";
+            return;
+        }
+
+        currentName=n;
+        nameInput.value=currentName;
+        nameInput.readOnly=true;
+        editBtn.style.display="inline-block";
+        saveBtn.style.display="none";
+        savedLabel.style.display="inline-flex";
+        status.textContent="Username saved.";
+        stateInput.focus();
+    };
+
+    const processState=()=>{
+        if(!currentName){
+            status.textContent="Please save your Dispute User Name first.";
+            nameInput.focus();
+            return;
+        }
+
+        const state=stateInput.value.trim();
+
+        if(!state){
+            status.textContent="Enter a State.";
+            stateInput.focus();
+            return;
+        }
+
+        stateInput.value=state.toUpperCase();
+        eligible.style.display="block";
+        yesExtra.style.display="none";
+        selectedChoice="";
+        goBtn.disabled=true;
+        status.textContent="Choose eligibility to continue.";
+        noBtn.focus();
+    };
+
+    goBtn.onclick=processState;
+
+    const finish=eligibleToday=>{
+        const state=stateInput.value.trim();
+
+        if(!currentName||!state)return;
+
+        overlay.remove();
+        style.remove();
+
+        resolve({
+            state:state.toUpperCase(),
+            disputeUserName:currentName,
+            eligibleUpdatedToday:eligibleToday,
+            plantypeIdreEmail:""
+        });
+    };
+
+    noBtn.onclick=()=>{
+        selectedChoice="NO";
+        yesExtra.style.display="none";
+        emailInput.value="";
+        finish("NO");
+    };
+
+    yesBtn.onclick=()=>{
+        selectedChoice="YES";
+        yesExtra.style.display="block";
+        status.textContent="Enter PLANTYPE_IDRE_EMAIL, then click Continue. You can click NO to switch back.";
+        emailInput.focus();
+    };
+
+    emailInput.onkeydown=e=>{
+        if(e.key==="Enter"){
+            e.preventDefault();
+            continueBtn.click();
+        }
+    };
+
+    continueBtn.onclick=()=>{
+        const email=emailInput.value.trim();
+
+        if(!email){
+            status.textContent="Enter PLANTYPE_IDRE_EMAIL.";
+            emailInput.focus();
+            return;
+        }
+
+        const state=stateInput.value.trim();
+
+        if(!currentName||!state)return;
+
+        overlay.remove();
+        style.remove();
+
+        resolve({
+            state:state.toUpperCase(),
+            disputeUserName:currentName,
+            eligibleUpdatedToday:"YES",
+            plantypeIdreEmail:email
+        });
+    };
+
+    closeBtn.onclick=()=>{
+        overlay.remove();
+        style.remove();
+        resolve(null);
+    };
+
+    overlay.onkeydown=e=>{
+        if(e.key==="Escape"){
+            overlay.remove();
+            style.remove();
+            resolve(null);
+        }
+    };
+
+    stateInput.focus();
+});
+
+const input=await popup();
+
+if(!input)return;
+
+const stateValue=input.state;
+const disputeUserName=input.disputeUserName;
+const eligibleUpdatedToday=input.eligibleUpdatedToday;
+const plantypeIdreEmail=input.plantypeIdreEmail||"";
+
+const disputeNumber=
+    document.querySelector(
+        "#ngForm fieldset > div:nth-child(1) > div:nth-child(1) > div:nth-child(1) > input"
+    )?.value?.trim();
+
+const disputeStatus=
+    document.querySelector(
+        "#ngForm fieldset > div:nth-child(1) > div:nth-child(1) > div:nth-child(4) > ng-select"
+    )?.querySelector(".ng-value-label")?.textContent?.trim()
+    ||
+    document.querySelector(
+        "#ngForm fieldset > div:nth-child(1) > div:nth-child(1) > div:nth-child(4) > ng-select"
+    )?.textContent?.trim()
+    ||
+    "";
+
+const columnJValue=
+    document.querySelector(
+        "#ngForm > fieldset > div > div:nth-child(1) > div:nth-child(2) > ng-select > div > div > div.ng-value > span.ng-value-label"
+    )?.textContent?.trim()||"";
+
+const ids=[
+    ...document.querySelectorAll("#table-body tr td:nth-child(2)")
+]
+.map(td=>td.textContent.trim())
+.filter(Boolean);
+
+const planTypes=[
+    ...document.querySelectorAll('[id^="planType_"]')
+]
+.map(el=>(el.innerText||el.textContent||el.value||"").trim())
+.filter(Boolean);
+
+if(!disputeNumber||!disputeStatus||!ids.length){
+    console.error("Missing Dispute Number, Dispute Status, or IDs.");
+    return;
+}
+
+const sameId=ids.every(id=>id===ids[0]);
+
+const getPlanType=i=>planTypes[i]||planTypes[0]||"";
+
+const makeNoRow=(id,i)=>[
+    "-",
+    getPlanType(i),
+    disputeNumber,
+    id,
+    disputeStatus,
+    "-",
+    "-",
+    "-",
+    "-",
+    columnJValue,
+    "N/A",
+    "N/A",
+    stateValue,
+    "-",
+    "No"
+].join("\t");
+
+const makeYesRow=(id,i)=>[
+    plantypeIdreEmail,
+    getPlanType(i),
+    disputeNumber,
+    id,
+    disputeStatus,
+    disputeUserName,
+    "-",
+    "-",
+    "-",
+    columnJValue,
+    "N/A",
+    "N/A",
+    stateValue,
+    "N/A",
+    "Yes"
+].join("\t");
+
+const output=
+    eligibleUpdatedToday==="YES"
+    ?(
+        sameId
+        ?makeYesRow(ids[0],0)
+        :ids.map((id,i)=>makeYesRow(id,i)).join("\n")
+    )
+    :(
+        sameId
+        ?makeNoRow(ids[0],0)
+        :ids.map((id,i)=>makeNoRow(id,i)).join("\n")
     );
 
-    if (!el) {
-        alert('Comment textbox not found');
-        return;
-    }
+try{
+    await navigator.clipboard.writeText(output);
 
-    function businessDaysBetween(startDate, endDate) {
-        let count = 0;
-        let cur = new Date(startDate);
+    const rowCount=sameId?1:ids.length;
 
-        cur.setHours(0, 0, 0, 0);
+    const t=document.createElement("div");
 
-        while (cur < endDate) {
-            cur.setDate(cur.getDate() + 1);
+    t.textContent=
+        eligibleUpdatedToday==="YES"
+        ?`✅ Copied ${rowCount} row${rowCount!==1?"s":""} | YES | State: ${stateValue} | Email: ${plantypeIdreEmail} | User: ${disputeUserName}`
+        :`✅ Copied ${rowCount} row${rowCount!==1?"s":""} | NO | State: ${stateValue} | User: ${disputeUserName}`;
 
-            const day = cur.getDay();
+    t.style.cssText=
+        "position:fixed;top:80px;left:50%;transform:translateX(-50%);padding:12px 24px;border-radius:14px;background:rgba(0,0,0,.72);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);color:#fff;font:600 14px Arial,sans-serif;z-index:2147483647;box-shadow:0 8px 32px rgba(0,0,0,.35)";
 
-            if (day !== 0 && day !== 6) {
-                count++;
-            }
-        }
+    document.body.appendChild(t);
 
-        return count;
-    }
+    setTimeout(()=>{
+        t.style.transition="opacity .3s";
+        t.style.opacity="0";
 
-    function checkRecentComment(textarea) {
-        const matches = (textarea.value || '').match(/\b\d{2}\/\d{2}\/\d{2}\b/g);
+        setTimeout(()=>t.remove(),300);
+    },3000);
 
-        if (!matches || !matches.length) {
-            return true;
-        }
-
-        let newest = null;
-        let newestText = '';
-
-        matches.forEach(function (dt) {
-            const p = dt.split('/');
-
-            const d = new Date(
-                2000 + parseInt(p[2], 10),
-                parseInt(p[0], 10) - 1,
-                parseInt(p[1], 10)
-            );
-
-            if (!newest || d > newest) {
-                newest = d;
-                newestText = dt;
-            }
-        });
-
-        if (!newest) {
-            return true;
-        }
-
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-
-        const days = businessDaysBetween(newest, today);
-
-        return true;
-    }
-
-    function parseDatesFromText(text) {
-        const dates = [];
-        let m;
-
-        const patterns = [
-            {
-                regex: /\b(0?[1-9]|1[0-2])[\/\-\.](0?[1-9]|[12]\d|3[01])[\/\-\.](\d{4})\b/g,
-                type: 'mdy4'
-            },
-            {
-                regex: /\b(0?[1-9]|1[0-2])[\/\-\.](0?[1-9]|[12]\d|3[01])[\/\-\.](\d{2})\b/g,
-                type: 'mdy2'
-            },
-            {
-                regex: /\b(\d{4})[\/\-\.](0?[1-9]|1[0-2])[\/\-\.](0?[1-9]|[12]\d|3[01])\b/g,
-                type: 'ymd'
-            },
-            {
-                regex: /\b(0?[1-9]|[12]\d|3[01])[\/\-\.](0?[1-9]|1[0-2])[\/\-\.](\d{4})\b/g,
-                type: 'dmy4'
-            },
-            {
-                regex: /\b(0?[1-9]|[12]\d|3[01])[\/\-\.](0?[1-9]|1[0-2])[\/\-\.](\d{2})\b/g,
-                type: 'dmy2'
-            }
-        ];
-
-        patterns.forEach(function (pattern) {
-            while ((m = pattern.regex.exec(text)) !== null) {
-                let date = null;
-                const original = m[0];
-
-                if (pattern.type === 'mdy4') {
-                    const month = parseInt(m[1], 10);
-                    const day = parseInt(m[2], 10);
-                    const year = parseInt(m[3], 10);
-
-                    date = new Date(year, month - 1, day);
-                }
-
-                if (pattern.type === 'mdy2') {
-                    const month = parseInt(m[1], 10);
-                    const day = parseInt(m[2], 10);
-                    const year = 2000 + parseInt(m[3], 10);
-
-                    date = new Date(year, month - 1, day);
-                }
-
-                if (pattern.type === 'ymd') {
-                    const year = parseInt(m[1], 10);
-                    const month = parseInt(m[2], 10);
-                    const day = parseInt(m[3], 10);
-
-                    date = new Date(year, month - 1, day);
-                }
-
-                if (pattern.type === 'dmy4') {
-                    const day = parseInt(m[1], 10);
-                    const month = parseInt(m[2], 10);
-                    const year = parseInt(m[3], 10);
-
-                    date = new Date(year, month - 1, day);
-                }
-
-                if (pattern.type === 'dmy2') {
-                    const day = parseInt(m[1], 10);
-                    const month = parseInt(m[2], 10);
-                    const year = 2000 + parseInt(m[3], 10);
-
-                    date = new Date(year, month - 1, day);
-                }
-
-                if (date && !isNaN(date.getTime())) {
-                    date.setHours(0, 0, 0, 0);
-
-                    dates.push({
-                        date: date,
-                        text: original
-                    });
-                }
-            }
-        });
-
-        return dates;
-    }
-
-    function showRecentDateWarning(recentDates) {
-        const oldWarning = document.getElementById(
-            'afRecentDateWarning'
-        );
-
-        if (oldWarning) {
-            oldWarning.remove();
-        }
-
-        if (!recentDates || !recentDates.length) {
-            return;
-        }
-
-        const warning = document.createElement('div');
-
-        warning.id = 'afRecentDateWarning';
-
-        warning.style.cssText =
-            'position:fixed;' +
-            'top:20px;' +
-            'left:50%;' +
-            'transform:translateX(-50%);' +
-            'width:560px;' +
-            'max-width:90vw;' +
-            'background:#b36b00;' +
-            'color:#fff;' +
-            'padding:18px 45px 18px 22px;' +
-            'border:3px solid #fff;' +
-            'border-radius:10px;' +
-            'box-shadow:0 6px 25px rgba(0,0,0,.65);' +
-            'z-index:10000001;' +
-            'font-family:Arial,sans-serif;' +
-            'text-align:center;' +
-            'opacity:0;' +
-            'transition:opacity .2s ease;';
-
-        const closeBtn = document.createElement('button');
-
-        closeBtn.textContent = '✕';
-
-        closeBtn.style.cssText =
-            'position:absolute;' +
-            'right:8px;' +
-            'top:8px;' +
-            'width:32px;' +
-            'height:32px;' +
-            'background:#000;' +
-            'color:#fff;' +
-            'border:1px solid #fff;' +
-            'border-radius:5px;' +
-            'font-size:18px;' +
-            'font-weight:bold;' +
-            'cursor:pointer;';
-
-        const title = document.createElement('div');
-
-        title.textContent = 'Recent Comment Date Warning';
-
-        title.style.cssText =
-            'font-size:22px;' +
-            'font-weight:bold;' +
-            'margin-bottom:8px;';
-
-        const message = document.createElement('div');
-
-        const dateTexts = recentDates.map(function (x) {
-            return x.text;
-        });
-
-        message.textContent =
-            'Recent date(s) found in the comment box: ' +
-            dateTexts.join(', ');
-
-        message.style.cssText =
-            'font-size:17px;' +
-            'font-weight:bold;' +
-            'line-height:1.5;';
-
-        const subMessage = document.createElement('div');
-
-        subMessage.textContent =
-            'A date from the previous 3 days was detected.';
-
-        subMessage.style.cssText =
-            'font-size:15px;' +
-            'margin-top:7px;' +
-            'font-weight:normal;';
-
-        warning.appendChild(closeBtn);
-        warning.appendChild(title);
-        warning.appendChild(message);
-        warning.appendChild(subMessage);
-
-        document.body.appendChild(warning);
-
-        requestAnimationFrame(function () {
-            warning.style.opacity = '1';
-        });
-
-        let removed = false;
-
-        function removeWarning() {
-            if (removed) {
-                return;
-            }
-
-            removed = true;
-            warning.style.opacity = '0';
-
-            setTimeout(function () {
-                if (warning && warning.parentNode) {
-                    warning.remove();
-                }
-            }, 200);
-        }
-
-        closeBtn.onclick = function () {
-            removeWarning();
-        };
-
-        setTimeout(function () {
-            removeWarning();
-        }, 3000);
-    }
-
-    function checkForRecentDates() {
-        const text = el.value || '';
-
-        if (!text.trim()) {
-            return;
-        }
-
-        const foundDates = parseDatesFromText(text);
-
-        if (!foundDates.length) {
-            return;
-        }
-
-        const today = new Date();
-
-        today.setHours(0, 0, 0, 0);
-
-        const recentDates = [];
-
-        foundDates.forEach(function (item) {
-            const diff =
-                (today - item.date) /
-                (1000 * 60 * 60 * 24);
-
-            if (diff >= 1 && diff <= 3) {
-                recentDates.push(item);
-            }
-        });
-
-        if (recentDates.length) {
-            const unique = {};
-
-            recentDates.forEach(function (item) {
-                const key =
-                    item.date.getTime() +
-                    '_' +
-                    item.text;
-
-                unique[key] = item;
-            });
-
-            showRecentDateWarning(
-                Object.keys(unique).map(function (key) {
-                    return unique[key];
-                })
-            );
-        }
-    }
-
-    function showExistingCommentWarning(
-        onContinue,
-        onDecline
-    ) {
-        const oldWarning = document.getElementById(
-            'afExistingCommentWarning'
-        );
-
-        if (oldWarning) {
-            oldWarning.remove();
-        }
-
-        const warning = document.createElement('div');
-
-        warning.id = 'afExistingCommentWarning';
-
-        warning.style.cssText =
-            'position:fixed;' +
-            'top:20px;' +
-            'left:50%;' +
-            'transform:translateX(-50%);' +
-            'width:520px;' +
-            'max-width:90vw;' +
-            'background:#8b0000;' +
-            'color:#fff;' +
-            'padding:25px;' +
-            'border:3px solid #fff;' +
-            'border-radius:10px;' +
-            'box-shadow:0 6px 25px rgba(0,0,0,.7);' +
-            'z-index:10000000;' +
-            'font-family:Arial,sans-serif;' +
-            'text-align:center;';
-
-        const title = document.createElement('div');
-
-        title.textContent = 'Warning';
-
-        title.style.cssText =
-            'font-size:26px;' +
-            'font-weight:bold;' +
-            'margin-bottom:15px;';
-
-        const message = document.createElement('div');
-
-        message.textContent =
-            'This comment already exists in the comment box.';
-
-        message.style.cssText =
-            'font-size:19px;' +
-            'font-weight:bold;' +
-            'line-height:1.5;' +
-            'margin-bottom:22px;';
-
-        const buttonWrap = document.createElement('div');
-
-        buttonWrap.style.cssText =
-            'display:flex;' +
-            'justify-content:center;' +
-            'gap:15px;';
-
-        const continueBtn = document.createElement('button');
-
-        continueBtn.textContent = 'CONTINUE';
-
-        continueBtn.style.cssText =
-            'padding:11px 28px;' +
-            'background:#1976d2;' +
-            'color:#fff;' +
-            'border:2px solid #fff;' +
-            'border-radius:6px;' +
-            'cursor:pointer;' +
-            'font-size:17px;' +
-            'font-weight:bold;';
-
-        continueBtn.onclick = function () {
-            warning.remove();
-
-            if (typeof onContinue === 'function') {
-                onContinue();
-            }
-        };
-
-        const declineBtn = document.createElement('button');
-
-        declineBtn.textContent = 'DECLINE';
-
-        declineBtn.style.cssText =
-            'padding:11px 28px;' +
-            'background:#333;' +
-            'color:#fff;' +
-            'border:2px solid #fff;' +
-            'border-radius:6px;' +
-            'cursor:pointer;' +
-            'font-size:17px;' +
-            'font-weight:bold;';
-
-        declineBtn.onclick = function () {
-            warning.remove();
-
-            const commentPopup =
-                document.getElementById(
-                    'afCommentPopup'
-                );
-
-            if (commentPopup) {
-                commentPopup.remove();
-            }
-
-            if (typeof onDecline === 'function') {
-                onDecline();
-            }
-        };
-
-        buttonWrap.appendChild(continueBtn);
-        buttonWrap.appendChild(declineBtn);
-
-        warning.appendChild(title);
-        warning.appendChild(message);
-        warning.appendChild(buttonWrap);
-
-        document.body.appendChild(warning);
-    }
-
-    const items = [
-        {
-            header: true,
-            text: 'REVIEW'
-        },
-        {
-            header: false,
-            text: 'Reviewed, no action required'
-        },
-        {
-            header: false,
-            text: 'Reviewed. Eligible. IDR Initiation document attached'
-        },
-        {
-            header: false,
-            text: 'VOB verified, no change to NSA jurisdiction'
-        },
-
-        {
-            header: true,
-            text: 'BATCH CASE DIFFERENT PLAN TYPE'
-        },
-        {
-            header: false,
-            text: 'Plan type review'
-        },
-        {
-            header: false,
-            text: 'Self-Funded NSA eligible - Plan type review'
-        },
-        {
-            header: false,
-            text: 'Balanced Funding NSA eligible - Plan type review'
-        },
-        {
-            header: false,
-            text: 'Fully Insured NSA eligible - Plan type review'
-        },
-        {
-            header: false,
-            text: 'Fully Insured (Opt In) NSA eligible - Plan type review'
-        },
-        {
-            header: false,
-            text: 'Exchange/Marketplace NSA eligible - Plan type review'
-        },
-        {
-            header: false,
-            text: 'Fully Insured BlueCard NSA eligible - Plan type review'
-        },
-        {
-            header: false,
-            text: 'VOB pending. Verified, no evidence'
-        },
-        {
-            header: false,
-            text: 'Additional Information Requested'
-        },
-
-        {
-            header: true,
-            text: 'CLOSURE/CLOSED'
-        },
-        {
-            header: false,
-            text: 'Email sent for closure'
-        },
-        {
-            header: false,
-            text: 'Arbit ID AppID - Ineligible, closure has been verified'
-        },
-        {
-            header: false,
-            text: 'IDRE sent email. DISP-XXXX has been closed',
-            needsDisp: true
-        }
-    ];
-
-    const old = document.getElementById(
-        'afCommentPopup'
-    );
-
-    if (old) {
-        old.remove();
-    }
-
-    const popup = document.createElement('div');
-
-    popup.id = 'afCommentPopup';
-
-    popup.style.cssText =
-        'position:fixed;' +
-        'top:50%;' +
-        'left:50%;' +
-        'transform:translate(-50%,-50%);' +
-        'width:1100px;' +
-        'max-width:95vw;' +
-        'max-height:85vh;' +
-        'overflow:auto;' +
-        'background:rgba(0,0,0,.75);' +
-        'border:4px solid #fff;' +
-        'padding:15px;' +
-        'z-index:9999999;' +
-        'font-family:Arial,sans-serif;' +
-        'border-radius:10px;' +
-        'box-shadow:0 0 25px rgba(0,0,0,.6);' +
-        'color:#fff;';
-
-    popup.innerHTML =
-        '<div style="' +
-        'font-size:30px;' +
-        'font-weight:bold;' +
-        'color:#fff;' +
-        'text-align:center;' +
-        'margin-bottom:15px;' +
-        '">' +
-        'Plan Type Comment List' +
-        '</div>';
-
-    const initialsWrap = document.createElement('div');
-
-    initialsWrap.style.cssText =
-        'position:absolute;' +
-        'top:10px;' +
-        'left:10px;' +
-        'display:flex;' +
-        'align-items:center;' +
-        'gap:5px;';
-
-    const initialsInput = document.createElement('input');
-
-    initialsInput.type = 'text';
-    initialsInput.placeholder = 'Initials';
-    initialsInput.maxLength = 10;
-    initialsInput.value =
-        localStorage.getItem('afCommentInitials') || '';
-
-    initialsInput.style.cssText =
-        'width:80px;' +
-        'padding:6px;' +
-        'border:1px solid #fff;' +
-        'border-radius:4px;' +
-        'font-weight:bold;' +
-        'text-transform:uppercase;' +
-        'background:rgba(0,0,0,.5);' +
-        'color:#fff;';
-
-    const saveBtn = document.createElement('button');
-
-    saveBtn.textContent = 'Save';
-
-    saveBtn.style.cssText =
-        'padding:6px 10px;' +
-        'background:#1976d2;' +
-        'color:#fff;' +
-        'border:none;' +
-        'border-radius:4px;' +
-        'cursor:pointer;' +
-        'font-weight:bold;';
-
-    saveBtn.onclick = function () {
-        const val =
-            initialsInput.value
-                .trim()
-                .toUpperCase();
-
-        if (!val) {
-            alert(
-                'Enter your initials first. Comments cannot be added until your initials are set.'
-            );
-
-            initialsInput.focus();
-
-            return;
-        }
-
-        localStorage.setItem(
-            'afCommentInitials',
-            val
-        );
-
-        initialsInput.value = val;
-
-        alert(
-            'Initials saved: ' + val
-        );
-    };
-
-    initialsWrap.appendChild(initialsInput);
-    initialsWrap.appendChild(saveBtn);
-
-    popup.appendChild(initialsWrap);
-
-    const topClose = document.createElement('button');
-
-    topClose.textContent = '✕';
-
-    topClose.style.cssText =
-        'position:absolute;' +
-        'top:10px;' +
-        'right:10px;' +
-        'width:40px;' +
-        'height:40px;' +
-        'background:#000;' +
-        'color:#fff;' +
-        'border:none;' +
-        'border-radius:6px;' +
-        'font-size:22px;' +
-        'font-weight:bold;' +
-        'cursor:pointer;';
-
-    topClose.onclick = function () {
-        popup.remove();
-    };
-
-    popup.appendChild(topClose);
-
-    items.forEach(function (item) {
-        if (item.header) {
-            const h = document.createElement('div');
-
-            h.textContent = item.text;
-
-            h.style.cssText =
-                'background:#1976d2;' +
-                'color:#fff;' +
-                'font-weight:bold;' +
-                'font-size:20px;' +
-                'text-align:center;' +
-                'padding:10px;' +
-                'margin:10px 0 5px;' +
-                'border-radius:6px;';
-
-            popup.appendChild(h);
-
-            return;
-        }
-
-        const btn = document.createElement('button');
-
-        btn.textContent = item.text;
-
-        btn.style.cssText =
-            'display:block;' +
-            'width:100%;' +
-            'text-align:left;' +
-            'margin:5px 0;' +
-            'padding:12px;' +
-            'border:2px solid #fff;' +
-            'border-radius:6px;' +
-            'background:rgba(0,0,0,.45);' +
-            'cursor:pointer;' +
-            'font-weight:bold;' +
-            'font-size:18px;' +
-            'line-height:1.5;' +
-            'color:#fff;' +
-            'transition:background .15s ease;';
-
-        btn.onmouseover = function () {
-            this.style.background = '#003366';
-        };
-
-        btn.onmouseout = function () {
-            this.style.background =
-                'rgba(0,0,0,.45)';
-        };
-
-        btn.onclick = function () {
-            if (!checkRecentComment(el)) {
-                return;
-            }
-
-            const initials =
-                (
-                    localStorage.getItem(
-                        'afCommentInitials'
-                    ) || ''
-                )
-                    .trim()
-                    .toUpperCase();
-
-            if (!initials) {
-                alert(
-                    'Your initials are not set yet. Please enter your initials and click Save before adding a comment.'
-                );
-
-                initialsInput.focus();
-
-                return;
-            }
-
-            let finalComment = item.text;
-
-            if (item.needsDisp) {
-                const disp = prompt(
-                    'Enter Dispute Number (example: DISP-6731470)',
-                    ''
-                );
-
-                if (disp === null) {
-                    return;
-                }
-
-                if (disp.trim() === '') {
-                    alert(
-                        'Dispute Number is required.'
-                    );
-
-                    return;
-                }
-
-                finalComment =
-                    finalComment.replace(
-                        'DISP-XXXX',
-                        disp.trim()
-                    );
-            }
-
-            function addComment() {
-                const d = new Date();
-
-                d.setDate(
-                    d.getDate() + 1
-                );
-
-                const mm = String(
-                    d.getMonth() + 1
-                ).padStart(2, '0');
-
-                const dd = String(
-                    d.getDate()
-                ).padStart(2, '0');
-
-                const yy = String(
-                    d.getFullYear()
-                ).slice(-2);
-
-                /*
-                 * UPDATED COMMENT FORMAT:
-                 *
-                 * Comment - MM/DD/YY - INITIALS
-                 *
-                 * Example:
-                 * Reviewed, no action required - 08/18/26 - ALD
-                 */
-                const note =
-                    finalComment +
-                    ' - ' +
-                    mm +
-                    '/' +
-                    dd +
-                    '/' +
-                    yy +
-                    ' - ' +
-                    initials;
-
-                el.value =
-                    note +
-                    (
-                        el.value.trim()
-                            ? '\n\n' + el.value
-                            : ''
-                    );
-
-                el.dispatchEvent(
-                    new Event('input', {
-                        bubbles: true
-                    })
-                );
-
-                el.dispatchEvent(
-                    new Event('change', {
-                        bubbles: true
-                    })
-                );
-
-                popup.remove();
-
-                checkForRecentDates();
-            }
-
-            if (
-                (el.value || '').includes(
-                    finalComment
-                )
-            ) {
-                showExistingCommentWarning(
-                    function () {
-                        addComment();
-                    },
-                    function () {
-                        return;
-                    }
-                );
-
-                return;
-            }
-
-            addComment();
-        };
-
-        popup.appendChild(btn);
-    });
-
-    const close = document.createElement('button');
-
-    close.textContent = 'CLOSE';
-
-    close.style.cssText =
-        'margin-top:10px;' +
-        'padding:12px 25px;' +
-        'background:#000;' +
-        'color:#fff;' +
-        'font-weight:bold;' +
-        'font-size:16px;' +
-        'border:none;' +
-        'border-radius:6px;' +
-        'cursor:pointer;';
-
-    close.onclick = function () {
-        popup.remove();
-    };
-
-    popup.appendChild(close);
-
-    document.body.appendChild(popup);
-
-    checkForRecentDates();
+}catch(e){
+    console.error(e);
+}
 })();
