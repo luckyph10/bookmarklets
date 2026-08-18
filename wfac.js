@@ -136,23 +136,13 @@
                     date = new Date(year, month - 1, day);
                 }
 
-                if (
-                    date &&
-                    !isNaN(date.getTime())
-                ) {
+                if (date && !isNaN(date.getTime())) {
                     date.setHours(0, 0, 0, 0);
 
-                    if (
-                        date.getFullYear() ===
-                        (pattern.type === 'ymd'
-                            ? parseInt(m[1], 10)
-                            : date.getFullYear())
-                    ) {
-                        dates.push({
-                            date: date,
-                            text: original
-                        });
-                    }
+                    dates.push({
+                        date: date,
+                        text: original
+                    });
                 }
             }
         });
@@ -267,7 +257,6 @@
             }
 
             removed = true;
-
             warning.style.opacity = '0';
 
             setTimeout(function () {
@@ -433,6 +422,20 @@
 
         declineBtn.onclick = function () {
             warning.remove();
+
+            /*
+             * NEW BEHAVIOR:
+             * When DECLINE is clicked, also close
+             * the entire comment list popup.
+             */
+            const commentPopup =
+                document.getElementById(
+                    'afCommentPopup'
+                );
+
+            if (commentPopup) {
+                commentPopup.remove();
+            }
 
             if (typeof onDecline === 'function') {
                 onDecline();
