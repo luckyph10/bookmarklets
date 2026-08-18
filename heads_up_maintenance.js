@@ -4,8 +4,28 @@
      * HEADS-UP MAINTENANCE NOTICE
      * ==========================================
      *
-     * Change the date and message below whenever
-     * you need to announce upcoming maintenance.
+     * ON/OFF SWITCH:
+     *
+     * true  = ENABLED
+     * false = DISABLED
+     */
+
+    const HEADS_UP_MAINTENANCE_ENABLED = true;
+
+    /*
+     * ==========================================
+     * STOP HERE IF DISABLED
+     * ==========================================
+     */
+
+    if (!HEADS_UP_MAINTENANCE_ENABLED) {
+        return;
+    }
+
+    /*
+     * ==========================================
+     * MAINTENANCE DATE & MESSAGE
+     * ==========================================
      */
 
     const MAINTENANCE_DATE = '08/25/2026';
