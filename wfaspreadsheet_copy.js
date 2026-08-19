@@ -401,6 +401,13 @@ const popup=()=>new Promise(resolve=>{
 
     goBtn.onclick=processState;
 
+    stateInput.onkeydown=e=>{
+    if(e.key==="Enter"){
+        e.preventDefault();
+        processState();
+    }
+};
+
     const finish=eligibleToday=>{
         const state=stateInput.value.trim();
 
