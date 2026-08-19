@@ -28,10 +28,11 @@
             padding:12px;
             font-size:16px;
             border:2px solid #333;
+            border-radius:8px;
+            outline:none;
         `;
 
         document.body.appendChild(pwd);
-
         pwd.focus();
 
         pwd.addEventListener("keydown", function (e) {
@@ -40,9 +41,7 @@
             if (pwd.value === "202608") {
                 localStorage.setItem(AUTH_KEY, "yes");
                 pwd.remove();
-
-                createPanel();
-                runScript();
+                initialize();
             } else {
                 alert("Incorrect password");
                 pwd.remove();
@@ -52,40 +51,128 @@
         return;
     }
 
-    createPanel();
-    runScript();
+    initialize();
 
-    // ================= PANEL =================
+    // ================= INITIALIZE =================
+
+    function initialize() {
+        const savedUser = localStorage.getItem(USER_KEY);
+        const savedStatus = localStorage.getItem(STATUS_KEY);
+
+        if (savedUser && savedStatus) {
+            showMiniPanel();
+            runScript();
+        } else {
+            createPanel();
+        }
+    }
+
+    // ================= MINI PANEL =================
+
+    function showMiniPanel() {
+        const existing = document.getElementById("dispute-mini-panel");
+
+        if (existing) {
+            existing.remove();
+        }
+
+        const mini = document.createElement("div");
+
+        mini.id = "dispute-mini-panel";
+
+        mini.style.cssText = `
+            position:fixed;
+            top:10px;
+            left:10px;
+            z-index:999999;
+            background:rgba(0,0,0,.85);
+            color:white;
+            padding:8px 12px;
+            border-radius:10px;
+            font-family:Arial,sans-serif;
+            display:flex;
+            align-items:center;
+            gap:10px;
+            box-shadow:0 4px 20px rgba(0,0,0,.5);
+            transition:opacity .5s;
+        `;
+
+        mini.innerHTML = `
+            <span style="font-size:12px;">✓ Saved</span>
+
+            <button
+                id="mini-edit-btn"
+                style="
+                    border:none;
+                    padding:5px 10px;
+                    border-radius:6px;
+                    background:#ff9800;
+                    color:white;
+                    cursor:pointer;
+                    font-weight:bold;
+                "
+            >
+                Edit
+            </button>
+        `;
+
+        document.body.appendChild(mini);
+
+        document
+            .getElementById("mini-edit-btn")
+            .addEventListener("click", function () {
+                mini.remove();
+                createPanel();
+            });
+
+        setTimeout(function () {
+            mini.style.opacity = "0";
+
+            setTimeout(function () {
+                if (mini.parentNode) {
+                    mini.remove();
+                }
+            }, 500);
+        }, 2000);
+    }
+
+    // ================= SETTINGS PANEL =================
 
     function createPanel() {
-        const oldPanel = document.getElementById("dispute-panel");
+        const oldPanel = document.getElementById("dispute-settings-panel");
 
-        if (oldPanel) oldPanel.remove();
+        if (oldPanel) {
+            oldPanel.remove();
+        }
 
         const savedUser = localStorage.getItem(USER_KEY) || "";
         const savedStatus = localStorage.getItem(STATUS_KEY) || "";
 
         const panel = document.createElement("div");
 
-        panel.id = "dispute-panel";
+        panel.id = "dispute-settings-panel";
 
         panel.style.cssText = `
             position:fixed;
             top:10px;
             left:10px;
-            width:340px;
-            padding:15px;
-            background:rgba(0,0,0,.85);
+            width:360px;
+            background:rgba(0,0,0,.9);
             color:white;
+            padding:18px;
             border-radius:12px;
             z-index:999999;
             font-family:Arial,sans-serif;
+            box-shadow:0 6px 25px rgba(0,0,0,.6);
             backdrop-filter:blur(8px);
-            box-shadow:0 4px 20px rgba(0,0,0,.5);
         `;
 
-        const options = DRS_OPTIONS.map(function (option) {
-            return `<option value="${option}">${option}</option>`;
+        const options = DRS_OPTIONS.map(function (item) {
+            return `
+                <option value="${item}">
+                    ${item}
+                </option>
+            `;
         }).join("");
 
         panel.innerHTML = `
@@ -93,22 +180,28 @@
                 display:flex;
                 justify-content:space-between;
                 align-items:center;
-                margin-bottom:12px;
-                font-size:18px;
-                font-weight:bold;
+                margin-bottom:15px;
             ">
-                <span>Dispute Settings</span>
+                <div style="
+                    font-size:18px;
+                    font-weight:bold;
+                ">
+                    Dispute Settings
+                </div>
 
-                <span id="saved-status" style="
-                    color:${savedUser && savedStatus ? "#00ff00" : "#ff5555"};
+                <div style="
+                    color:${savedUser && savedStatus ? "#00ff66" : "#ff5555"};
                     font-size:12px;
                 ">
-                    ${savedUser && savedStatus ? "Saved ✓" : "Not Saved"}
-                </span>
+                    ${savedUser && savedStatus ? "Saved ✓" : "Required"}
+                </div>
             </div>
 
-            <div style="margin-bottom:10px;">
-                <div style="margin-bottom:5px;">
+            <div style="margin-bottom:12px;">
+                <div style="
+                    margin-bottom:5px;
+                    font-size:13px;
+                ">
                     Dispute User
                 </div>
 
@@ -117,16 +210,19 @@
                     value="${savedUser}"
                     style="
                         width:100%;
-                        padding:8px;
+                        padding:10px;
+                        border:none;
+                        border-radius:8px;
                         box-sizing:border-box;
-                        border-radius:6px;
-                        border:1px solid #444;
                     "
                 >
             </div>
 
             <div style="margin-bottom:15px;">
-                <div style="margin-bottom:5px;">
+                <div style="
+                    margin-bottom:5px;
+                    font-size:13px;
+                ">
                     Dispute Review Status
                 </div>
 
@@ -134,13 +230,15 @@
                     id="dispute-status"
                     style="
                         width:100%;
-                        padding:8px;
+                        padding:10px;
+                        border:none;
+                        border-radius:8px;
                         box-sizing:border-box;
-                        border-radius:6px;
-                        border:1px solid #444;
                     "
                 >
-                    <option value="">Select DRS...</option>
+                    <option value="">
+                        Select DRS...
+                    </option>
 
                     ${options}
                 </select>
@@ -148,38 +246,38 @@
 
             <div style="
                 display:flex;
-                gap:8px;
+                gap:10px;
             ">
                 <button
-                    id="save-btn"
+                    id="save-dispute-settings"
                     style="
                         flex:1;
-                        padding:10px;
                         border:none;
-                        border-radius:6px;
-                        background:#00aa55;
+                        padding:10px;
+                        border-radius:8px;
+                        background:#00c853;
                         color:white;
-                        cursor:pointer;
                         font-weight:bold;
+                        cursor:pointer;
                     "
                 >
                     Save
                 </button>
 
                 <button
-                    id="edit-btn"
+                    id="close-dispute-settings"
                     style="
                         flex:1;
-                        padding:10px;
                         border:none;
-                        border-radius:6px;
-                        background:#ff8800;
+                        padding:10px;
+                        border-radius:8px;
+                        background:#f44336;
                         color:white;
-                        cursor:pointer;
                         font-weight:bold;
+                        cursor:pointer;
                     "
                 >
-                    Edit
+                    Close
                 </button>
             </div>
         `;
@@ -191,43 +289,47 @@
 
         statusInput.value = savedStatus;
 
-        if (savedUser && savedStatus) {
-            userInput.disabled = true;
-            statusInput.disabled = true;
-        }
+        document
+            .getElementById("save-dispute-settings")
+            .addEventListener("click", function () {
+                const user = userInput.value.trim();
+                const status = statusInput.value;
 
-        document.getElementById("save-btn").onclick = function () {
-            const user = userInput.value.trim();
-            const status = statusInput.value;
+                if (!user || !status) {
+                    alert(
+                        "You must set both Dispute User and Dispute Review Status before continuing."
+                    );
 
-            if (!user || !status) {
-                alert(
-                    "You must set both Dispute User and Dispute Review Status before using this script."
-                );
+                    return;
+                }
 
-                return;
-            }
+                localStorage.setItem(USER_KEY, user);
+                localStorage.setItem(STATUS_KEY, status);
 
-            localStorage.setItem(USER_KEY, user);
-            localStorage.setItem(STATUS_KEY, status);
+                panel.remove();
 
-            userInput.disabled = true;
-            statusInput.disabled = true;
+                showMiniPanel();
 
-            document.getElementById("saved-status").textContent = "Saved ✓";
-            document.getElementById("saved-status").style.color =
-                "#00ff00";
+                runScript();
+            });
 
-            runScript();
-        };
-
-        document.getElementById("edit-btn").onclick = function () {
-            userInput.disabled = false;
-            statusInput.disabled = false;
-        };
+        document
+            .getElementById("close-dispute-settings")
+            .addEventListener("click", function () {
+                if (
+                    localStorage.getItem(USER_KEY) &&
+                    localStorage.getItem(STATUS_KEY)
+                ) {
+                    panel.remove();
+                } else {
+                    alert(
+                        "You must save the settings before closing."
+                    );
+                }
+            });
     }
 
-    // ================= FILL FUNCTION =================
+    // ================= INPUT FILL =================
 
     function fill(selector, value) {
         const element = document.querySelector(selector);
@@ -237,6 +339,7 @@
         }
 
         element.focus();
+
         element.value = value;
 
         element.dispatchEvent(
@@ -258,7 +361,7 @@
         return true;
     }
 
-    // ================= MAIN =================
+    // ================= MAIN SCRIPT =================
 
     function runScript() {
         const disputeUser = localStorage.getItem(USER_KEY);
