@@ -16,406 +16,54 @@ const saveName=n=>{
     }
 };
 
-/* =========================================================
-   CLIPBOARD
-   ========================================================= */
-
-const saveToClipboard=async text=>{
-
-    /* Tampermonkey */
-    try{
-        if(typeof GM_setClipboard==="function"){
-            GM_setClipboard(text,"text");
-            return true;
-        }
-    }catch(e){
-        console.error("GM_setClipboard error:",e);
-    }
-
-    /* Violentmonkey */
-    try{
-        if(
-            typeof GM!=="undefined" &&
-            typeof GM.setClipboard==="function"
-        ){
-            await GM.setClipboard(text,"text");
-            return true;
-        }
-    }catch(e){
-        console.error("GM.setClipboard error:",e);
-    }
-
-    /* Browser Clipboard API */
-    try{
-        if(
-            navigator.clipboard &&
-            typeof navigator.clipboard.writeText==="function"
-        ){
-            await navigator.clipboard.writeText(text);
-            return true;
-        }
-    }catch(e){
-        console.error("navigator.clipboard error:",e);
-    }
-
-    /* Browser execCommand fallback */
-    try{
-        const textarea=document.createElement("textarea");
-
-        textarea.value=text;
-
-        textarea.style.position="fixed";
-        textarea.style.left="-10000px";
-        textarea.style.top="0";
-        textarea.style.width="1px";
-        textarea.style.height="1px";
-        textarea.style.opacity="0";
-
-        document.body.appendChild(textarea);
-
-        textarea.focus();
-        textarea.select();
-        textarea.setSelectionRange(0,text.length);
-
-        const result=document.execCommand("copy");
-
-        textarea.remove();
-
-        if(result){
-            return true;
-        }
-    }catch(e){
-        console.error("execCommand error:",e);
-    }
-
-    return false;
-};
-
-/* =========================================================
-   MANUAL COPY WINDOW IF BROWSER BLOCKS CLIPBOARD
-   ========================================================= */
-
-const showCopyWindow=text=>{
-
-    const old=document.getElementById("dp-copy-window-overlay");
-
-    if(old){
-        old.remove();
-    }
-
-    const overlay=document.createElement("div");
-
-    overlay.id="dp-copy-window-overlay";
-
-    overlay.innerHTML=`
-        <div id="dp-copy-window">
-
-            <div id="dp-copy-title">
-                Excel Data Ready
-            </div>
-
-            <div id="dp-copy-info">
-                The data below is already formatted for Excel.
-                Click COPY or use Ctrl+C.
-            </div>
-
-            <textarea
-                id="dp-copy-area"
-                spellcheck="false"
-            ></textarea>
-
-            <div id="dp-copy-buttons">
-
-                <button id="dp-copy-button">
-                    COPY
-                </button>
-
-                <button id="dp-copy-close">
-                    CLOSE
-                </button>
-
-            </div>
-
-        </div>
-    `;
-
-    const style=document.createElement("style");
-
-    style.id="dp-copy-window-style";
-
-    style.textContent=`
-        #dp-copy-window-overlay{
-            position:fixed;
-            inset:0;
-            z-index:2147483647;
-            background:rgba(0,0,0,.45);
-            display:flex;
-            align-items:flex-start;
-            justify-content:center;
-            padding-top:100px;
-            box-sizing:border-box;
-        }
-
-        #dp-copy-window{
-            width:720px;
-            max-width:calc(100vw - 30px);
-            background:#151515;
-            border:1px solid rgba(255,255,255,.2);
-            border-radius:16px;
-            padding:20px;
-            box-shadow:0 20px 60px rgba(0,0,0,.55);
-            font-family:Arial,sans-serif;
-            color:#fff;
-            box-sizing:border-box;
-        }
-
-        #dp-copy-title{
-            font-size:19px;
-            font-weight:700;
-            margin-bottom:8px;
-        }
-
-        #dp-copy-info{
-            font-size:13px;
-            color:rgba(255,255,255,.7);
-            margin-bottom:12px;
-        }
-
-        #dp-copy-area{
-            display:block;
-            width:100%;
-            height:240px;
-            box-sizing:border-box;
-            padding:12px;
-            border-radius:10px;
-            border:1px solid rgba(255,255,255,.2);
-            outline:none;
-            resize:vertical;
-            background:#080808;
-            color:#fff;
-            font-family:monospace;
-            font-size:12px;
-            line-height:1.4;
-        }
-
-        #dp-copy-buttons{
-            display:flex;
-            gap:8px;
-            margin-top:10px;
-        }
-
-        #dp-copy-button,
-        #dp-copy-close{
-            height:42px;
-            padding:0 20px;
-            border:0;
-            border-radius:10px;
-            color:#fff;
-            font-size:14px;
-            font-weight:700;
-            cursor:pointer;
-        }
-
-        #dp-copy-button{
-            background:rgba(35,150,70,.95);
-        }
-
-        #dp-copy-button:hover{
-            background:rgba(45,175,80,1);
-        }
-
-        #dp-copy-close{
-            background:rgba(255,255,255,.14);
-        }
-
-        #dp-copy-close:hover{
-            background:rgba(255,255,255,.22);
-        }
-    `;
-
-    document.head.appendChild(style);
-    document.body.appendChild(overlay);
-
-    const area=
-        document.getElementById("dp-copy-area");
-
-    const copyButton=
-        document.getElementById("dp-copy-button");
-
-    const closeButton=
-        document.getElementById("dp-copy-close");
-
-    area.value=text;
-
-    area.focus();
-    area.select();
-    area.setSelectionRange(0,text.length);
-
-    copyButton.onclick=async()=>{
-
-        const copied=
-            await saveToClipboard(text);
-
-        if(copied){
-
-            copyButton.textContent="COPIED ✓";
-
-            setTimeout(()=>{
-                overlay.remove();
-                style.remove();
-            },600);
-
-        }else{
-
-            area.focus();
-            area.select();
-            area.setSelectionRange(0,text.length);
-
-            copyButton.textContent="PRESS CTRL+C";
-        }
-    };
-
-    closeButton.onclick=()=>{
-        overlay.remove();
-        style.remove();
-    };
-};
-
-/* =========================================================
-   POPUP
-   ========================================================= */
-
 const popup=()=>new Promise(resolve=>{
-
     const old=document.getElementById("dispute-popup-overlay");
-
     if(old)old.remove();
 
-    const oldStyle=document.getElementById("dispute-popup-style");
-
-    if(oldStyle)oldStyle.remove();
-
     const overlay=document.createElement("div");
-
     overlay.id="dispute-popup-overlay";
 
     overlay.innerHTML=`
         <div id="dispute-popup">
-
             <button id="dp-close" title="Close">×</button>
 
-            <div id="dp-title">
-                Dispute Information
-            </div>
+            <div id="dp-title">Dispute Information</div>
 
-            <div id="dp-label-name">
-                Dispute User Name
-            </div>
-
+            <div id="dp-label-name">Dispute User Name</div>
             <div id="dp-name-row">
-
-                <input
-                    id="dp-name"
-                    type="text"
-                    placeholder="Enter Dispute User Name"
-                    autocomplete="off"
-                >
-
-                <button id="dp-edit">
-                    Edit
-                </button>
-
-                <span id="dp-saved">
-                    Saved ✓
-                </span>
-
-                <button id="dp-save">
-                    Save
-                </button>
-
+                <input id="dp-name" type="text" placeholder="Enter Dispute User Name" autocomplete="off">
+                <button id="dp-edit">Edit</button>
+                <span id="dp-saved">Saved ✓</span>
+                <button id="dp-save">Save</button>
             </div>
 
-            <div id="dp-label-state">
-                State
-            </div>
-
+            <div id="dp-label-state">State</div>
             <div id="dp-state-row">
-
-                <input
-                    id="dp-state"
-                    type="text"
-                    placeholder="Enter State"
-                    autocomplete="off"
-                >
-
-                <button id="dp-go">
-                    Go
-                </button>
-
+                <input id="dp-state" type="text" placeholder="Enter State" autocomplete="off">
+                <button id="dp-go">Go</button>
             </div>
 
             <div id="dp-status"></div>
 
             <div id="dp-eligible" style="display:none">
-
-                <div id="dp-eligible-title">
-                    Eligible updated today?
-                </div>
-
-                <div id="dp-eligible-buttons">
-
-                    <button id="dp-no">
-                        NO
-                    </button>
-
-                    <button id="dp-yes">
-                        YES
-                    </button>
-
-                </div>
+                <div id="dp-eligible-title">Eligible updated today?</div>
 
                 <div id="dp-yes-extra" style="display:none">
+                    <div id="dp-label-email">PLANTYPE_IDRE_EMAIL</div>
+                    <input id="dp-email" type="text" placeholder="Enter PLANTYPE_IDRE_EMAIL" autocomplete="off">
 
-                    <div id="dp-label-email">
-                        PLANTYPE_IDRE_EMAIL
+                    <div id="dp-eligible-buttons">
+                        <button id="dp-yes">YES</button>
+                        <button id="dp-no">NO</button>
                     </div>
 
-                    <input
-                        id="dp-email"
-                        type="text"
-                        placeholder="Enter PLANTYPE_IDRE_EMAIL"
-                        autocomplete="off"
-                    >
-
-                    <div id="dp-label-verified">
-                        Verified? (Yes/No)
-                    </div>
-
-                    <div id="dp-verified-buttons">
-
-                        <button id="dp-verified-no">
-                            NO
-                        </button>
-
-                        <button id="dp-verified-yes">
-                            YES
-                        </button>
-
-                    </div>
-
-                    <button id="dp-continue">
-                        Continue
-                    </button>
-
+                    <button id="dp-continue">Continue</button>
                 </div>
-
             </div>
-
         </div>
     `;
 
     const style=document.createElement("style");
-
     style.id="dispute-popup-style";
 
     style.textContent=`
@@ -474,31 +122,21 @@ const popup=()=>new Promise(resolve=>{
             background:rgba(255,255,255,.14)
         }
 
-        #dp-label-name,
-        #dp-label-state,
-        #dp-label-email,
-        #dp-label-verified{
+        #dp-label-name,#dp-label-state,#dp-label-email{
             font-size:13px;
             font-weight:600;
             color:rgba(255,255,255,.9);
             margin:10px 0 7px
         }
 
-        #dp-label-verified{
-            margin-top:14px
-        }
-
-        #dp-name-row,
-        #dp-state-row{
+        #dp-name-row,#dp-state-row{
             display:flex;
             gap:8px;
             width:100%;
             align-items:center
         }
 
-        #dp-name,
-        #dp-state,
-        #dp-email{
+        #dp-name,#dp-state,#dp-email{
             height:42px;
             box-sizing:border-box;
             border:1px solid rgba(255,255,255,.25);
@@ -515,8 +153,7 @@ const popup=()=>new Promise(resolve=>{
             min-width:0
         }
 
-        #dp-state,
-        #dp-email{
+        #dp-state,#dp-email{
             width:100%
         }
 
@@ -539,9 +176,7 @@ const popup=()=>new Promise(resolve=>{
             box-shadow:0 0 0 3px rgba(255,255,255,.08)
         }
 
-        #dp-edit,
-        #dp-save,
-        #dp-go{
+        #dp-edit,#dp-save,#dp-go{
             height:42px;
             padding:0 15px;
             border:1px solid rgba(255,255,255,.25);
@@ -554,9 +189,7 @@ const popup=()=>new Promise(resolve=>{
             white-space:nowrap
         }
 
-        #dp-edit:hover,
-        #dp-save:hover,
-        #dp-go:hover{
+        #dp-edit:hover,#dp-save:hover,#dp-go:hover{
             background:rgba(255,255,255,.24)
         }
 
@@ -616,11 +249,12 @@ const popup=()=>new Promise(resolve=>{
 
         #dp-eligible-buttons{
             display:flex;
-            gap:8px
+            gap:8px;
+            width:100%;
+            margin-top:10px
         }
 
-        #dp-no,
-        #dp-yes{
+        #dp-no,#dp-yes{
             flex:1;
             height:42px;
             border-radius:10px;
@@ -628,68 +262,53 @@ const popup=()=>new Promise(resolve=>{
             color:#fff;
             font-size:14px;
             font-weight:700;
-            cursor:pointer
+            cursor:pointer;
+            transition:all .15s ease
         }
 
         #dp-no{
-            background:rgba(190,35,35,.88)
+            background:rgba(235,130,20,.92);
+            border-color:rgba(255,150,35,.7)
         }
 
         #dp-no:hover{
-            background:rgba(220,45,45,.95)
+            background:rgba(250,150,35,.98)
         }
 
         #dp-yes{
-            background:rgba(30,95,190,.9)
+            background:rgba(35,150,70,.92);
+            border-color:rgba(55,180,85,.7)
         }
 
         #dp-yes:hover{
-            background:rgba(40,115,220,.98)
+            background:rgba(45,175,80,.98)
+        }
+
+        #dp-no:disabled,
+        #dp-yes:disabled{
+            cursor:not-allowed;
+            opacity:.38;
+            filter:saturate(.5)
+        }
+
+        #dp-no.dp-selected{
+            background:rgba(255,185,75,1);
+            border-color:rgba(255,210,125,1);
+            color:#fff;
+            box-shadow:0 0 0 3px rgba(255,165,40,.22)
+        }
+
+        #dp-yes.dp-selected{
+            background:rgba(105,220,130,1);
+            border-color:rgba(145,240,160,1);
+            color:#fff;
+            box-shadow:0 0 0 3px rgba(70,190,95,.22)
         }
 
         #dp-yes-extra{
             margin-top:14px;
             padding-top:14px;
             border-top:1px solid rgba(255,255,255,.14)
-        }
-
-        #dp-verified-buttons{
-            display:flex;
-            gap:8px
-        }
-
-        #dp-verified-no,
-        #dp-verified-yes{
-            flex:1;
-            height:42px;
-            border-radius:10px;
-            border:1px solid rgba(255,255,255,.2);
-            color:#fff;
-            font-size:14px;
-            font-weight:700;
-            cursor:pointer
-        }
-
-        #dp-verified-no{
-            background:rgba(190,35,35,.88)
-        }
-
-        #dp-verified-no:hover{
-            background:rgba(220,45,45,.95)
-        }
-
-        #dp-verified-yes{
-            background:rgba(35,150,70,.9)
-        }
-
-        #dp-verified-yes:hover{
-            background:rgba(45,175,80,.98)
-        }
-
-        #dp-verified-no:disabled,
-        #dp-verified-yes:disabled{
-            opacity:.55;
-            cursor:not-allowed
         }
 
         #dp-continue{
@@ -726,13 +345,10 @@ const popup=()=>new Promise(resolve=>{
     const yesBtn=document.getElementById("dp-yes");
     const yesExtra=document.getElementById("dp-yes-extra");
     const emailInput=document.getElementById("dp-email");
-    const verifiedNoBtn=document.getElementById("dp-verified-no");
-    const verifiedYesBtn=document.getElementById("dp-verified-yes");
     const continueBtn=document.getElementById("dp-continue");
 
     let currentName=getName();
     let selectedChoice="";
-    let verifiedChoice="";
 
     nameInput.value=currentName;
 
@@ -786,12 +402,6 @@ const popup=()=>new Promise(resolve=>{
         stateInput.focus();
     };
 
-    const resetVerified=()=>{
-        verifiedChoice="";
-        verifiedNoBtn.disabled=false;
-        verifiedYesBtn.disabled=false;
-    };
-
     const processState=()=>{
         if(!currentName){
             status.textContent="Please save your Dispute User Name first.";
@@ -809,12 +419,19 @@ const popup=()=>new Promise(resolve=>{
 
         stateInput.value=state.toUpperCase();
         eligible.style.display="block";
-        yesExtra.style.display="none";
+        yesExtra.style.display="block";
+
         selectedChoice="";
-        resetVerified();
+        noBtn.disabled=false;
+        yesBtn.disabled=false;
+
+        noBtn.classList.remove("dp-selected");
+        yesBtn.classList.remove("dp-selected");
+
         goBtn.disabled=true;
+
         status.textContent="Choose eligibility to continue.";
-        noBtn.focus();
+        yesBtn.focus();
     };
 
     goBtn.onclick=processState;
@@ -838,46 +455,38 @@ const popup=()=>new Promise(resolve=>{
             state:state.toUpperCase(),
             disputeUserName:currentName,
             eligibleUpdatedToday:eligibleToday,
-            plantypeIdreEmail:"",
-            verified:""
+            plantypeIdreEmail:""
         });
     };
 
     noBtn.onclick=()=>{
         selectedChoice="NO";
-        yesExtra.style.display="none";
+
+        noBtn.classList.add("dp-selected");
+        yesBtn.classList.remove("dp-selected");
+
+        noBtn.disabled=false;
+        yesBtn.disabled=true;
+
         emailInput.value="";
-        resetVerified();
+
+        status.textContent="NO selected.";
+
         finish("NO");
     };
 
     yesBtn.onclick=()=>{
         selectedChoice="YES";
-        yesExtra.style.display="block";
-        resetVerified();
 
-        status.textContent=
-            "Enter PLANTYPE_IDRE_EMAIL, then choose Verified? (Yes/No).";
+        yesBtn.classList.add("dp-selected");
+        noBtn.classList.remove("dp-selected");
+
+        yesBtn.disabled=false;
+        noBtn.disabled=true;
+
+        status.textContent="YES selected. Enter PLANTYPE_IDRE_EMAIL, then click Continue.";
 
         emailInput.focus();
-    };
-
-    verifiedNoBtn.onclick=()=>{
-        verifiedChoice="No";
-
-        verifiedNoBtn.disabled=true;
-        verifiedYesBtn.disabled=true;
-
-        status.textContent="Verified: No";
-    };
-
-    verifiedYesBtn.onclick=()=>{
-        verifiedChoice="Yes";
-
-        verifiedNoBtn.disabled=true;
-        verifiedYesBtn.disabled=true;
-
-        status.textContent="Verified: Yes";
     };
 
     emailInput.onkeydown=e=>{
@@ -896,8 +505,8 @@ const popup=()=>new Promise(resolve=>{
             return;
         }
 
-        if(!verifiedChoice){
-            status.textContent="Choose Verified? (Yes/No).";
+        if(selectedChoice!=="YES"){
+            status.textContent="Select YES first.";
             return;
         }
 
@@ -912,8 +521,7 @@ const popup=()=>new Promise(resolve=>{
             state:state.toUpperCase(),
             disputeUserName:currentName,
             eligibleUpdatedToday:"YES",
-            plantypeIdreEmail:email,
-            verified:verifiedChoice
+            plantypeIdreEmail:email
         });
     };
 
@@ -932,7 +540,8 @@ const popup=()=>new Promise(resolve=>{
 
         if(
             e.key==="0" &&
-            eligible.style.display==="block"
+            eligible.style.display==="block" &&
+            !noBtn.disabled
         ){
             e.preventDefault();
             noBtn.click();
@@ -940,7 +549,8 @@ const popup=()=>new Promise(resolve=>{
 
         if(
             e.key==="1" &&
-            eligible.style.display==="block"
+            eligible.style.display==="block" &&
+            !yesBtn.disabled
         ){
             e.preventDefault();
             yesBtn.click();
@@ -950,10 +560,6 @@ const popup=()=>new Promise(resolve=>{
     stateInput.focus();
 });
 
-/* =========================================================
-   GET POPUP DATA
-   ========================================================= */
-
 const input=await popup();
 
 if(!input)return;
@@ -962,11 +568,6 @@ const stateValue=input.state;
 const disputeUserName=input.disputeUserName;
 const eligibleUpdatedToday=input.eligibleUpdatedToday;
 const plantypeIdreEmail=input.plantypeIdreEmail||"";
-const verified=input.verified||"";
-
-/* =========================================================
-   EXISTING PAGE DATA
-   ========================================================= */
 
 const disputeNumber=
     document.querySelector(
@@ -1002,24 +603,13 @@ const planTypes=[
 .filter(Boolean);
 
 if(!disputeNumber||!disputeStatus||!ids.length){
-    console.error(
-        "Missing Dispute Number, Dispute Status, or IDs.",
-        {
-            disputeNumber,
-            disputeStatus,
-            ids
-        }
-    );
+    console.error("Missing Dispute Number, Dispute Status, or IDs.");
     return;
 }
 
 const sameId=ids.every(id=>id===ids[0]);
 
 const getPlanType=i=>planTypes[i]||planTypes[0]||"";
-
-/* =========================================================
-   NO ROW - UNCHANGED
-   ========================================================= */
 
 const makeNoRow=(id,i)=>[
     "-",
@@ -1028,7 +618,7 @@ const makeNoRow=(id,i)=>[
     id,
     disputeStatus,
     "-",
-    "-",
+    "No",
     "-",
     "-",
     columnJValue,
@@ -1039,12 +629,6 @@ const makeNoRow=(id,i)=>[
     "No"
 ].join("\t");
 
-/* =========================================================
-   YES ROW
-
-   COLUMN G = verified
-   ========================================================= */
-
 const makeYesRow=(id,i)=>[
     plantypeIdreEmail,
     getPlanType(i),
@@ -1052,7 +636,7 @@ const makeYesRow=(id,i)=>[
     id,
     disputeStatus,
     disputeUserName,
-    verified,
+    "Yes",
     "-",
     "-",
     columnJValue,
@@ -1062,10 +646,6 @@ const makeYesRow=(id,i)=>[
     "N/A",
     "Yes"
 ].join("\t");
-
-/* =========================================================
-   CREATE EXCEL OUTPUT
-   ========================================================= */
 
 const output=
     eligibleUpdatedToday==="YES"
@@ -1080,22 +660,17 @@ const output=
         :ids.map((id,i)=>makeNoRow(id,i)).join("\n")
     );
 
-/* =========================================================
-   SAVE DATA TO CLIPBOARD
-   ========================================================= */
+try{
+    await navigator.clipboard.writeText(output);
 
-const copied=await saveToClipboard(output);
-
-const rowCount=sameId?1:ids.length;
-
-if(copied){
+    const rowCount=sameId?1:ids.length;
 
     const t=document.createElement("div");
 
     t.textContent=
         eligibleUpdatedToday==="YES"
-        ?`✅ Copied ${rowCount} row${rowCount!==1?"s":""} | YES | Verified: ${verified} | Email: ${plantypeIdreEmail}`
-        :`✅ Copied ${rowCount} row${rowCount!==1?"s":""} | NO | State: ${stateValue}`;
+        ?`✅ Copied ${rowCount} row${rowCount!==1?"s":""} | YES | State: ${stateValue} | Email: ${plantypeIdreEmail} | User: ${disputeUserName}`
+        :`✅ Copied ${rowCount} row${rowCount!==1?"s":""} | NO | State: ${stateValue} | User: ${disputeUserName}`;
 
     t.style.cssText=
         "position:fixed;top:80px;left:50%;transform:translateX(-50%);padding:12px 24px;border-radius:14px;background:rgba(0,0,0,.72);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);color:#fff;font:600 14px Arial,sans-serif;z-index:2147483647;box-shadow:0 8px 32px rgba(0,0,0,.35)";
@@ -1106,20 +681,10 @@ if(copied){
         t.style.transition="opacity .3s";
         t.style.opacity="0";
 
-        setTimeout(()=>{
-            t.remove();
-        },300);
+        setTimeout(()=>t.remove(),300);
+    },2000);
 
-    },2500);
-
-}else{
-
-    /*
-       If the browser/userscript refuses clipboard access,
-       show the exact Excel data and automatically select it.
-    */
-
-    showCopyWindow(output);
+}catch(e){
+    console.error(e);
 }
-
 })();
