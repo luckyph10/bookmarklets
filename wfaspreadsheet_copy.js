@@ -54,8 +54,24 @@ const popup=()=>new Promise(resolve=>{
                 </div>
 
                 <div id="dp-yes-extra" style="display:none">
+
                     <div id="dp-label-email">PLANTYPE_IDRE_EMAIL</div>
-                    <input id="dp-email" type="text" placeholder="Enter PLANTYPE_IDRE_EMAIL" autocomplete="off">
+
+                    <input
+                        id="dp-email"
+                        type="text"
+                        placeholder="Enter PLANTYPE_IDRE_EMAIL"
+                        autocomplete="off"
+                    >
+
+                    <div id="dp-label-verified">Verified?</div>
+
+                    <select id="dp-verified">
+                        <option value="">Select Yes or No</option>
+                        <option value="Yes">Yes</option>
+                        <option value="No">No</option>
+                    </select>
+
                     <button id="dp-continue">Continue</button>
                 </div>
             </div>
@@ -121,21 +137,28 @@ const popup=()=>new Promise(resolve=>{
             background:rgba(255,255,255,.14)
         }
 
-        #dp-label-name,#dp-label-state,#dp-label-email{
+        #dp-label-name,
+        #dp-label-state,
+        #dp-label-email,
+        #dp-label-verified{
             font-size:13px;
             font-weight:600;
             color:rgba(255,255,255,.9);
             margin:10px 0 7px
         }
 
-        #dp-name-row,#dp-state-row{
+        #dp-name-row,
+        #dp-state-row{
             display:flex;
             gap:8px;
             width:100%;
             align-items:center
         }
 
-        #dp-name,#dp-state,#dp-email{
+        #dp-name,
+        #dp-state,
+        #dp-email,
+        #dp-verified{
             height:42px;
             box-sizing:border-box;
             border:1px solid rgba(255,255,255,.25);
@@ -152,8 +175,19 @@ const popup=()=>new Promise(resolve=>{
             min-width:0
         }
 
-        #dp-state,#dp-email{
+        #dp-state,
+        #dp-email,
+        #dp-verified{
             width:100%
+        }
+
+        #dp-verified{
+            cursor:pointer
+        }
+
+        #dp-verified option{
+            background:#222;
+            color:#fff
         }
 
         #dp-name:read-only{
@@ -170,7 +204,8 @@ const popup=()=>new Promise(resolve=>{
 
         #dp-name:focus,
         #dp-state:focus,
-        #dp-email:focus{
+        #dp-email:focus,
+        #dp-verified:focus{
             border-color:rgba(255,255,255,.65);
             box-shadow:0 0 0 3px rgba(255,255,255,.08)
         }
@@ -318,6 +353,10 @@ const popup=()=>new Promise(resolve=>{
     const yesBtn=document.getElementById("dp-yes");
     const yesExtra=document.getElementById("dp-yes-extra");
     const emailInput=document.getElementById("dp-email");
+
+    // NEW: Verified Yes/No select
+    const verifiedInput=document.getElementById("dp-verified");
+
     const continueBtn=document.getElementById("dp-continue");
 
     let currentName=getName();
@@ -393,8 +432,12 @@ const popup=()=>new Promise(resolve=>{
         stateInput.value=state.toUpperCase();
         eligible.style.display="block";
         yesExtra.style.display="none";
+
         selectedChoice="";
+        verifiedInput.value="";
+
         goBtn.disabled=true;
+
         status.textContent="Choose eligibility to continue.";
         noBtn.focus();
     };
@@ -402,11 +445,11 @@ const popup=()=>new Promise(resolve=>{
     goBtn.onclick=processState;
 
     stateInput.onkeydown=e=>{
-    if(e.key==="Enter"){
-        e.preventDefault();
-        processState();
-    }
-};
+        if(e.key==="Enter"){
+            e.preventDefault();
+            processState();
+        }
+    };
 
     const finish=eligibleToday=>{
         const state=stateInput.value.trim();
@@ -420,7 +463,8 @@ const popup=()=>new Promise(resolve=>{
             state:state.toUpperCase(),
             disputeUserName:currentName,
             eligibleUpdatedToday:eligibleToday,
-            plantypeIdreEmail:""
+            plantypeIdreEmail:"",
+            verificationStatus:""
         });
     };
 
@@ -428,13 +472,17 @@ const popup=()=>new Promise(resolve=>{
         selectedChoice="NO";
         yesExtra.style.display="none";
         emailInput.value="";
+        verifiedInput.value="";
         finish("NO");
     };
 
     yesBtn.onclick=()=>{
         selectedChoice="YES";
         yesExtra.style.display="block";
-        status.textContent="Enter PLANTYPE_IDRE_EMAIL, then click Continue. You can click NO to switch back.";
+
+        status.textContent=
+            "Enter PLANTYPE_IDRE_EMAIL and select Verified: Yes or No.";
+
         emailInput.focus();
     };
 
@@ -445,12 +493,30 @@ const popup=()=>new Promise(resolve=>{
         }
     };
 
+    // NEW: update status when Yes/No is selected
+    verifiedInput.onchange=()=>{
+        if(verifiedInput.value==="Yes"){
+            status.textContent="Verified: Yes";
+        }else if(verifiedInput.value==="No"){
+            status.textContent="Verified: No";
+        }
+    };
+
     continueBtn.onclick=()=>{
         const email=emailInput.value.trim();
 
         if(!email){
             status.textContent="Enter PLANTYPE_IDRE_EMAIL.";
             emailInput.focus();
+            return;
+        }
+
+        // NEW: get Yes/No value
+        const verificationStatus=verifiedInput.value;
+
+        if(!verificationStatus){
+            status.textContent="Select Yes or No for Verified.";
+            verifiedInput.focus();
             return;
         }
 
@@ -465,7 +531,10 @@ const popup=()=>new Promise(resolve=>{
             state:state.toUpperCase(),
             disputeUserName:currentName,
             eligibleUpdatedToday:"YES",
-            plantypeIdreEmail:email
+            plantypeIdreEmail:email,
+
+            // NEW
+            verificationStatus:verificationStatus
         });
     };
 
@@ -477,28 +546,28 @@ const popup=()=>new Promise(resolve=>{
 
 
     overlay.onkeydown=e=>{
-    if(e.key==="Escape"){
-        overlay.remove();
-        style.remove();
-        resolve(null);
-    }
+        if(e.key==="Escape"){
+            overlay.remove();
+            style.remove();
+            resolve(null);
+        }
 
-    if(
-        e.key==="0" &&
-        eligible.style.display==="block"
-    ){
-        e.preventDefault();
-        noBtn.click();
-    }
+        if(
+            e.key==="0" &&
+            eligible.style.display==="block"
+        ){
+            e.preventDefault();
+            noBtn.click();
+        }
 
-    if(
-        e.key==="1" &&
-        eligible.style.display==="block"
-    ){
-        e.preventDefault();
-        yesBtn.click();
-    }
-};
+        if(
+            e.key==="1" &&
+            eligible.style.display==="block"
+        ){
+            e.preventDefault();
+            yesBtn.click();
+        }
+    };
 
     stateInput.focus();
 });
@@ -511,6 +580,9 @@ const stateValue=input.state;
 const disputeUserName=input.disputeUserName;
 const eligibleUpdatedToday=input.eligibleUpdatedToday;
 const plantypeIdreEmail=input.plantypeIdreEmail||"";
+
+// NEW
+const verificationStatus=input.verificationStatus||"";
 
 const disputeNumber=
     document.querySelector(
@@ -579,7 +651,11 @@ const makeYesRow=(id,i)=>[
     id,
     disputeStatus,
     disputeUserName,
-    "-",
+
+    // NEW:
+    // Column G = Yes or No
+    verificationStatus,
+
     "-",
     "-",
     columnJValue,
@@ -603,6 +679,10 @@ const output=
         :ids.map((id,i)=>makeNoRow(id,i)).join("\n")
     );
 
+/*
+    ORIGINAL CLIPBOARD CODE
+    LEFT UNCHANGED
+*/
 try{
     await navigator.clipboard.writeText(output);
 
@@ -612,7 +692,7 @@ try{
 
     t.textContent=
         eligibleUpdatedToday==="YES"
-        ?`✅ Copied ${rowCount} row${rowCount!==1?"s":""} | YES | State: ${stateValue} | Email: ${plantypeIdreEmail} | User: ${disputeUserName}`
+        ?`✅ Copied ${rowCount} row${rowCount!==1?"s":""} | YES | State: ${stateValue} | Email: ${plantypeIdreEmail} | Verified: ${verificationStatus} | User: ${disputeUserName}`
         :`✅ Copied ${rowCount} row${rowCount!==1?"s":""} | NO | State: ${stateValue} | User: ${disputeUserName}`;
 
     t.style.cssText=
