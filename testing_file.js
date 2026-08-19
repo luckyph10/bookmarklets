@@ -401,6 +401,13 @@ const popup=()=>new Promise(resolve=>{
 
     goBtn.onclick=processState;
 
+    stateInput.onkeydown=e=>{
+    if(e.key==="Enter"){
+        e.preventDefault();
+        processState();
+    }
+};
+
     const finish=eligibleToday=>{
         const state=stateInput.value.trim();
 
@@ -468,13 +475,6 @@ const popup=()=>new Promise(resolve=>{
         resolve(null);
     };
 
-    overlay.onkeydown=e=>{
-        if(e.key==="Escape"){
-            overlay.remove();
-            style.remove();
-            resolve(null);
-        }
-    };
 
     overlay.onkeydown=e=>{
     if(e.key==="Escape"){
@@ -489,6 +489,14 @@ const popup=()=>new Promise(resolve=>{
     ){
         e.preventDefault();
         noBtn.click();
+    }
+
+    if(
+        e.key==="1" &&
+        eligible.style.display==="block"
+    ){
+        e.preventDefault();
+        yesBtn.click();
     }
 };
 
