@@ -1,10 +1,9 @@
 (async function () {
     try {
         let clipboardText = await navigator.clipboard.readText();
-
-        // Remove surrounding quotes if they exist
         clipboardText = clipboardText.trim();
 
+        // Remove surrounding quotes
         if (
             clipboardText.startsWith('"') &&
             clipboardText.endsWith('"')
@@ -12,7 +11,7 @@
             clipboardText = clipboardText.slice(1, -1).trim();
         }
 
-        // Split by new lines, spaces, commas, tabs, or semicolons
+        // Split by newline, spaces, commas, tabs, or semicolons
         const items = clipboardText
             .split(/[\s,;]+/)
             .map(item => item.replace(/^"|"$/g, "").trim())
@@ -23,25 +22,41 @@
             return;
         }
 
-        items.forEach(item => {
-            let url = null;
-
-            // App ID (1-8 digits)
+        // Convert an ID into its URL
+        function getUrl(item) {
+            // App ID
             if (/^\d{1,8}$/.test(item)) {
-                url = `https://arbit.halomd.com/calculator/${item}`;
+                return `https://arbit.halomd.com/calculator/${item}`;
             }
 
             // Dispute ID
-            else if (/^DISP-\d+$/i.test(item)) {
-                url = `https://arbit.halomd.com/dispute/${item}`;
+            if (/^DISP-\d+$/i.test(item)) {
+                return `https://arbit.halomd.com/dispute/${item}`;
             }
 
-            if (url) {
-                window.open(url, "_blank");
-            } else {
-                console.error("Unrecognized format:", item);
-            }
-        });
+            return null;
+        }
+
+        // Create valid URLs
+        const urls = items
+            .map(item => ({
+                item,
+                url: getUrl(item)
+            }))
+            .filter(x => x.url);
+
+        if (!urls.length) {
+            console.error("No valid App IDs or Dispute IDs found.");
+            return;
+        }
+
+        // First ID → current tab
+        window.location.href = urls[0].url;
+
+        // Remaining IDs → new tabs
+        for (let i = 1; i < urls.length; i++) {
+            window.open(urls[i].url, "_blank");
+        }
 
     } catch (err) {
         console.error("Something went wrong!", err);
