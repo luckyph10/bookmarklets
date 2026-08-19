@@ -55,7 +55,13 @@ const popup=()=>new Promise(resolve=>{
 
                 <div id="dp-yes-extra" style="display:none">
                     <div id="dp-label-email">PLANTYPE_IDRE_EMAIL</div>
-                    <input id="dp-email" type="text" placeholder="Enter PLANTYPE_IDRE_EMAIL" autocomplete="off">
+
+                    <input
+                        id="dp-email"
+                        type="text"
+                        placeholder="Enter PLANTYPE_IDRE_EMAIL"
+                        autocomplete="off"
+                    >
 
                     <div id="dp-verified-section">
                         <div id="dp-label-verified">Verified?</div>
@@ -141,14 +147,17 @@ const popup=()=>new Promise(resolve=>{
             margin:10px 0 7px
         }
 
-        #dp-name-row,#dp-state-row{
+        #dp-name-row,
+        #dp-state-row{
             display:flex;
             gap:8px;
             width:100%;
             align-items:center
         }
 
-        #dp-name,#dp-state,#dp-email{
+        #dp-name,
+        #dp-state,
+        #dp-email{
             height:42px;
             box-sizing:border-box;
             border:1px solid rgba(255,255,255,.25);
@@ -165,7 +174,8 @@ const popup=()=>new Promise(resolve=>{
             min-width:0
         }
 
-        #dp-state,#dp-email{
+        #dp-state,
+        #dp-email{
             width:100%
         }
 
@@ -188,7 +198,9 @@ const popup=()=>new Promise(resolve=>{
             box-shadow:0 0 0 3px rgba(255,255,255,.08)
         }
 
-        #dp-edit,#dp-save,#dp-go{
+        #dp-edit,
+        #dp-save,
+        #dp-go{
             height:42px;
             padding:0 15px;
             border:1px solid rgba(255,255,255,.25);
@@ -201,7 +213,9 @@ const popup=()=>new Promise(resolve=>{
             white-space:nowrap
         }
 
-        #dp-edit:hover,#dp-save:hover,#dp-go:hover{
+        #dp-edit:hover,
+        #dp-save:hover,
+        #dp-go:hover{
             background:rgba(255,255,255,.24)
         }
 
@@ -264,7 +278,8 @@ const popup=()=>new Promise(resolve=>{
             gap:8px
         }
 
-        #dp-no,#dp-yes{
+        #dp-no,
+        #dp-yes{
             flex:1;
             height:42px;
             border-radius:10px;
@@ -456,13 +471,18 @@ const popup=()=>new Promise(resolve=>{
         }
 
         stateInput.value=state.toUpperCase();
+
         eligible.style.display="block";
         yesExtra.style.display="none";
+
         selectedChoice="";
         verificationStatus="";
+
         verifiedBtn.classList.remove("selected");
         pendingBtn.classList.remove("selected");
+
         goBtn.disabled=true;
+
         status.textContent="Choose eligibility to continue.";
         noBtn.focus();
     };
@@ -495,27 +515,36 @@ const popup=()=>new Promise(resolve=>{
 
     noBtn.onclick=()=>{
         selectedChoice="NO";
+
         yesExtra.style.display="none";
         emailInput.value="";
         verificationStatus="";
+
         verifiedBtn.classList.remove("selected");
         pendingBtn.classList.remove("selected");
+
         finish("NO");
     };
 
     yesBtn.onclick=()=>{
         selectedChoice="YES";
+
         yesExtra.style.display="block";
+
         verificationStatus="";
+
         verifiedBtn.classList.remove("selected");
         pendingBtn.classList.remove("selected");
+
         status.textContent="Enter PLANTYPE_IDRE_EMAIL, then select Verified or Pending.";
+
         emailInput.focus();
     };
 
     emailInput.onkeydown=e=>{
         if(e.key==="Enter"){
             e.preventDefault();
+
             if(verificationStatus){
                 continueBtn.click();
             }else{
@@ -577,7 +606,6 @@ const popup=()=>new Promise(resolve=>{
         style.remove();
         resolve(null);
     };
-
 
     overlay.onkeydown=e=>{
         if(e.key==="Escape"){
@@ -708,7 +736,97 @@ const output=
     );
 
 try{
-    await navigator.clipboard.writeText(output);
+
+    const copyToClipboard=async text=>{
+
+        // Try modern Clipboard API first
+        try{
+            if(
+                navigator.clipboard &&
+                typeof navigator.clipboard.writeText==="function"
+            ){
+                await navigator.clipboard.writeText(text);
+                return true;
+            }
+        }catch(e){
+            console.warn(
+                "navigator.clipboard failed. Trying fallback copy.",
+                e
+            );
+        }
+
+        // Fallback copy method
+        try{
+            const textarea=document.createElement("textarea");
+
+            textarea.value=text;
+            textarea.setAttribute("readonly","");
+
+            textarea.style.position="fixed";
+            textarea.style.left="-9999px";
+            textarea.style.top="0";
+            textarea.style.width="1px";
+            textarea.style.height="1px";
+            textarea.style.opacity="0";
+            textarea.style.pointerEvents="none";
+
+            document.body.appendChild(textarea);
+
+            textarea.focus();
+            textarea.select();
+            textarea.setSelectionRange(0,text.length);
+
+            const copied=document.execCommand("copy");
+
+            textarea.remove();
+
+            if(copied){
+                return true;
+            }
+
+        }catch(e){
+            console.error(
+                "Clipboard fallback failed:",
+                e
+            );
+        }
+
+        return false;
+    };
+
+    const copied=await copyToClipboard(output);
+
+    if(!copied){
+
+        console.error(
+            "Could not copy output to clipboard."
+        );
+
+        console.log(
+            "OUTPUT THAT SHOULD HAVE BEEN COPIED:"
+        );
+
+        console.log(output);
+
+        const t=document.createElement("div");
+
+        t.textContent=
+            "❌ Clipboard copy failed. Check browser permissions.";
+
+        t.style.cssText=
+            "position:fixed;top:80px;left:50%;transform:translateX(-50%);padding:12px 24px;border-radius:14px;background:rgba(190,35,35,.9);color:#fff;font:600 14px Arial,sans-serif;z-index:2147483647;box-shadow:0 8px 32px rgba(0,0,0,.35)";
+
+        document.body.appendChild(t);
+
+        setTimeout(()=>{
+            t.style.transition="opacity .3s";
+            t.style.opacity="0";
+
+            setTimeout(()=>t.remove(),300);
+        },3000);
+
+        return;
+    }
 
     const rowCount=sameId?1:ids.length;
 
@@ -732,6 +850,16 @@ try{
     },2000);
 
 }catch(e){
-    console.error(e);
+
+    console.error(
+        "Copy process failed:",
+        e
+    );
+
+    console.log(
+        "OUTPUT:",
+        output
+    );
 }
+
 })();
