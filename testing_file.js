@@ -16,9 +16,52 @@ const saveName=n=>{
     }
 };
 
+/* =========================
+   CLIPBOARD
+   ========================= */
+
+const copyToClipboard=async text=>{
+    try{
+        if(navigator.clipboard&&window.isSecureContext){
+            await navigator.clipboard.writeText(text);
+            return true;
+        }
+    }catch(e){
+        console.warn("navigator.clipboard failed:",e);
+    }
+
+    try{
+        const textarea=document.createElement("textarea");
+
+        textarea.value=text;
+        textarea.style.position="fixed";
+        textarea.style.left="-999999px";
+        textarea.style.top="0";
+        textarea.style.opacity="0";
+
+        document.body.appendChild(textarea);
+
+        textarea.focus();
+        textarea.select();
+        textarea.setSelectionRange(0,textarea.value.length);
+
+        const copied=document.execCommand("copy");
+
+        textarea.remove();
+
+        return copied;
+    }catch(e){
+        console.error("Clipboard fallback failed:",e);
+        return false;
+    }
+};
+
 const popup=()=>new Promise(resolve=>{
     const old=document.getElementById("dispute-popup-overlay");
     if(old)old.remove();
+
+    const oldStyle=document.getElementById("dispute-popup-style");
+    if(oldStyle)oldStyle.remove();
 
     const overlay=document.createElement("div");
     overlay.id="dispute-popup-overlay";
@@ -54,8 +97,15 @@ const popup=()=>new Promise(resolve=>{
                 </div>
 
                 <div id="dp-yes-extra" style="display:none">
+
                     <div id="dp-label-email">PLANTYPE_IDRE_EMAIL</div>
-                    <input id="dp-email" type="text" placeholder="Enter PLANTYPE_IDRE_EMAIL" autocomplete="off">
+
+                    <input
+                        id="dp-email"
+                        type="text"
+                        placeholder="Enter PLANTYPE_IDRE_EMAIL"
+                        autocomplete="off"
+                    >
 
                     <div id="dp-label-verified">Verified? (Yes/No)</div>
 
@@ -140,7 +190,7 @@ const popup=()=>new Promise(resolve=>{
         }
 
         #dp-label-verified{
-            margin-top:12px
+            margin-top:14px
         }
 
         #dp-name-row,
@@ -311,7 +361,7 @@ const popup=()=>new Promise(resolve=>{
         #dp-verified-buttons{
             display:flex;
             gap:8px;
-            margin-top:8px
+            width:100%;
         }
 
         #dp-verified-no,
@@ -327,15 +377,17 @@ const popup=()=>new Promise(resolve=>{
         }
 
         #dp-verified-no{
-            background:rgba(190,35,35,.88)
+            background:rgba(190,35,35,.88);
+            border-color:rgba(220,45,45,.45)
         }
 
         #dp-verified-no:hover{
-            background:rgba(220,45,45,.95)
+            background:rgba(220,45,45,.98)
         }
 
         #dp-verified-yes{
-            background:rgba(35,150,70,.9)
+            background:rgba(35,150,70,.9);
+            border-color:rgba(45,175,80,.45)
         }
 
         #dp-verified-yes:hover{
@@ -344,7 +396,7 @@ const popup=()=>new Promise(resolve=>{
 
         #dp-verified-no:disabled,
         #dp-verified-yes:disabled{
-            opacity:.6;
+            opacity:.55;
             cursor:not-allowed
         }
 
@@ -442,6 +494,16 @@ const popup=()=>new Promise(resolve=>{
         stateInput.focus();
     };
 
+    const resetVerified=()=>{
+        verifiedChoice="";
+
+        verifiedNoBtn.disabled=false;
+        verifiedYesBtn.disabled=false;
+
+        verifiedNoBtn.style.opacity="1";
+        verifiedYesBtn.style.opacity="1";
+    };
+
     const processState=()=>{
         if(!currentName){
             status.textContent="Please save your Dispute User Name first.";
@@ -458,16 +520,17 @@ const popup=()=>new Promise(resolve=>{
         }
 
         stateInput.value=state.toUpperCase();
+
         eligible.style.display="block";
         yesExtra.style.display="none";
-        selectedChoice="";
-        verifiedChoice="";
 
-        verifiedNoBtn.disabled=false;
-        verifiedYesBtn.disabled=false;
+        selectedChoice="";
+        resetVerified();
 
         goBtn.disabled=true;
+
         status.textContent="Choose eligibility to continue.";
+
         noBtn.focus();
     };
 
@@ -480,27 +543,14 @@ const popup=()=>new Promise(resolve=>{
         }
     };
 
-    const finish=eligibleToday=>{
-        const state=stateInput.value.trim();
-
-        if(!currentName||!state)return;
-
-        overlay.remove();
-        style.remove();
-
-        resolve({
-            state:state.toUpperCase(),
-            disputeUserName:currentName,
-            eligibleUpdatedToday:eligibleToday,
-            plantypeIdreEmail:"",
-            verified:""
-        });
-    };
-
     noBtn.onclick=()=>{
         selectedChoice="NO";
+
         yesExtra.style.display="none";
         emailInput.value="";
+
+        resetVerified();
+
         finish("NO");
     };
 
@@ -509,11 +559,10 @@ const popup=()=>new Promise(resolve=>{
 
         yesExtra.style.display="block";
 
-        verifiedChoice="";
-        verifiedNoBtn.disabled=false;
-        verifiedYesBtn.disabled=false;
+        resetVerified();
 
         status.textContent="Enter PLANTYPE_IDRE_EMAIL and choose Verified? (Yes/No).";
+
         emailInput.focus();
     };
 
@@ -523,7 +572,7 @@ const popup=()=>new Promise(resolve=>{
         verifiedNoBtn.disabled=true;
         verifiedYesBtn.disabled=true;
 
-        status.textContent="Verified: No";
+        status.textContent="Verified: No. Both buttons are locked.";
     };
 
     verifiedYesBtn.onclick=()=>{
@@ -532,7 +581,7 @@ const popup=()=>new Promise(resolve=>{
         verifiedNoBtn.disabled=true;
         verifiedYesBtn.disabled=true;
 
-        status.textContent="Verified: Yes";
+        status.textContent="Verified: Yes. Both buttons are locked.";
     };
 
     emailInput.onkeydown=e=>{
@@ -552,7 +601,7 @@ const popup=()=>new Promise(resolve=>{
         }
 
         if(!verifiedChoice){
-            status.textContent="Choose Verified? (Yes/No).";
+            status.textContent="Choose Verified? (Yes/No) first.";
             return;
         }
 
@@ -572,6 +621,23 @@ const popup=()=>new Promise(resolve=>{
         });
     };
 
+    const finish=eligibleToday=>{
+        const state=stateInput.value.trim();
+
+        if(!currentName||!state)return;
+
+        overlay.remove();
+        style.remove();
+
+        resolve({
+            state:state.toUpperCase(),
+            disputeUserName:currentName,
+            eligibleUpdatedToday:eligibleToday,
+            plantypeIdreEmail:"",
+            verified:""
+        });
+    };
+
     closeBtn.onclick=()=>{
         overlay.remove();
         style.remove();
@@ -583,6 +649,7 @@ const popup=()=>new Promise(resolve=>{
             overlay.remove();
             style.remove();
             resolve(null);
+            return;
         }
 
         if(
@@ -649,13 +716,22 @@ const planTypes=[
 .filter(Boolean);
 
 if(!disputeNumber||!disputeStatus||!ids.length){
-    console.error("Missing Dispute Number, Dispute Status, or IDs.");
+    console.error("Missing Dispute Number, Dispute Status, or IDs.",{
+        disputeNumber,
+        disputeStatus,
+        ids
+    });
     return;
 }
 
 const sameId=ids.every(id=>id===ids[0]);
 
 const getPlanType=i=>planTypes[i]||planTypes[0]||"";
+
+/* =========================
+   NO ROW
+   ORIGINAL FORMAT PRESERVED
+   ========================= */
 
 const makeNoRow=(id,i)=>[
     "-",
@@ -675,22 +751,27 @@ const makeNoRow=(id,i)=>[
     "No"
 ].join("\t");
 
+/* =========================
+   YES ROW
+   COLUMN G = VERIFIED
+   ========================= */
+
 const makeYesRow=(id,i)=>[
-    plantypeIdreEmail,
-    getPlanType(i),
-    disputeNumber,
-    id,
-    disputeStatus,
-    disputeUserName,
-    verified,
-    "-",
-    "-",
-    columnJValue,
-    "N/A",
-    "N/A",
-    stateValue,
-    "N/A",
-    "Yes"
+    plantypeIdreEmail,   // A
+    getPlanType(i),      // B
+    disputeNumber,       // C
+    id,                  // D
+    disputeStatus,       // E
+    disputeUserName,     // F
+    verified,            // G  <-- Verified Yes/No
+    "-",                 // H
+    "-",                 // I
+    columnJValue,        // J
+    "N/A",               // K
+    "N/A",               // L
+    stateValue,          // M
+    "N/A",               // N
+    "Yes"                // O
 ].join("\t");
 
 const output=
@@ -706,8 +787,13 @@ const output=
         :ids.map((id,i)=>makeNoRow(id,i)).join("\n")
     );
 
-try{
-    await navigator.clipboard.writeText(output);
+/* =========================
+   COPY
+   ========================= */
+
+const copied=await copyToClipboard(output);
+
+if(copied){
 
     const rowCount=sameId?1:ids.length;
 
@@ -715,7 +801,7 @@ try{
 
     t.textContent=
         eligibleUpdatedToday==="YES"
-        ?`✅ Copied ${rowCount} row${rowCount!==1?"s":""} | YES | State: ${stateValue} | Email: ${plantypeIdreEmail} | Verified: ${verified} | User: ${disputeUserName}`
+        ?`✅ Copied ${rowCount} row${rowCount!==1?"s":""} | YES | Verified: ${verified} | State: ${stateValue} | Email: ${plantypeIdreEmail} | User: ${disputeUserName}`
         :`✅ Copied ${rowCount} row${rowCount!==1?"s":""} | NO | State: ${stateValue} | User: ${disputeUserName}`;
 
     t.style.cssText=
@@ -728,9 +814,31 @@ try{
         t.style.opacity="0";
 
         setTimeout(()=>t.remove(),300);
-    },2000);
+    },2500);
 
-}catch(e){
-    console.error(e);
+}else{
+
+    console.error("Could not copy data to clipboard.",{
+        output,
+        verified,
+        plantypeIdreEmail
+    });
+
+    const t=document.createElement("div");
+
+    t.textContent="❌ Clipboard copy failed. Check browser clipboard permissions.";
+
+    t.style.cssText=
+        "position:fixed;top:80px;left:50%;transform:translateX(-50%);padding:12px 24px;border-radius:14px;background:rgba(180,30,30,.92);color:#fff;font:600 14px Arial,sans-serif;z-index:2147483647;box-shadow:0 8px 32px rgba(0,0,0,.35)";
+
+    document.body.appendChild(t);
+
+    setTimeout(()=>{
+        t.style.transition="opacity .3s";
+        t.style.opacity="0";
+
+        setTimeout(()=>t.remove(),300);
+    },3000);
 }
+
 })();
