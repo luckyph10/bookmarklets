@@ -1,68 +1,251 @@
 (function () {
-    var AUTH_KEY = "caseNoteAuthorized";
-    var USER_KEY = "disputeUser";
-    var STATUS_KEY = "disputeReviewStatus";
+    const AUTH_KEY = "caseNoteAuthorized";
+    const USER_KEY = "disputeUser";
+    const STATUS_KEY = "disputeReviewStatus";
+
+    const DRS_OPTIONS = [
+        "Plan Type Validated Post IDR Initiation",
+        "VOB verified, no change to NSA jurisdiction",
+        "Timeline Enforcement Submitted to IDRE",
+        "Plan Type Objection Submitted",
+        "Additional Info provided to IDRE through email"
+    ];
 
     // ================= PASSWORD =================
 
     if (localStorage.getItem(AUTH_KEY) !== "yes") {
-        var pwd = document.createElement("input");
+        const pwd = document.createElement("input");
 
         pwd.type = "password";
         pwd.placeholder = "Enter password";
 
-        pwd.style.cssText =
-            "position:fixed;" +
-            "top:50%;" +
-            "left:50%;" +
-            "transform:translate(-50%,-50%);" +
-            "z-index:999999;" +
-            "padding:10px;" +
-            "font-size:16px;" +
-            "border:2px solid #333;" +
-            "background:#fff;";
+        pwd.style.cssText = `
+            position:fixed;
+            top:50%;
+            left:50%;
+            transform:translate(-50%,-50%);
+            z-index:999999;
+            padding:12px;
+            font-size:16px;
+            border:2px solid #333;
+        `;
 
         document.body.appendChild(pwd);
+
         pwd.focus();
 
         pwd.addEventListener("keydown", function (e) {
-            if (e.key === "Enter") {
-                if (pwd.value === "202608") {
-                    localStorage.setItem(AUTH_KEY, "yes");
-                    document.body.removeChild(pwd);
-                    showSetupPopup();
-                } else {
-                    alert("Incorrect password");
-                    document.body.removeChild(pwd);
-                }
+            if (e.key !== "Enter") return;
+
+            if (pwd.value === "202608") {
+                localStorage.setItem(AUTH_KEY, "yes");
+                pwd.remove();
+
+                createPanel();
+                runScript();
+            } else {
+                alert("Incorrect password");
+                pwd.remove();
             }
         });
 
         return;
     }
 
-    showSetupPopup();
+    createPanel();
+    runScript();
+
+    // ================= PANEL =================
+
+    function createPanel() {
+        const oldPanel = document.getElementById("dispute-panel");
+
+        if (oldPanel) oldPanel.remove();
+
+        const savedUser = localStorage.getItem(USER_KEY) || "";
+        const savedStatus = localStorage.getItem(STATUS_KEY) || "";
+
+        const panel = document.createElement("div");
+
+        panel.id = "dispute-panel";
+
+        panel.style.cssText = `
+            position:fixed;
+            top:10px;
+            left:10px;
+            width:340px;
+            padding:15px;
+            background:rgba(0,0,0,.85);
+            color:white;
+            border-radius:12px;
+            z-index:999999;
+            font-family:Arial,sans-serif;
+            backdrop-filter:blur(8px);
+            box-shadow:0 4px 20px rgba(0,0,0,.5);
+        `;
+
+        const options = DRS_OPTIONS.map(function (option) {
+            return `<option value="${option}">${option}</option>`;
+        }).join("");
+
+        panel.innerHTML = `
+            <div style="
+                display:flex;
+                justify-content:space-between;
+                align-items:center;
+                margin-bottom:12px;
+                font-size:18px;
+                font-weight:bold;
+            ">
+                <span>Dispute Settings</span>
+
+                <span id="saved-status" style="
+                    color:${savedUser && savedStatus ? "#00ff00" : "#ff5555"};
+                    font-size:12px;
+                ">
+                    ${savedUser && savedStatus ? "Saved ✓" : "Not Saved"}
+                </span>
+            </div>
+
+            <div style="margin-bottom:10px;">
+                <div style="margin-bottom:5px;">
+                    Dispute User
+                </div>
+
+                <input
+                    id="dispute-user"
+                    value="${savedUser}"
+                    style="
+                        width:100%;
+                        padding:8px;
+                        box-sizing:border-box;
+                        border-radius:6px;
+                        border:1px solid #444;
+                    "
+                >
+            </div>
+
+            <div style="margin-bottom:15px;">
+                <div style="margin-bottom:5px;">
+                    Dispute Review Status
+                </div>
+
+                <select
+                    id="dispute-status"
+                    style="
+                        width:100%;
+                        padding:8px;
+                        box-sizing:border-box;
+                        border-radius:6px;
+                        border:1px solid #444;
+                    "
+                >
+                    <option value="">Select DRS...</option>
+
+                    ${options}
+                </select>
+            </div>
+
+            <div style="
+                display:flex;
+                gap:8px;
+            ">
+                <button
+                    id="save-btn"
+                    style="
+                        flex:1;
+                        padding:10px;
+                        border:none;
+                        border-radius:6px;
+                        background:#00aa55;
+                        color:white;
+                        cursor:pointer;
+                        font-weight:bold;
+                    "
+                >
+                    Save
+                </button>
+
+                <button
+                    id="edit-btn"
+                    style="
+                        flex:1;
+                        padding:10px;
+                        border:none;
+                        border-radius:6px;
+                        background:#ff8800;
+                        color:white;
+                        cursor:pointer;
+                        font-weight:bold;
+                    "
+                >
+                    Edit
+                </button>
+            </div>
+        `;
+
+        document.body.appendChild(panel);
+
+        const userInput = document.getElementById("dispute-user");
+        const statusInput = document.getElementById("dispute-status");
+
+        statusInput.value = savedStatus;
+
+        if (savedUser && savedStatus) {
+            userInput.disabled = true;
+            statusInput.disabled = true;
+        }
+
+        document.getElementById("save-btn").onclick = function () {
+            const user = userInput.value.trim();
+            const status = statusInput.value;
+
+            if (!user || !status) {
+                alert(
+                    "You must set both Dispute User and Dispute Review Status before using this script."
+                );
+
+                return;
+            }
+
+            localStorage.setItem(USER_KEY, user);
+            localStorage.setItem(STATUS_KEY, status);
+
+            userInput.disabled = true;
+            statusInput.disabled = true;
+
+            document.getElementById("saved-status").textContent = "Saved ✓";
+            document.getElementById("saved-status").style.color =
+                "#00ff00";
+
+            runScript();
+        };
+
+        document.getElementById("edit-btn").onclick = function () {
+            userInput.disabled = false;
+            statusInput.disabled = false;
+        };
+    }
 
     // ================= FILL FUNCTION =================
 
     function fill(selector, value) {
-        var e = document.querySelector(selector);
+        const element = document.querySelector(selector);
 
-        if (!e) {
-            alert("Element not found:\n" + selector);
+        if (!element) {
             return false;
         }
 
-        e.focus();
-        e.value = value;
+        element.focus();
+        element.value = value;
 
-        e.dispatchEvent(
+        element.dispatchEvent(
             new Event("input", {
                 bubbles: true
             })
         );
 
-        e.dispatchEvent(
+        element.dispatchEvent(
             new KeyboardEvent("keydown", {
                 key: "Enter",
                 code: "Enter",
@@ -75,148 +258,20 @@
         return true;
     }
 
-    // ================= POPUP =================
-
-    function showSetupPopup() {
-        var savedUser = localStorage.getItem(USER_KEY) || "";
-        var savedStatus = localStorage.getItem(STATUS_KEY) || "";
-
-        var overlay = document.createElement("div");
-
-        overlay.style.cssText =
-            "position:fixed;" +
-            "top:0;" +
-            "left:0;" +
-            "width:100%;" +
-            "height:100%;" +
-            "background:rgba(0,0,0,.5);" +
-            "z-index:999999;";
-
-        var popup = document.createElement("div");
-
-        popup.style.cssText =
-            "position:absolute;" +
-            "top:50%;" +
-            "left:50%;" +
-            "transform:translate(-50%,-50%);" +
-            "background:#fff;" +
-            "padding:20px;" +
-            "border-radius:10px;" +
-            "width:350px;" +
-            "font-family:Arial;";
-
-        popup.innerHTML = `
-            <h3>Dispute Settings</h3>
-
-            <div style="margin-bottom:10px;">
-                <label>Dispute User</label>
-                <input
-                    id="disputeUserInput"
-                    type="text"
-                    value="${savedUser}"
-                    style="width:100%;padding:8px;margin-top:5px;"
-                >
-            </div>
-
-            <div style="margin-bottom:15px;">
-                <label>Dispute Review Status</label>
-
-                <select
-                    id="disputeStatusSelect"
-                    style="width:100%;padding:8px;margin-top:5px;"
-                >
-                    <option value="">Select status</option>
-                    <option value="Plan Type Validated Post IDR Initiation">
-                        Plan Type Validated Post IDR Initiation
-                    </option>
-
-                    <option value="Pending Review">
-                        Pending Review
-                    </option>
-
-                    <option value="Approved">
-                        Approved
-                    </option>
-
-                    <option value="Rejected">
-                        Rejected
-                    </option>
-                </select>
-            </div>
-
-            <button id="setBtn">Set</button>
-
-            <button id="editBtn" style="margin-left:10px;">
-                Edit
-            </button>
-        `;
-
-        overlay.appendChild(popup);
-        document.body.appendChild(overlay);
-
-        var userInput = popup.querySelector("#disputeUserInput");
-        var statusSelect = popup.querySelector("#disputeStatusSelect");
-
-        statusSelect.value = savedStatus;
-
-        if (savedUser && savedStatus) {
-            userInput.disabled = true;
-            statusSelect.disabled = true;
-        }
-
-        popup.querySelector("#setBtn").onclick = function () {
-            var user = userInput.value.trim();
-            var status = statusSelect.value;
-
-            if (!user || !status) {
-                alert(
-                    "You must set BOTH Dispute User and Dispute Review Status before continuing."
-                );
-
-                return;
-            }
-
-            localStorage.setItem(USER_KEY, user);
-            localStorage.setItem(STATUS_KEY, status);
-
-            userInput.disabled = true;
-            statusSelect.disabled = true;
-
-            document.body.removeChild(overlay);
-
-            runScript();
-        };
-
-        popup.querySelector("#editBtn").onclick = function () {
-            userInput.disabled = false;
-            statusSelect.disabled = false;
-        };
-
-        if (savedUser && savedStatus) {
-            document.body.removeChild(overlay);
-            runScript();
-        }
-    }
-
-    // ================= MAIN SCRIPT =================
+    // ================= MAIN =================
 
     function runScript() {
-        var disputeUser = localStorage.getItem(USER_KEY);
-        var disputeStatus = localStorage.getItem(STATUS_KEY);
+        const disputeUser = localStorage.getItem(USER_KEY);
+        const disputeStatus = localStorage.getItem(STATUS_KEY);
 
         if (!disputeUser || !disputeStatus) {
-            alert(
-                "Dispute User and Dispute Review Status must be configured first."
-            );
-
-            showSetupPopup();
             return;
         }
 
-        var ownerSelector =
+        const ownerSelector =
             "#ngForm > fieldset > div:nth-child(1) > div:nth-child(1) > div:nth-child(3) > ng-select > div > div > div.ng-input > input[type=text]";
 
-        var noteSelector =
+        const noteSelector =
             "#ngForm > fieldset > div:nth-child(1) > div:nth-child(1) > div:nth-child(4) > ng-select > div > div > div.ng-input > input[type=text]";
 
         fill(ownerSelector, disputeUser);
