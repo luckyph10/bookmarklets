@@ -54,18 +54,18 @@ const popup=()=>new Promise(resolve=>{
                 </div>
 
                 <div id="dp-yes-extra" style="display:none">
-                    <div id="dp-label-email">PLANTYPE_IDRE_EMAIL</div>
-                    <input id="dp-email" type="text" placeholder="Enter PLANTYPE_IDRE_EMAIL" autocomplete="off">
+    <div id="dp-label-email">PLANTYPE_IDRE_EMAIL</div>
+    <input id="dp-email" type="text" placeholder="Enter PLANTYPE_IDRE_EMAIL" autocomplete="off">
 
-                    <div id="dp-label-verified">Verified? (Yes/No)</div>
+    <div id="dp-label-verified">Verified? (Yes/No)</div>
 
-                    <div id="dp-verified-buttons">
-                        <button id="dp-verified-no">NO</button>
-                        <button id="dp-verified-yes">YES</button>
-                    </div>
+    <div id="dp-verified-buttons">
+        <button id="dp-verified-no">NO</button>
+        <button id="dp-verified-yes">YES</button>
+    </div>
 
-                    <button id="dp-continue">Continue</button>
-                </div>
+    <button id="dp-continue">Continue</button>
+</div>
             </div>
         </div>
     `;
@@ -130,30 +130,23 @@ const popup=()=>new Promise(resolve=>{
         }
 
         #dp-label-name,
-        #dp-label-state,
-        #dp-label-email,
-        #dp-label-verified{
+#dp-label-state,
+#dp-label-email,
+#dp-label-verified{
             font-size:13px;
             font-weight:600;
             color:rgba(255,255,255,.9);
             margin:10px 0 7px
         }
 
-        #dp-label-verified{
-            margin-top:14px
-        }
-
-        #dp-name-row,
-        #dp-state-row{
+        #dp-name-row,#dp-state-row{
             display:flex;
             gap:8px;
             width:100%;
             align-items:center
         }
 
-        #dp-name,
-        #dp-state,
-        #dp-email{
+        #dp-name,#dp-state,#dp-email{
             height:42px;
             box-sizing:border-box;
             border:1px solid rgba(255,255,255,.25);
@@ -170,8 +163,7 @@ const popup=()=>new Promise(resolve=>{
             min-width:0
         }
 
-        #dp-state,
-        #dp-email{
+        #dp-state,#dp-email{
             width:100%
         }
 
@@ -194,9 +186,7 @@ const popup=()=>new Promise(resolve=>{
             box-shadow:0 0 0 3px rgba(255,255,255,.08)
         }
 
-        #dp-edit,
-        #dp-save,
-        #dp-go{
+        #dp-edit,#dp-save,#dp-go{
             height:42px;
             padding:0 15px;
             border:1px solid rgba(255,255,255,.25);
@@ -209,9 +199,7 @@ const popup=()=>new Promise(resolve=>{
             white-space:nowrap
         }
 
-        #dp-edit:hover,
-        #dp-save:hover,
-        #dp-go:hover{
+        #dp-edit:hover,#dp-save:hover,#dp-go:hover{
             background:rgba(255,255,255,.24)
         }
 
@@ -274,8 +262,7 @@ const popup=()=>new Promise(resolve=>{
             gap:8px
         }
 
-        #dp-no,
-        #dp-yes{
+        #dp-no,#dp-yes{
             flex:1;
             height:42px;
             border-radius:10px;
@@ -308,45 +295,48 @@ const popup=()=>new Promise(resolve=>{
             border-top:1px solid rgba(255,255,255,.14)
         }
 
-        #dp-verified-buttons{
-            display:flex;
-            gap:8px;
-            width:100%
-        }
+        #dp-label-verified{
+    margin-top:14px
+}
 
-        #dp-verified-no,
-        #dp-verified-yes{
-            flex:1;
-            height:42px;
-            border-radius:10px;
-            border:1px solid rgba(255,255,255,.2);
-            color:#fff;
-            font-size:14px;
-            font-weight:700;
-            cursor:pointer
-        }
+#dp-verified-buttons{
+    display:flex;
+    gap:8px
+}
 
-        #dp-verified-no{
-            background:rgba(190,35,35,.88)
-        }
+#dp-verified-no,
+#dp-verified-yes{
+    flex:1;
+    height:42px;
+    border-radius:10px;
+    border:1px solid rgba(255,255,255,.2);
+    color:#fff;
+    font-size:14px;
+    font-weight:700;
+    cursor:pointer
+}
 
-        #dp-verified-no:hover{
-            background:rgba(220,45,45,.95)
-        }
+#dp-verified-no{
+    background:rgba(190,35,35,.88)
+}
 
-        #dp-verified-yes{
-            background:rgba(35,150,70,.9)
-        }
+#dp-verified-no:hover{
+    background:rgba(220,45,45,.95)
+}
 
-        #dp-verified-yes:hover{
-            background:rgba(45,175,80,.98)
-        }
+#dp-verified-yes{
+    background:rgba(35,150,70,.9)
+}
 
-        #dp-verified-no:disabled,
-        #dp-verified-yes:disabled{
-            opacity:.55;
-            cursor:not-allowed
-        }
+#dp-verified-yes:hover{
+    background:rgba(45,175,80,.98)
+}
+
+#dp-verified-no:disabled,
+#dp-verified-yes:disabled{
+    opacity:.55;
+    cursor:not-allowed
+}
 
         #dp-continue{
             width:100%;
@@ -382,13 +372,13 @@ const popup=()=>new Promise(resolve=>{
     const yesBtn=document.getElementById("dp-yes");
     const yesExtra=document.getElementById("dp-yes-extra");
     const emailInput=document.getElementById("dp-email");
-    const verifiedNoBtn=document.getElementById("dp-verified-no");
-    const verifiedYesBtn=document.getElementById("dp-verified-yes");
-    const continueBtn=document.getElementById("dp-continue");
+const verifiedNoBtn=document.getElementById("dp-verified-no");
+const verifiedYesBtn=document.getElementById("dp-verified-yes");
+const continueBtn=document.getElementById("dp-continue");
 
-    let currentName=getName();
-    let selectedChoice="";
-    let verifiedChoice="";
+let currentName=getName();
+let selectedChoice="";
+let verifiedChoice="";
 
     nameInput.value=currentName;
 
@@ -442,12 +432,6 @@ const popup=()=>new Promise(resolve=>{
         stateInput.focus();
     };
 
-    const resetVerified=()=>{
-        verifiedChoice="";
-        verifiedNoBtn.disabled=false;
-        verifiedYesBtn.disabled=false;
-    };
-
     const processState=()=>{
         if(!currentName){
             status.textContent="Please save your Dispute User Name first.";
@@ -467,7 +451,6 @@ const popup=()=>new Promise(resolve=>{
         eligible.style.display="block";
         yesExtra.style.display="none";
         selectedChoice="";
-        resetVerified();
         goBtn.disabled=true;
         status.textContent="Choose eligibility to continue.";
         noBtn.focus();
@@ -476,11 +459,11 @@ const popup=()=>new Promise(resolve=>{
     goBtn.onclick=processState;
 
     stateInput.onkeydown=e=>{
-        if(e.key==="Enter"){
-            e.preventDefault();
-            processState();
-        }
-    };
+    if(e.key==="Enter"){
+        e.preventDefault();
+        processState();
+    }
+};
 
     const finish=eligibleToday=>{
         const state=stateInput.value.trim();
@@ -494,8 +477,7 @@ const popup=()=>new Promise(resolve=>{
             state:state.toUpperCase(),
             disputeUserName:currentName,
             eligibleUpdatedToday:eligibleToday,
-            plantypeIdreEmail:"",
-            verified:""
+            plantypeIdreEmail:""
         });
     };
 
@@ -503,29 +485,37 @@ const popup=()=>new Promise(resolve=>{
         selectedChoice="NO";
         yesExtra.style.display="none";
         emailInput.value="";
-        resetVerified();
         finish("NO");
     };
 
     yesBtn.onclick=()=>{
-        selectedChoice="YES";
-        yesExtra.style.display="block";
-        resetVerified();
-        status.textContent="Enter PLANTYPE_IDRE_EMAIL and choose Verified? (Yes/No), then click Continue.";
-        emailInput.focus();
-    };
+    selectedChoice="YES";
 
-    verifiedNoBtn.onclick=()=>{
-        verifiedChoice="No";
-        verifiedNoBtn.disabled=true;
-        verifiedYesBtn.disabled=true;
-    };
+    yesExtra.style.display="block";
 
-    verifiedYesBtn.onclick=()=>{
-        verifiedChoice="Yes";
-        verifiedNoBtn.disabled=true;
-        verifiedYesBtn.disabled=true;
-    };
+    verifiedChoice="";
+
+    verifiedNoBtn.disabled=false;
+    verifiedYesBtn.disabled=false;
+
+    status.textContent="Enter PLANTYPE_IDRE_EMAIL, then select Verified? (Yes/No).";
+
+    emailInput.focus();
+};
+
+verifiedNoBtn.onclick=()=>{
+    verifiedChoice="No";
+
+    verifiedNoBtn.disabled=true;
+    verifiedYesBtn.disabled=true;
+};
+
+verifiedYesBtn.onclick=()=>{
+    verifiedChoice="Yes";
+
+    verifiedNoBtn.disabled=true;
+    verifiedYesBtn.disabled=true;
+};
 
     emailInput.onkeydown=e=>{
         if(e.key==="Enter"){
@@ -534,35 +524,35 @@ const popup=()=>new Promise(resolve=>{
         }
     };
 
-    continueBtn.onclick=()=>{
-        const email=emailInput.value.trim();
+   continueBtn.onclick=()=>{
+    const email=emailInput.value.trim();
 
-        if(!email){
-            status.textContent="Enter PLANTYPE_IDRE_EMAIL.";
-            emailInput.focus();
-            return;
-        }
+    if(!email){
+        status.textContent="Enter PLANTYPE_IDRE_EMAIL.";
+        emailInput.focus();
+        return;
+    }
 
-        if(!verifiedChoice){
-            status.textContent="Choose Verified? (Yes/No).";
-            return;
-        }
+    if(!verifiedChoice){
+        status.textContent="Choose Verified? (Yes/No).";
+        return;
+    }
 
-        const state=stateInput.value.trim();
+    const state=stateInput.value.trim();
 
-        if(!currentName||!state)return;
+    if(!currentName||!state)return;
 
-        overlay.remove();
-        style.remove();
+    overlay.remove();
+    style.remove();
 
-        resolve({
-            state:state.toUpperCase(),
-            disputeUserName:currentName,
-            eligibleUpdatedToday:"YES",
-            plantypeIdreEmail:email,
-            verified:verifiedChoice
-        });
-    };
+    resolve({
+        state:state.toUpperCase(),
+        disputeUserName:currentName,
+        eligibleUpdatedToday:"YES",
+        plantypeIdreEmail:email,
+        verified:verifiedChoice
+    });
+};
 
     closeBtn.onclick=()=>{
         overlay.remove();
@@ -570,29 +560,30 @@ const popup=()=>new Promise(resolve=>{
         resolve(null);
     };
 
+
     overlay.onkeydown=e=>{
-        if(e.key==="Escape"){
-            overlay.remove();
-            style.remove();
-            resolve(null);
-        }
+    if(e.key==="Escape"){
+        overlay.remove();
+        style.remove();
+        resolve(null);
+    }
 
-        if(
-            e.key==="0" &&
-            eligible.style.display==="block"
-        ){
-            e.preventDefault();
-            noBtn.click();
-        }
+    if(
+        e.key==="0" &&
+        eligible.style.display==="block"
+    ){
+        e.preventDefault();
+        noBtn.click();
+    }
 
-        if(
-            e.key==="1" &&
-            eligible.style.display==="block"
-        ){
-            e.preventDefault();
-            yesBtn.click();
-        }
-    };
+    if(
+        e.key==="1" &&
+        eligible.style.display==="block"
+    ){
+        e.preventDefault();
+        yesBtn.click();
+    }
+};
 
     stateInput.focus();
 });
@@ -707,7 +698,7 @@ try{
 
     t.textContent=
         eligibleUpdatedToday==="YES"
-        ?`✅ Copied ${rowCount} row${rowCount!==1?"s":""} | YES | State: ${stateValue} | Email: ${plantypeIdreEmail} | Verified: ${verified} | User: ${disputeUserName}`
+        ?`✅ Copied ${rowCount} row${rowCount!==1?"s":""} | YES | State: ${stateValue} | Email: ${plantypeIdreEmail} | User: ${disputeUserName}`
         :`✅ Copied ${rowCount} row${rowCount!==1?"s":""} | NO | State: ${stateValue} | User: ${disputeUserName}`;
 
     t.style.cssText=
