@@ -182,9 +182,7 @@ const popup=()=>new Promise(resolve=>{
         }
 
         #dp-verified{
-            cursor:pointer;
-            appearance:auto;
-            -webkit-appearance:auto
+            cursor:pointer
         }
 
         #dp-verified option{
@@ -212,9 +210,7 @@ const popup=()=>new Promise(resolve=>{
             box-shadow:0 0 0 3px rgba(255,255,255,.08)
         }
 
-        #dp-edit,
-        #dp-save,
-        #dp-go{
+        #dp-edit,#dp-save,#dp-go{
             height:42px;
             padding:0 15px;
             border:1px solid rgba(255,255,255,.25);
@@ -227,9 +223,7 @@ const popup=()=>new Promise(resolve=>{
             white-space:nowrap
         }
 
-        #dp-edit:hover,
-        #dp-save:hover,
-        #dp-go:hover{
+        #dp-edit:hover,#dp-save:hover,#dp-go:hover{
             background:rgba(255,255,255,.24)
         }
 
@@ -292,8 +286,7 @@ const popup=()=>new Promise(resolve=>{
             gap:8px
         }
 
-        #dp-no,
-        #dp-yes{
+        #dp-no,#dp-yes{
             flex:1;
             height:42px;
             border-radius:10px;
@@ -342,75 +335,6 @@ const popup=()=>new Promise(resolve=>{
         #dp-continue:hover{
             background:rgba(45,175,80,.98)
         }
-
-        #dp-copy-fallback{
-            position:fixed;
-            top:50%;
-            left:50%;
-            transform:translate(-50%,-50%);
-            width:90%;
-            max-width:900px;
-            padding:20px;
-            border-radius:16px;
-            background:#111;
-            border:2px solid rgba(255,255,255,.25);
-            box-shadow:0 20px 60px rgba(0,0,0,.6);
-            z-index:2147483647;
-            box-sizing:border-box
-        }
-
-        #dp-copy-fallback-title{
-            font-size:18px;
-            font-weight:700;
-            margin-bottom:10px;
-            color:#fff
-        }
-
-        #dp-copy-fallback-info{
-            font-size:13px;
-            color:rgba(255,255,255,.7);
-            margin-bottom:12px
-        }
-
-        #dp-copy-textarea{
-            width:100%;
-            height:220px;
-            box-sizing:border-box;
-            resize:vertical;
-            border:1px solid rgba(255,255,255,.3);
-            border-radius:10px;
-            background:#fff;
-            color:#000;
-            padding:12px;
-            font-family:monospace;
-            font-size:13px;
-            line-height:1.4
-        }
-
-        #dp-copy-buttons{
-            display:flex;
-            gap:8px;
-            margin-top:10px
-        }
-
-        #dp-copy-again,
-        #dp-copy-close{
-            flex:1;
-            height:42px;
-            border-radius:10px;
-            border:1px solid rgba(255,255,255,.2);
-            color:#fff;
-            font-weight:700;
-            cursor:pointer
-        }
-
-        #dp-copy-again{
-            background:rgba(35,150,70,.9)
-        }
-
-        #dp-copy-close{
-            background:rgba(190,35,35,.85)
-        }
     `;
 
     document.head.appendChild(style);
@@ -429,7 +353,10 @@ const popup=()=>new Promise(resolve=>{
     const yesBtn=document.getElementById("dp-yes");
     const yesExtra=document.getElementById("dp-yes-extra");
     const emailInput=document.getElementById("dp-email");
+
+    // NEW: Verified Yes/No select
     const verifiedInput=document.getElementById("dp-verified");
+
     const continueBtn=document.getElementById("dp-continue");
 
     let currentName=getName();
@@ -503,18 +430,15 @@ const popup=()=>new Promise(resolve=>{
         }
 
         stateInput.value=state.toUpperCase();
-
         eligible.style.display="block";
         yesExtra.style.display="none";
 
         selectedChoice="";
-
         verifiedInput.value="";
 
         goBtn.disabled=true;
 
         status.textContent="Choose eligibility to continue.";
-
         noBtn.focus();
     };
 
@@ -546,22 +470,18 @@ const popup=()=>new Promise(resolve=>{
 
     noBtn.onclick=()=>{
         selectedChoice="NO";
-
         yesExtra.style.display="none";
-
         emailInput.value="";
         verifiedInput.value="";
-
         finish("NO");
     };
 
     yesBtn.onclick=()=>{
         selectedChoice="YES";
-
         yesExtra.style.display="block";
 
         status.textContent=
-            "Enter PLANTYPE_IDRE_EMAIL and select Verified?";
+            "Enter PLANTYPE_IDRE_EMAIL and select Verified: Yes or No.";
 
         emailInput.focus();
     };
@@ -569,23 +489,16 @@ const popup=()=>new Promise(resolve=>{
     emailInput.onkeydown=e=>{
         if(e.key==="Enter"){
             e.preventDefault();
-
-            if(verifiedInput.value){
-                continueBtn.click();
-            }else{
-                status.textContent="Select Yes or No for Verified?";
-                verifiedInput.focus();
-            }
+            continueBtn.click();
         }
     };
 
+    // NEW: update status when Yes/No is selected
     verifiedInput.onchange=()=>{
         if(verifiedInput.value==="Yes"){
-            status.textContent="Verified: Yes. Click Continue.";
+            status.textContent="Verified: Yes";
         }else if(verifiedInput.value==="No"){
-            status.textContent="Verified: No. Click Continue.";
-        }else{
-            status.textContent="Select Yes or No for Verified?";
+            status.textContent="Verified: No";
         }
     };
 
@@ -598,10 +511,11 @@ const popup=()=>new Promise(resolve=>{
             return;
         }
 
+        // NEW: get Yes/No value
         const verificationStatus=verifiedInput.value;
 
         if(!verificationStatus){
-            status.textContent="Select Yes or No for Verified?";
+            status.textContent="Select Yes or No for Verified.";
             verifiedInput.focus();
             return;
         }
@@ -618,6 +532,8 @@ const popup=()=>new Promise(resolve=>{
             disputeUserName:currentName,
             eligibleUpdatedToday:"YES",
             plantypeIdreEmail:email,
+
+            // NEW
             verificationStatus:verificationStatus
         });
     };
@@ -627,6 +543,7 @@ const popup=()=>new Promise(resolve=>{
         style.remove();
         resolve(null);
     };
+
 
     overlay.onkeydown=e=>{
         if(e.key==="Escape"){
@@ -655,7 +572,6 @@ const popup=()=>new Promise(resolve=>{
     stateInput.focus();
 });
 
-
 const input=await popup();
 
 if(!input)return;
@@ -665,21 +581,13 @@ const disputeUserName=input.disputeUserName;
 const eligibleUpdatedToday=input.eligibleUpdatedToday;
 const plantypeIdreEmail=input.plantypeIdreEmail||"";
 
-/*
-    NEW:
-
-    Verified? = Yes or No
-
-    This value goes into Excel Column G.
-*/
+// NEW
 const verificationStatus=input.verificationStatus||"";
-
 
 const disputeNumber=
     document.querySelector(
         "#ngForm fieldset > div:nth-child(1) > div:nth-child(1) > div:nth-child(1) > input"
     )?.value?.trim();
-
 
 const disputeStatus=
     document.querySelector(
@@ -692,12 +600,10 @@ const disputeStatus=
     ||
     "";
 
-
 const columnJValue=
     document.querySelector(
         "#ngForm > fieldset > div > div:nth-child(1) > div:nth-child(2) > ng-select > div > div > div.ng-value > span.ng-value-label"
     )?.textContent?.trim()||"";
-
 
 const ids=[
     ...document.querySelectorAll("#table-body tr td:nth-child(2)")
@@ -705,32 +611,21 @@ const ids=[
 .map(td=>td.textContent.trim())
 .filter(Boolean);
 
-
 const planTypes=[
     ...document.querySelectorAll('[id^="planType_"]')
 ]
 .map(el=>(el.innerText||el.textContent||el.value||"").trim())
 .filter(Boolean);
 
-
 if(!disputeNumber||!disputeStatus||!ids.length){
     console.error("Missing Dispute Number, Dispute Status, or IDs.");
     return;
 }
 
-
 const sameId=ids.every(id=>id===ids[0]);
 
+const getPlanType=i=>planTypes[i]||planTypes[0]||"";
 
-const getPlanType=i=>
-    planTypes[i]||planTypes[0]||"";
-
-
-/*
-    NO ROW
-
-    G stays "-"
-*/
 const makeNoRow=(id,i)=>[
     "-",
     getPlanType(i),
@@ -749,15 +644,6 @@ const makeNoRow=(id,i)=>[
     "No"
 ].join("\t");
 
-
-/*
-    YES ROW
-
-    Column G = verificationStatus
-
-    Verified? Yes -> Excel G = Yes
-    Verified? No  -> Excel G = No
-*/
 const makeYesRow=(id,i)=>[
     plantypeIdreEmail,
     getPlanType(i),
@@ -765,7 +651,11 @@ const makeYesRow=(id,i)=>[
     id,
     disputeStatus,
     disputeUserName,
+
+    // NEW:
+    // Column G = Yes or No
     verificationStatus,
+
     "-",
     "-",
     columnJValue,
@@ -775,7 +665,6 @@ const makeYesRow=(id,i)=>[
     "N/A",
     "Yes"
 ].join("\t");
-
 
 const output=
     eligibleUpdatedToday==="YES"
@@ -790,242 +679,35 @@ const output=
         :ids.map((id,i)=>makeNoRow(id,i)).join("\n")
     );
 
+/*
+    ORIGINAL CLIPBOARD CODE
+    LEFT UNCHANGED
+*/
+try{
+    await navigator.clipboard.writeText(output);
 
-/* ============================================================
-   COPY TO CLIPBOARD
-   ============================================================ */
-
-const copyFallback=()=>{
-
-    const old=document.getElementById(
-        "dp-copy-fallback"
-    );
-
-    if(old)old.remove();
-
-    const box=document.createElement("div");
-
-    box.id="dp-copy-fallback";
-
-    box.innerHTML=`
-        <div id="dp-copy-fallback-title">
-            Copy Data to Excel
-        </div>
-
-        <div id="dp-copy-fallback-info">
-            The browser blocked automatic copying.
-            Click inside the box, press Ctrl+A, then Ctrl+C.
-            Then paste into Excel with Ctrl+V.
-        </div>
-
-        <textarea
-            id="dp-copy-textarea"
-            spellcheck="false"
-        ></textarea>
-
-        <div id="dp-copy-buttons">
-            <button id="dp-copy-again">
-                Copy Again
-            </button>
-
-            <button id="dp-copy-close">
-                Close
-            </button>
-        </div>
-    `;
-
-    document.body.appendChild(box);
-
-    const textarea=
-        document.getElementById(
-            "dp-copy-textarea"
-        );
-
-    const again=
-        document.getElementById(
-            "dp-copy-again"
-        );
-
-    const close=
-        document.getElementById(
-            "dp-copy-close"
-        );
-
-    textarea.value=output;
-
-    textarea.focus();
-    textarea.select();
-
-    textarea.setSelectionRange(
-        0,
-        textarea.value.length
-    );
-
-    again.onclick=()=>{
-
-        textarea.focus();
-        textarea.select();
-
-        textarea.setSelectionRange(
-            0,
-            textarea.value.length
-        );
-
-        try{
-
-            const copied=
-                document.execCommand("copy");
-
-            if(copied){
-
-                box.remove();
-
-                showCopiedMessage();
-
-            }else{
-
-                alert(
-                    "Press Ctrl+C to copy the selected data."
-                );
-
-            }
-
-        }catch(e){
-
-            alert(
-                "Press Ctrl+C to copy the selected data."
-            );
-
-        }
-    };
-
-    close.onclick=()=>{
-        box.remove();
-    };
-};
-
-
-const showCopiedMessage=()=>{
-
-    const rowCount=
-        sameId
-        ?1
-        :ids.length;
+    const rowCount=sameId?1:ids.length;
 
     const t=document.createElement("div");
 
     t.textContent=
         eligibleUpdatedToday==="YES"
-        ?`✅ Copied ${rowCount} row${rowCount!==1?"s":""} | YES | Verified: ${verificationStatus} | State: ${stateValue}`
-        :`✅ Copied ${rowCount} row${rowCount!==1?"s":""} | NO | State: ${stateValue}`;
+        ?`✅ Copied ${rowCount} row${rowCount!==1?"s":""} | YES | State: ${stateValue} | Email: ${plantypeIdreEmail} | Verified: ${verificationStatus} | User: ${disputeUserName}`
+        :`✅ Copied ${rowCount} row${rowCount!==1?"s":""} | NO | State: ${stateValue} | User: ${disputeUserName}`;
 
     t.style.cssText=
-        "position:fixed;top:80px;left:50%;transform:translateX(-50%);padding:12px 24px;border-radius:14px;background:rgba(0,130,50,.9);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);color:#fff;font:600 14px Arial,sans-serif;z-index:2147483647;box-shadow:0 8px 32px rgba(0,0,0,.35)";
+        "position:fixed;top:80px;left:50%;transform:translateX(-50%);padding:12px 24px;border-radius:14px;background:rgba(0,0,0,.72);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);color:#fff;font:600 14px Arial,sans-serif;z-index:2147483647;box-shadow:0 8px 32px rgba(0,0,0,.35)";
 
     document.body.appendChild(t);
 
     setTimeout(()=>{
-
         t.style.transition="opacity .3s";
         t.style.opacity="0";
 
-        setTimeout(
-            ()=>t.remove(),
-            300
-        );
-
-    },2500);
-};
-
-
-let copied=false;
-
-
-/*
-    First try normal clipboard.
-*/
-try{
-
-    if(
-        navigator.clipboard &&
-        typeof navigator.clipboard.writeText==="function"
-    ){
-
-        await navigator.clipboard.writeText(output);
-
-        copied=true;
-
-    }
+        setTimeout(()=>t.remove(),300);
+    },2000);
 
 }catch(e){
-
-    console.warn(
-        "navigator.clipboard failed:",
-        e
-    );
-
+    console.error(e);
 }
-
-
-/*
-    Second clipboard method.
-*/
-if(!copied){
-
-    try{
-
-        const textarea=
-            document.createElement("textarea");
-
-        textarea.value=output;
-
-        textarea.style.position="fixed";
-        textarea.style.left="-9999px";
-        textarea.style.top="0";
-
-        document.body.appendChild(textarea);
-
-        textarea.focus();
-        textarea.select();
-
-        copied=
-            document.execCommand("copy");
-
-        textarea.remove();
-
-    }catch(e){
-
-        console.warn(
-            "Fallback clipboard failed:",
-            e
-        );
-
-    }
-
-}
-
-
-/*
-    If browser still blocks it,
-    show the data in a copy box.
-*/
-if(copied){
-
-    showCopiedMessage();
-
-}else{
-
-    console.warn(
-        "Automatic clipboard copy was blocked."
-    );
-
-    console.log(
-        "DATA FOR EXCEL:",
-        output
-    );
-
-    copyFallback();
-
-}
-
 })();
