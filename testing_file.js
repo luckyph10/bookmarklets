@@ -46,16 +46,28 @@ const popup=()=>new Promise(resolve=>{
             <div id="dp-status"></div>
 
             <div id="dp-eligible" style="display:none">
-                <div id="dp-label-email">PLANTYPE_IDRE_EMAIL</div>
-
-                <input id="dp-email" type="text" placeholder="Enter PLANTYPE_IDRE_EMAIL" autocomplete="off">
+                <div id="dp-eligible-title">Eligible updated today?</div>
 
                 <div id="dp-eligible-buttons">
-                    <button id="dp-yes">YES</button>
                     <button id="dp-no">NO</button>
+                    <button id="dp-yes">YES</button>
                 </div>
 
-                <button id="dp-continue">Continue</button>
+                <div id="dp-yes-extra" style="display:none">
+                    <div id="dp-label-email">PLANTYPE_IDRE_EMAIL</div>
+                    <input id="dp-email" type="text" placeholder="Enter PLANTYPE_IDRE_EMAIL" autocomplete="off">
+
+                    <div id="dp-verified-section">
+                        <div id="dp-label-verified">Verified?</div>
+
+                        <div id="dp-verified-buttons">
+                            <button id="dp-verified">Verified</button>
+                            <button id="dp-pending">Pending</button>
+                        </div>
+                    </div>
+
+                    <button id="dp-continue">Continue</button>
+                </div>
             </div>
         </div>
     `;
@@ -119,7 +131,10 @@ const popup=()=>new Promise(resolve=>{
             background:rgba(255,255,255,.14)
         }
 
-        #dp-label-name,#dp-label-state,#dp-label-email{
+        #dp-label-name,
+        #dp-label-state,
+        #dp-label-email,
+        #dp-label-verified{
             font-size:13px;
             font-weight:600;
             color:rgba(255,255,255,.9);
@@ -237,15 +252,16 @@ const popup=()=>new Promise(resolve=>{
             border-top:1px solid rgba(255,255,255,.14)
         }
 
-        #dp-label-email{
-            margin-top:0;
+        #dp-eligible-title{
+            font-size:13px;
+            font-weight:600;
+            color:rgba(255,255,255,.9);
+            margin-bottom:9px
         }
 
         #dp-eligible-buttons{
             display:flex;
-            gap:8px;
-            width:100%;
-            margin-top:10px
+            gap:8px
         }
 
         #dp-no,#dp-yes{
@@ -256,50 +272,78 @@ const popup=()=>new Promise(resolve=>{
             color:#fff;
             font-size:14px;
             font-weight:700;
-            cursor:pointer;
-            transition:all .15s ease
+            cursor:pointer
         }
 
-        /* YES = GREEN */
-        #dp-yes{
-            background:rgba(35,150,70,.92);
-            border-color:rgba(55,180,85,.7)
-        }
-
-        #dp-yes:hover{
-            background:rgba(45,175,80,.98)
-        }
-
-        /* NO = ORANGE */
         #dp-no{
-            background:rgba(235,130,20,.92);
-            border-color:rgba(255,150,35,.7)
+            background:rgba(190,35,35,.88)
         }
 
         #dp-no:hover{
-            background:rgba(250,150,35,.98)
+            background:rgba(220,45,45,.95)
         }
 
-        /* Selected YES becomes lighter */
-        #dp-yes.dp-selected{
-            background:rgba(105,220,130,1);
-            border-color:rgba(145,240,160,1);
-            box-shadow:0 0 0 3px rgba(70,190,95,.22)
+        #dp-yes{
+            background:rgba(30,95,190,.9)
         }
 
-        /* Selected NO becomes lighter */
-        #dp-no.dp-selected{
-            background:rgba(255,185,75,1);
-            border-color:rgba(255,210,125,1);
-            box-shadow:0 0 0 3px rgba(255,165,40,.22)
+        #dp-yes:hover{
+            background:rgba(40,115,220,.98)
         }
 
-        /* Other button becomes disabled after selection */
-        #dp-yes:disabled,
-        #dp-no:disabled{
-            cursor:not-allowed;
-            opacity:.38;
-            filter:saturate(.5)
+        #dp-yes-extra{
+            margin-top:14px;
+            padding-top:14px;
+            border-top:1px solid rgba(255,255,255,.14)
+        }
+
+        #dp-verified-section{
+            margin-top:12px
+        }
+
+        #dp-verified-buttons{
+            display:flex;
+            gap:8px
+        }
+
+        #dp-verified,
+        #dp-pending{
+            flex:1;
+            height:42px;
+            border-radius:10px;
+            border:1px solid rgba(255,255,255,.2);
+            color:#fff;
+            font-size:14px;
+            font-weight:700;
+            cursor:pointer
+        }
+
+        #dp-verified{
+            background:rgba(35,150,70,.9);
+            border-color:rgba(35,150,70,.65)
+        }
+
+        #dp-verified:hover{
+            background:rgba(45,175,80,.98)
+        }
+
+        #dp-verified.selected{
+            background:rgba(45,190,80,1);
+            box-shadow:0 0 0 3px rgba(45,190,80,.25)
+        }
+
+        #dp-pending{
+            background:rgba(230,140,25,.9);
+            border-color:rgba(230,140,25,.65)
+        }
+
+        #dp-pending:hover{
+            background:rgba(245,155,35,.98)
+        }
+
+        #dp-pending.selected{
+            background:rgba(245,155,35,1);
+            box-shadow:0 0 0 3px rgba(245,155,35,.25)
         }
 
         #dp-continue{
@@ -334,11 +378,15 @@ const popup=()=>new Promise(resolve=>{
     const eligible=document.getElementById("dp-eligible");
     const noBtn=document.getElementById("dp-no");
     const yesBtn=document.getElementById("dp-yes");
+    const yesExtra=document.getElementById("dp-yes-extra");
     const emailInput=document.getElementById("dp-email");
+    const verifiedBtn=document.getElementById("dp-verified");
+    const pendingBtn=document.getElementById("dp-pending");
     const continueBtn=document.getElementById("dp-continue");
 
     let currentName=getName();
     let selectedChoice="";
+    let verificationStatus="";
 
     nameInput.value=currentName;
 
@@ -408,24 +456,15 @@ const popup=()=>new Promise(resolve=>{
         }
 
         stateInput.value=state.toUpperCase();
-
-        /* Show PLANTYPE_IDRE_EMAIL + YES + NO together */
         eligible.style.display="block";
-
-        /* Reset buttons every time Go is clicked */
+        yesExtra.style.display="none";
         selectedChoice="";
-        noBtn.disabled=false;
-        yesBtn.disabled=false;
-
-        noBtn.classList.remove("dp-selected");
-        yesBtn.classList.remove("dp-selected");
-
-        emailInput.value="";
-
+        verificationStatus="";
+        verifiedBtn.classList.remove("selected");
+        pendingBtn.classList.remove("selected");
         goBtn.disabled=true;
-
-        status.textContent="Choose YES or NO.";
-        yesBtn.focus();
+        status.textContent="Choose eligibility to continue.";
+        noBtn.focus();
     };
 
     goBtn.onclick=processState;
@@ -449,58 +488,71 @@ const popup=()=>new Promise(resolve=>{
             state:state.toUpperCase(),
             disputeUserName:currentName,
             eligibleUpdatedToday:eligibleToday,
-            plantypeIdreEmail:""
+            plantypeIdreEmail:"",
+            verificationStatus:""
         });
     };
 
-    /* NO button */
     noBtn.onclick=()=>{
         selectedChoice="NO";
-
-        noBtn.classList.add("dp-selected");
-        yesBtn.classList.remove("dp-selected");
-
-        noBtn.disabled=false;
-        yesBtn.disabled=true;
-
+        yesExtra.style.display="none";
         emailInput.value="";
-
+        verificationStatus="";
+        verifiedBtn.classList.remove("selected");
+        pendingBtn.classList.remove("selected");
         finish("NO");
     };
 
-    /* YES button */
     yesBtn.onclick=()=>{
         selectedChoice="YES";
-
-        yesBtn.classList.add("dp-selected");
-        noBtn.classList.remove("dp-selected");
-
-        yesBtn.disabled=false;
-        noBtn.disabled=true;
-
-        status.textContent="YES selected. Enter PLANTYPE_IDRE_EMAIL, then click Continue.";
-
+        yesExtra.style.display="block";
+        verificationStatus="";
+        verifiedBtn.classList.remove("selected");
+        pendingBtn.classList.remove("selected");
+        status.textContent="Enter PLANTYPE_IDRE_EMAIL, then select Verified or Pending.";
         emailInput.focus();
     };
 
     emailInput.onkeydown=e=>{
         if(e.key==="Enter"){
             e.preventDefault();
-            continueBtn.click();
+            if(verificationStatus){
+                continueBtn.click();
+            }else{
+                status.textContent="Select Verified or Pending.";
+            }
         }
+    };
+
+    verifiedBtn.onclick=()=>{
+        verificationStatus="Yes";
+
+        verifiedBtn.classList.add("selected");
+        pendingBtn.classList.remove("selected");
+
+        status.textContent="Verified selected. Click Continue.";
+    };
+
+    pendingBtn.onclick=()=>{
+        verificationStatus="No";
+
+        pendingBtn.classList.add("selected");
+        verifiedBtn.classList.remove("selected");
+
+        status.textContent="Pending selected. Click Continue.";
     };
 
     continueBtn.onclick=()=>{
         const email=emailInput.value.trim();
 
-        if(selectedChoice!=="YES"){
-            status.textContent="Select YES first.";
-            return;
-        }
-
         if(!email){
             status.textContent="Enter PLANTYPE_IDRE_EMAIL.";
             emailInput.focus();
+            return;
+        }
+
+        if(!verificationStatus){
+            status.textContent="Select Verified or Pending.";
             return;
         }
 
@@ -515,7 +567,8 @@ const popup=()=>new Promise(resolve=>{
             state:state.toUpperCase(),
             disputeUserName:currentName,
             eligibleUpdatedToday:"YES",
-            plantypeIdreEmail:email
+            plantypeIdreEmail:email,
+            verificationStatus:verificationStatus
         });
     };
 
@@ -524,6 +577,7 @@ const popup=()=>new Promise(resolve=>{
         style.remove();
         resolve(null);
     };
+
 
     overlay.onkeydown=e=>{
         if(e.key==="Escape"){
@@ -534,8 +588,7 @@ const popup=()=>new Promise(resolve=>{
 
         if(
             e.key==="0" &&
-            eligible.style.display==="block" &&
-            !noBtn.disabled
+            eligible.style.display==="block"
         ){
             e.preventDefault();
             noBtn.click();
@@ -543,8 +596,7 @@ const popup=()=>new Promise(resolve=>{
 
         if(
             e.key==="1" &&
-            eligible.style.display==="block" &&
-            !yesBtn.disabled
+            eligible.style.display==="block"
         ){
             e.preventDefault();
             yesBtn.click();
@@ -562,6 +614,7 @@ const stateValue=input.state;
 const disputeUserName=input.disputeUserName;
 const eligibleUpdatedToday=input.eligibleUpdatedToday;
 const plantypeIdreEmail=input.plantypeIdreEmail||"";
+const verificationStatus=input.verificationStatus||"";
 
 const disputeNumber=
     document.querySelector(
@@ -605,22 +658,6 @@ const sameId=ids.every(id=>id===ids[0]);
 
 const getPlanType=i=>planTypes[i]||planTypes[0]||"";
 
-/*
-    Column positions:
-
-    1 = A
-    2 = B
-    3 = C
-    4 = D
-    5 = E
-    6 = F
-    7 = G  <-- YES / NO
-    8 = H
-    9 = I
-    10 = J
-    ...
-*/
-
 const makeNoRow=(id,i)=>[
     "-",
     getPlanType(i),
@@ -628,7 +665,7 @@ const makeNoRow=(id,i)=>[
     id,
     disputeStatus,
     "-",
-    "No",
+    "-",
     "-",
     "-",
     columnJValue,
@@ -646,7 +683,7 @@ const makeYesRow=(id,i)=>[
     id,
     disputeStatus,
     disputeUserName,
-    "Yes",
+    verificationStatus,
     "-",
     "-",
     columnJValue,
@@ -679,7 +716,7 @@ try{
 
     t.textContent=
         eligibleUpdatedToday==="YES"
-        ?`✅ Copied ${rowCount} row${rowCount!==1?"s":""} | YES | State: ${stateValue} | Email: ${plantypeIdreEmail} | User: ${disputeUserName}`
+        ?`✅ Copied ${rowCount} row${rowCount!==1?"s":""} | YES | State: ${stateValue} | Email: ${plantypeIdreEmail} | Verified: ${verificationStatus} | User: ${disputeUserName}`
         :`✅ Copied ${rowCount} row${rowCount!==1?"s":""} | NO | State: ${stateValue} | User: ${disputeUserName}`;
 
     t.style.cssText=
