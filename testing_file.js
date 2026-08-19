@@ -476,6 +476,22 @@ const popup=()=>new Promise(resolve=>{
         }
     };
 
+    overlay.onkeydown=e=>{
+    if(e.key==="Escape"){
+        overlay.remove();
+        style.remove();
+        resolve(null);
+    }
+
+    if(
+        e.key==="0" &&
+        eligible.style.display==="block"
+    ){
+        e.preventDefault();
+        noBtn.click();
+    }
+};
+
     stateInput.focus();
 });
 
