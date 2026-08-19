@@ -46,19 +46,16 @@ const popup=()=>new Promise(resolve=>{
             <div id="dp-status"></div>
 
             <div id="dp-eligible" style="display:none">
-                <div id="dp-eligible-title">Eligible updated today?</div>
+                <div id="dp-label-email">PLANTYPE_IDRE_EMAIL</div>
 
-                <div id="dp-yes-extra" style="display:none">
-                    <div id="dp-label-email">PLANTYPE_IDRE_EMAIL</div>
-                    <input id="dp-email" type="text" placeholder="Enter PLANTYPE_IDRE_EMAIL" autocomplete="off">
+                <input id="dp-email" type="text" placeholder="Enter PLANTYPE_IDRE_EMAIL" autocomplete="off">
 
-                    <div id="dp-eligible-buttons">
-                        <button id="dp-yes">YES</button>
-                        <button id="dp-no">NO</button>
-                    </div>
-
-                    <button id="dp-continue">Continue</button>
+                <div id="dp-eligible-buttons">
+                    <button id="dp-yes">YES</button>
+                    <button id="dp-no">NO</button>
                 </div>
+
+                <button id="dp-continue">Continue</button>
             </div>
         </div>
     `;
@@ -240,11 +237,8 @@ const popup=()=>new Promise(resolve=>{
             border-top:1px solid rgba(255,255,255,.14)
         }
 
-        #dp-eligible-title{
-            font-size:13px;
-            font-weight:600;
-            color:rgba(255,255,255,.9);
-            margin-bottom:9px
+        #dp-label-email{
+            margin-top:0;
         }
 
         #dp-eligible-buttons{
@@ -266,15 +260,7 @@ const popup=()=>new Promise(resolve=>{
             transition:all .15s ease
         }
 
-        #dp-no{
-            background:rgba(235,130,20,.92);
-            border-color:rgba(255,150,35,.7)
-        }
-
-        #dp-no:hover{
-            background:rgba(250,150,35,.98)
-        }
-
+        /* YES = GREEN */
         #dp-yes{
             background:rgba(35,150,70,.92);
             border-color:rgba(55,180,85,.7)
@@ -284,31 +270,36 @@ const popup=()=>new Promise(resolve=>{
             background:rgba(45,175,80,.98)
         }
 
-        #dp-no:disabled,
-        #dp-yes:disabled{
-            cursor:not-allowed;
-            opacity:.38;
-            filter:saturate(.5)
+        /* NO = ORANGE */
+        #dp-no{
+            background:rgba(235,130,20,.92);
+            border-color:rgba(255,150,35,.7)
         }
 
-        #dp-no.dp-selected{
-            background:rgba(255,185,75,1);
-            border-color:rgba(255,210,125,1);
-            color:#fff;
-            box-shadow:0 0 0 3px rgba(255,165,40,.22)
+        #dp-no:hover{
+            background:rgba(250,150,35,.98)
         }
 
+        /* Selected YES becomes lighter */
         #dp-yes.dp-selected{
             background:rgba(105,220,130,1);
             border-color:rgba(145,240,160,1);
-            color:#fff;
             box-shadow:0 0 0 3px rgba(70,190,95,.22)
         }
 
-        #dp-yes-extra{
-            margin-top:14px;
-            padding-top:14px;
-            border-top:1px solid rgba(255,255,255,.14)
+        /* Selected NO becomes lighter */
+        #dp-no.dp-selected{
+            background:rgba(255,185,75,1);
+            border-color:rgba(255,210,125,1);
+            box-shadow:0 0 0 3px rgba(255,165,40,.22)
+        }
+
+        /* Other button becomes disabled after selection */
+        #dp-yes:disabled,
+        #dp-no:disabled{
+            cursor:not-allowed;
+            opacity:.38;
+            filter:saturate(.5)
         }
 
         #dp-continue{
@@ -343,7 +334,6 @@ const popup=()=>new Promise(resolve=>{
     const eligible=document.getElementById("dp-eligible");
     const noBtn=document.getElementById("dp-no");
     const yesBtn=document.getElementById("dp-yes");
-    const yesExtra=document.getElementById("dp-yes-extra");
     const emailInput=document.getElementById("dp-email");
     const continueBtn=document.getElementById("dp-continue");
 
@@ -418,9 +408,11 @@ const popup=()=>new Promise(resolve=>{
         }
 
         stateInput.value=state.toUpperCase();
-        eligible.style.display="block";
-        yesExtra.style.display="block";
 
+        /* Show PLANTYPE_IDRE_EMAIL + YES + NO together */
+        eligible.style.display="block";
+
+        /* Reset buttons every time Go is clicked */
         selectedChoice="";
         noBtn.disabled=false;
         yesBtn.disabled=false;
@@ -428,9 +420,11 @@ const popup=()=>new Promise(resolve=>{
         noBtn.classList.remove("dp-selected");
         yesBtn.classList.remove("dp-selected");
 
+        emailInput.value="";
+
         goBtn.disabled=true;
 
-        status.textContent="Choose eligibility to continue.";
+        status.textContent="Choose YES or NO.";
         yesBtn.focus();
     };
 
@@ -459,6 +453,7 @@ const popup=()=>new Promise(resolve=>{
         });
     };
 
+    /* NO button */
     noBtn.onclick=()=>{
         selectedChoice="NO";
 
@@ -470,11 +465,10 @@ const popup=()=>new Promise(resolve=>{
 
         emailInput.value="";
 
-        status.textContent="NO selected.";
-
         finish("NO");
     };
 
+    /* YES button */
     yesBtn.onclick=()=>{
         selectedChoice="YES";
 
@@ -499,14 +493,14 @@ const popup=()=>new Promise(resolve=>{
     continueBtn.onclick=()=>{
         const email=emailInput.value.trim();
 
-        if(!email){
-            status.textContent="Enter PLANTYPE_IDRE_EMAIL.";
-            emailInput.focus();
+        if(selectedChoice!=="YES"){
+            status.textContent="Select YES first.";
             return;
         }
 
-        if(selectedChoice!=="YES"){
-            status.textContent="Select YES first.";
+        if(!email){
+            status.textContent="Enter PLANTYPE_IDRE_EMAIL.";
+            emailInput.focus();
             return;
         }
 
@@ -610,6 +604,22 @@ if(!disputeNumber||!disputeStatus||!ids.length){
 const sameId=ids.every(id=>id===ids[0]);
 
 const getPlanType=i=>planTypes[i]||planTypes[0]||"";
+
+/*
+    Column positions:
+
+    1 = A
+    2 = B
+    3 = C
+    4 = D
+    5 = E
+    6 = F
+    7 = G  <-- YES / NO
+    8 = H
+    9 = I
+    10 = J
+    ...
+*/
 
 const makeNoRow=(id,i)=>[
     "-",
