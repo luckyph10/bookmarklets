@@ -54,6 +54,7 @@ const popup=()=>new Promise(resolve=>{
                 </div>
 
                 <div id="dp-yes-extra" style="display:none">
+
                     <div id="dp-label-email">PLANTYPE_IDRE_EMAIL</div>
 
                     <input
@@ -64,15 +65,18 @@ const popup=()=>new Promise(resolve=>{
                     >
 
                     <div id="dp-verified-section">
+
                         <div id="dp-label-verified">Verified?</div>
 
                         <div id="dp-verified-buttons">
                             <button id="dp-verified">Verified</button>
                             <button id="dp-pending">Pending</button>
                         </div>
+
                     </div>
 
                     <button id="dp-continue">Continue</button>
+
                 </div>
             </div>
         </div>
@@ -377,6 +381,75 @@ const popup=()=>new Promise(resolve=>{
         #dp-continue:hover{
             background:rgba(45,175,80,.98)
         }
+
+        #dp-copy-fallback{
+            position:fixed;
+            top:50%;
+            left:50%;
+            transform:translate(-50%,-50%);
+            width:90%;
+            max-width:900px;
+            padding:20px;
+            border-radius:16px;
+            background:#111;
+            border:2px solid rgba(255,255,255,.25);
+            box-shadow:0 20px 60px rgba(0,0,0,.6);
+            z-index:2147483647;
+            box-sizing:border-box
+        }
+
+        #dp-copy-fallback-title{
+            font-size:18px;
+            font-weight:700;
+            margin-bottom:10px;
+            color:#fff
+        }
+
+        #dp-copy-fallback-info{
+            font-size:13px;
+            color:rgba(255,255,255,.7);
+            margin-bottom:12px
+        }
+
+        #dp-copy-textarea{
+            width:100%;
+            height:220px;
+            box-sizing:border-box;
+            resize:vertical;
+            border:1px solid rgba(255,255,255,.3);
+            border-radius:10px;
+            background:#fff;
+            color:#000;
+            padding:12px;
+            font-family:monospace;
+            font-size:13px;
+            line-height:1.4
+        }
+
+        #dp-copy-buttons{
+            display:flex;
+            gap:8px;
+            margin-top:10px
+        }
+
+        #dp-copy-again,
+        #dp-copy-close{
+            flex:1;
+            height:42px;
+            border-radius:10px;
+            border:1px solid rgba(255,255,255,.2);
+            color:#fff;
+            font-weight:700;
+            cursor:pointer
+        }
+
+        #dp-copy-again{
+            background:rgba(35,150,70,.9)
+        }
+
+        #dp-copy-close{
+            background:rgba(190,35,35,.85)
+        }
     `;
 
     document.head.appendChild(style);
@@ -536,7 +609,8 @@ const popup=()=>new Promise(resolve=>{
         verifiedBtn.classList.remove("selected");
         pendingBtn.classList.remove("selected");
 
-        status.textContent="Enter PLANTYPE_IDRE_EMAIL, then select Verified or Pending.";
+        status.textContent=
+            "Enter PLANTYPE_IDRE_EMAIL, then select Verified or Pending.";
 
         emailInput.focus();
     };
@@ -634,9 +708,11 @@ const popup=()=>new Promise(resolve=>{
     stateInput.focus();
 });
 
+
 const input=await popup();
 
 if(!input)return;
+
 
 const stateValue=input.state;
 const disputeUserName=input.disputeUserName;
@@ -644,10 +720,12 @@ const eligibleUpdatedToday=input.eligibleUpdatedToday;
 const plantypeIdreEmail=input.plantypeIdreEmail||"";
 const verificationStatus=input.verificationStatus||"";
 
+
 const disputeNumber=
     document.querySelector(
         "#ngForm fieldset > div:nth-child(1) > div:nth-child(1) > div:nth-child(1) > input"
     )?.value?.trim();
+
 
 const disputeStatus=
     document.querySelector(
@@ -660,10 +738,12 @@ const disputeStatus=
     ||
     "";
 
+
 const columnJValue=
     document.querySelector(
         "#ngForm > fieldset > div > div:nth-child(1) > div:nth-child(2) > ng-select > div > div > div.ng-value > span.ng-value-label"
     )?.textContent?.trim()||"";
+
 
 const ids=[
     ...document.querySelectorAll("#table-body tr td:nth-child(2)")
@@ -671,20 +751,48 @@ const ids=[
 .map(td=>td.textContent.trim())
 .filter(Boolean);
 
+
 const planTypes=[
     ...document.querySelectorAll('[id^="planType_"]')
 ]
 .map(el=>(el.innerText||el.textContent||el.value||"").trim())
 .filter(Boolean);
 
+
 if(!disputeNumber||!disputeStatus||!ids.length){
-    console.error("Missing Dispute Number, Dispute Status, or IDs.");
+    console.error(
+        "Missing Dispute Number, Dispute Status, or IDs."
+    );
     return;
 }
 
+
 const sameId=ids.every(id=>id===ids[0]);
 
-const getPlanType=i=>planTypes[i]||planTypes[0]||"";
+
+const getPlanType=i=>
+    planTypes[i]||planTypes[0]||"";
+
+
+/*
+    NO ROW
+
+    A  -
+    B  Plan Type
+    C  Dispute Number
+    D  ID
+    E  Dispute Status
+    F  -
+    G  -
+    H  -
+    I  -
+    J  columnJValue
+    K  N/A
+    L  N/A
+    M  State
+    N  -
+    O  No
+*/
 
 const makeNoRow=(id,i)=>[
     "-",
@@ -704,6 +812,29 @@ const makeNoRow=(id,i)=>[
     "No"
 ].join("\t");
 
+
+/*
+    YES ROW
+
+    A  PLANTYPE_IDRE_EMAIL
+    B  Plan Type
+    C  Dispute Number
+    D  ID
+    E  Dispute Status
+    F  Dispute User Name
+    G  Verified result
+       Verified = Yes
+       Pending  = No
+    H  -
+    I  -
+    J  columnJValue
+    K  N/A
+    L  N/A
+    M  State
+    N  N/A
+    O  Yes
+*/
+
 const makeYesRow=(id,i)=>[
     plantypeIdreEmail,
     getPlanType(i),
@@ -722,6 +853,7 @@ const makeYesRow=(id,i)=>[
     "Yes"
 ].join("\t");
 
+
 const output=
     eligibleUpdatedToday==="YES"
     ?(
@@ -735,131 +867,345 @@ const output=
         :ids.map((id,i)=>makeNoRow(id,i)).join("\n")
     );
 
-try{
 
-    const copyToClipboard=async text=>{
+/* ============================================================
+   CLIPBOARD
+   ============================================================ */
 
-        // Try modern Clipboard API first
-        try{
-            if(
-                navigator.clipboard &&
-                typeof navigator.clipboard.writeText==="function"
-            ){
-                await navigator.clipboard.writeText(text);
-                return true;
-            }
-        }catch(e){
-            console.warn(
-                "navigator.clipboard failed. Trying fallback copy.",
-                e
+const copyWithGM=async text=>{
+
+    try{
+
+        if(typeof GM_setClipboard==="function"){
+
+            GM_setClipboard(
+                text,
+                "text/plain"
             );
+
+            return true;
         }
 
-        // Fallback copy method
-        try{
-            const textarea=document.createElement("textarea");
+    }catch(e){
 
-            textarea.value=text;
-            textarea.setAttribute("readonly","");
+        console.warn(
+            "GM_setClipboard failed:",
+            e
+        );
 
-            textarea.style.position="fixed";
-            textarea.style.left="-9999px";
-            textarea.style.top="0";
-            textarea.style.width="1px";
-            textarea.style.height="1px";
-            textarea.style.opacity="0";
-            textarea.style.pointerEvents="none";
+    }
 
-            document.body.appendChild(textarea);
+    return false;
+};
+
+
+const copyWithNavigator=async text=>{
+
+    try{
+
+        if(
+            navigator.clipboard &&
+            typeof navigator.clipboard.writeText==="function"
+        ){
+
+            await navigator.clipboard.writeText(text);
+
+            return true;
+
+        }
+
+    }catch(e){
+
+        console.warn(
+            "navigator.clipboard failed:",
+            e
+        );
+
+    }
+
+    return false;
+};
+
+
+const copyWithExecCommand=text=>{
+
+    try{
+
+        const textarea=document.createElement("textarea");
+
+        textarea.value=text;
+
+        textarea.setAttribute(
+            "readonly",
+            ""
+        );
+
+        textarea.style.position="fixed";
+        textarea.style.left="0";
+        textarea.style.top="0";
+        textarea.style.width="1px";
+        textarea.style.height="1px";
+        textarea.style.padding="0";
+        textarea.style.border="0";
+        textarea.style.outline="0";
+        textarea.style.boxShadow="none";
+        textarea.style.background="transparent";
+        textarea.style.color="transparent";
+        textarea.style.opacity="0.01";
+        textarea.style.zIndex="-1";
+
+        document.body.appendChild(textarea);
+
+        textarea.focus();
+        textarea.select();
+
+        textarea.setSelectionRange(
+            0,
+            textarea.value.length
+        );
+
+        const result=
+            document.execCommand("copy");
+
+        textarea.remove();
+
+        return result===true;
+
+    }catch(e){
+
+        console.warn(
+            "execCommand copy failed:",
+            e
+        );
+
+        return false;
+
+    }
+
+};
+
+
+const showManualCopyBox=text=>{
+
+    const oldBox=
+        document.getElementById(
+            "dp-copy-fallback"
+        );
+
+    if(oldBox){
+        oldBox.remove();
+    }
+
+    const box=
+        document.createElement("div");
+
+    box.id="dp-copy-fallback";
+
+    box.innerHTML=`
+        <div id="dp-copy-fallback-title">
+            Clipboard blocked — Copy the data below
+        </div>
+
+        <div id="dp-copy-fallback-info">
+            Click inside the box, press Ctrl+A, then Ctrl+C.
+            After that paste directly into your Excel spreadsheet with Ctrl+V.
+        </div>
+
+        <textarea
+            id="dp-copy-textarea"
+            spellcheck="false"
+        ></textarea>
+
+        <div id="dp-copy-buttons">
+
+            <button id="dp-copy-again">
+                Try Copy Again
+            </button>
+
+            <button id="dp-copy-close">
+                Close
+            </button>
+
+        </div>
+    `;
+
+    document.body.appendChild(box);
+
+    const textarea=
+        document.getElementById(
+            "dp-copy-textarea"
+        );
+
+    const again=
+        document.getElementById(
+            "dp-copy-again"
+        );
+
+    const close=
+        document.getElementById(
+            "dp-copy-close"
+        );
+
+    textarea.value=text;
+
+    textarea.focus();
+    textarea.select();
+
+    textarea.setSelectionRange(
+        0,
+        textarea.value.length
+    );
+
+
+    again.onclick=async()=>{
+
+        const copied=
+            await copyWithGM(text) ||
+            await copyWithNavigator(text) ||
+            copyWithExecCommand(text);
+
+        if(copied){
+
+            box.remove();
+
+            showSuccessToast(
+                "✅ Data copied to clipboard!"
+            );
+
+        }else{
 
             textarea.focus();
             textarea.select();
-            textarea.setSelectionRange(0,text.length);
 
-            const copied=document.execCommand("copy");
-
-            textarea.remove();
-
-            if(copied){
-                return true;
-            }
-
-        }catch(e){
-            console.error(
-                "Clipboard fallback failed:",
-                e
+            textarea.setSelectionRange(
+                0,
+                textarea.value.length
             );
+
+            alert(
+                "Clipboard is blocked by the browser. " +
+                "The data is already selected. " +
+                "Press Ctrl+C, then paste into Excel."
+            );
+
         }
 
-        return false;
     };
 
-    const copied=await copyToClipboard(output);
 
-    if(!copied){
+    close.onclick=()=>{
+        box.remove();
+    };
 
-        console.error(
-            "Could not copy output to clipboard."
+};
+
+
+const showSuccessToast=message=>{
+
+    const old=
+        document.getElementById(
+            "dp-copy-success"
         );
 
-        console.log(
-            "OUTPUT THAT SHOULD HAVE BEEN COPIED:"
-        );
-
-        console.log(output);
-
-        const t=document.createElement("div");
-
-        t.textContent=
-            "❌ Clipboard copy failed. Check browser permissions.";
-
-        t.style.cssText=
-            "position:fixed;top:80px;left:50%;transform:translateX(-50%);padding:12px 24px;border-radius:14px;background:rgba(190,35,35,.9);color:#fff;font:600 14px Arial,sans-serif;z-index:2147483647;box-shadow:0 8px 32px rgba(0,0,0,.35)";
-
-        document.body.appendChild(t);
-
-        setTimeout(()=>{
-            t.style.transition="opacity .3s";
-            t.style.opacity="0";
-
-            setTimeout(()=>t.remove(),300);
-        },3000);
-
-        return;
+    if(old){
+        old.remove();
     }
 
-    const rowCount=sameId?1:ids.length;
+    const t=
+        document.createElement("div");
 
-    const t=document.createElement("div");
+    t.id="dp-copy-success";
 
-    t.textContent=
-        eligibleUpdatedToday==="YES"
-        ?`✅ Copied ${rowCount} row${rowCount!==1?"s":""} | YES | State: ${stateValue} | Email: ${plantypeIdreEmail} | Verified: ${verificationStatus} | User: ${disputeUserName}`
-        :`✅ Copied ${rowCount} row${rowCount!==1?"s":""} | NO | State: ${stateValue} | User: ${disputeUserName}`;
+    t.textContent=message;
 
     t.style.cssText=
-        "position:fixed;top:80px;left:50%;transform:translateX(-50%);padding:12px 24px;border-radius:14px;background:rgba(0,0,0,.72);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);color:#fff;font:600 14px Arial,sans-serif;z-index:2147483647;box-shadow:0 8px 32px rgba(0,0,0,.35)";
+        "position:fixed;top:80px;left:50%;transform:translateX(-50%);padding:12px 24px;border-radius:14px;background:rgba(0,120,45,.92);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);color:#fff;font:600 14px Arial,sans-serif;z-index:2147483647;box-shadow:0 8px 32px rgba(0,0,0,.35)";
 
     document.body.appendChild(t);
 
     setTimeout(()=>{
-        t.style.transition="opacity .3s";
+
+        t.style.transition=
+            "opacity .3s";
+
         t.style.opacity="0";
 
-        setTimeout(()=>t.remove(),300);
-    },2000);
+        setTimeout(
+            ()=>t.remove(),
+            300
+        );
 
-}catch(e){
+    },2500);
 
-    console.error(
-        "Copy process failed:",
-        e
+};
+
+
+/*
+   Try all available clipboard methods.
+
+   Priority:
+   1. Tampermonkey/Greasemonkey GM_setClipboard
+   2. navigator.clipboard
+   3. document.execCommand
+   4. Manual copy box
+*/
+
+let copied=false;
+
+
+/* Tampermonkey / Violentmonkey / Userscript */
+copied=
+    await copyWithGM(output);
+
+
+/* Browser Clipboard API */
+if(!copied){
+
+    copied=
+        await copyWithNavigator(output);
+
+}
+
+
+/* Older browser copy method */
+if(!copied){
+
+    copied=
+        copyWithExecCommand(output);
+
+}
+
+
+/* Final guaranteed manual option */
+if(!copied){
+
+    console.warn(
+        "Automatic clipboard copy unavailable."
     );
 
     console.log(
-        "OUTPUT:",
+        "DATA FOR EXCEL:",
         output
     );
+
+    showManualCopyBox(output);
+
+}else{
+
+    const rowCount=
+        sameId
+        ?1
+        :ids.length;
+
+
+    const message=
+        eligibleUpdatedToday==="YES"
+        ?`✅ Copied ${rowCount} row${rowCount!==1?"s":""} | YES | State: ${stateValue} | Email: ${plantypeIdreEmail} | Verified: ${verificationStatus} | User: ${disputeUserName}`
+        :`✅ Copied ${rowCount} row${rowCount!==1?"s":""} | NO | State: ${stateValue} | User: ${disputeUserName}`;
+
+
+    showSuccessToast(message);
+
 }
 
 })();
