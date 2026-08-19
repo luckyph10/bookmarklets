@@ -17,12 +17,35 @@ const saveName=n=>{
 };
 
 /* =========================================================
-   COPY TO CLIPBOARD
+   CLIPBOARD
    ========================================================= */
 
-const copyText=async text=>{
+const saveToClipboard=async text=>{
 
-    /* First: normal Clipboard API */
+    /* Tampermonkey */
+    try{
+        if(typeof GM_setClipboard==="function"){
+            GM_setClipboard(text,"text");
+            return true;
+        }
+    }catch(e){
+        console.error("GM_setClipboard error:",e);
+    }
+
+    /* Violentmonkey */
+    try{
+        if(
+            typeof GM!=="undefined" &&
+            typeof GM.setClipboard==="function"
+        ){
+            await GM.setClipboard(text,"text");
+            return true;
+        }
+    }catch(e){
+        console.error("GM.setClipboard error:",e);
+    }
+
+    /* Browser Clipboard API */
     try{
         if(
             navigator.clipboard &&
@@ -32,17 +55,17 @@ const copyText=async text=>{
             return true;
         }
     }catch(e){
-        console.warn("navigator.clipboard failed:",e);
+        console.error("navigator.clipboard error:",e);
     }
 
-    /* Second: old execCommand fallback */
+    /* Browser execCommand fallback */
     try{
         const textarea=document.createElement("textarea");
 
         textarea.value=text;
 
         textarea.style.position="fixed";
-        textarea.style.left="-9999px";
+        textarea.style.left="-10000px";
         textarea.style.top="0";
         textarea.style.width="1px";
         textarea.style.height="1px";
@@ -61,52 +84,294 @@ const copyText=async text=>{
         if(result){
             return true;
         }
-
     }catch(e){
-        console.warn("execCommand copy failed:",e);
+        console.error("execCommand error:",e);
     }
 
     return false;
 };
 
+/* =========================================================
+   MANUAL COPY WINDOW IF BROWSER BLOCKS CLIPBOARD
+   ========================================================= */
+
+const showCopyWindow=text=>{
+
+    const old=document.getElementById("dp-copy-window-overlay");
+
+    if(old){
+        old.remove();
+    }
+
+    const overlay=document.createElement("div");
+
+    overlay.id="dp-copy-window-overlay";
+
+    overlay.innerHTML=`
+        <div id="dp-copy-window">
+
+            <div id="dp-copy-title">
+                Excel Data Ready
+            </div>
+
+            <div id="dp-copy-info">
+                The data below is already formatted for Excel.
+                Click COPY or use Ctrl+C.
+            </div>
+
+            <textarea
+                id="dp-copy-area"
+                spellcheck="false"
+            ></textarea>
+
+            <div id="dp-copy-buttons">
+
+                <button id="dp-copy-button">
+                    COPY
+                </button>
+
+                <button id="dp-copy-close">
+                    CLOSE
+                </button>
+
+            </div>
+
+        </div>
+    `;
+
+    const style=document.createElement("style");
+
+    style.id="dp-copy-window-style";
+
+    style.textContent=`
+        #dp-copy-window-overlay{
+            position:fixed;
+            inset:0;
+            z-index:2147483647;
+            background:rgba(0,0,0,.45);
+            display:flex;
+            align-items:flex-start;
+            justify-content:center;
+            padding-top:100px;
+            box-sizing:border-box;
+        }
+
+        #dp-copy-window{
+            width:720px;
+            max-width:calc(100vw - 30px);
+            background:#151515;
+            border:1px solid rgba(255,255,255,.2);
+            border-radius:16px;
+            padding:20px;
+            box-shadow:0 20px 60px rgba(0,0,0,.55);
+            font-family:Arial,sans-serif;
+            color:#fff;
+            box-sizing:border-box;
+        }
+
+        #dp-copy-title{
+            font-size:19px;
+            font-weight:700;
+            margin-bottom:8px;
+        }
+
+        #dp-copy-info{
+            font-size:13px;
+            color:rgba(255,255,255,.7);
+            margin-bottom:12px;
+        }
+
+        #dp-copy-area{
+            display:block;
+            width:100%;
+            height:240px;
+            box-sizing:border-box;
+            padding:12px;
+            border-radius:10px;
+            border:1px solid rgba(255,255,255,.2);
+            outline:none;
+            resize:vertical;
+            background:#080808;
+            color:#fff;
+            font-family:monospace;
+            font-size:12px;
+            line-height:1.4;
+        }
+
+        #dp-copy-buttons{
+            display:flex;
+            gap:8px;
+            margin-top:10px;
+        }
+
+        #dp-copy-button,
+        #dp-copy-close{
+            height:42px;
+            padding:0 20px;
+            border:0;
+            border-radius:10px;
+            color:#fff;
+            font-size:14px;
+            font-weight:700;
+            cursor:pointer;
+        }
+
+        #dp-copy-button{
+            background:rgba(35,150,70,.95);
+        }
+
+        #dp-copy-button:hover{
+            background:rgba(45,175,80,1);
+        }
+
+        #dp-copy-close{
+            background:rgba(255,255,255,.14);
+        }
+
+        #dp-copy-close:hover{
+            background:rgba(255,255,255,.22);
+        }
+    `;
+
+    document.head.appendChild(style);
+    document.body.appendChild(overlay);
+
+    const area=
+        document.getElementById("dp-copy-area");
+
+    const copyButton=
+        document.getElementById("dp-copy-button");
+
+    const closeButton=
+        document.getElementById("dp-copy-close");
+
+    area.value=text;
+
+    area.focus();
+    area.select();
+    area.setSelectionRange(0,text.length);
+
+    copyButton.onclick=async()=>{
+
+        const copied=
+            await saveToClipboard(text);
+
+        if(copied){
+
+            copyButton.textContent="COPIED ✓";
+
+            setTimeout(()=>{
+                overlay.remove();
+                style.remove();
+            },600);
+
+        }else{
+
+            area.focus();
+            area.select();
+            area.setSelectionRange(0,text.length);
+
+            copyButton.textContent="PRESS CTRL+C";
+        }
+    };
+
+    closeButton.onclick=()=>{
+        overlay.remove();
+        style.remove();
+    };
+};
+
+/* =========================================================
+   POPUP
+   ========================================================= */
+
 const popup=()=>new Promise(resolve=>{
+
     const old=document.getElementById("dispute-popup-overlay");
+
     if(old)old.remove();
 
     const oldStyle=document.getElementById("dispute-popup-style");
+
     if(oldStyle)oldStyle.remove();
 
     const overlay=document.createElement("div");
+
     overlay.id="dispute-popup-overlay";
 
     overlay.innerHTML=`
         <div id="dispute-popup">
+
             <button id="dp-close" title="Close">×</button>
 
-            <div id="dp-title">Dispute Information</div>
-
-            <div id="dp-label-name">Dispute User Name</div>
-            <div id="dp-name-row">
-                <input id="dp-name" type="text" placeholder="Enter Dispute User Name" autocomplete="off">
-                <button id="dp-edit">Edit</button>
-                <span id="dp-saved">Saved ✓</span>
-                <button id="dp-save">Save</button>
+            <div id="dp-title">
+                Dispute Information
             </div>
 
-            <div id="dp-label-state">State</div>
+            <div id="dp-label-name">
+                Dispute User Name
+            </div>
+
+            <div id="dp-name-row">
+
+                <input
+                    id="dp-name"
+                    type="text"
+                    placeholder="Enter Dispute User Name"
+                    autocomplete="off"
+                >
+
+                <button id="dp-edit">
+                    Edit
+                </button>
+
+                <span id="dp-saved">
+                    Saved ✓
+                </span>
+
+                <button id="dp-save">
+                    Save
+                </button>
+
+            </div>
+
+            <div id="dp-label-state">
+                State
+            </div>
+
             <div id="dp-state-row">
-                <input id="dp-state" type="text" placeholder="Enter State" autocomplete="off">
-                <button id="dp-go">Go</button>
+
+                <input
+                    id="dp-state"
+                    type="text"
+                    placeholder="Enter State"
+                    autocomplete="off"
+                >
+
+                <button id="dp-go">
+                    Go
+                </button>
+
             </div>
 
             <div id="dp-status"></div>
 
             <div id="dp-eligible" style="display:none">
-                <div id="dp-eligible-title">Eligible updated today?</div>
+
+                <div id="dp-eligible-title">
+                    Eligible updated today?
+                </div>
 
                 <div id="dp-eligible-buttons">
-                    <button id="dp-no">NO</button>
-                    <button id="dp-yes">YES</button>
+
+                    <button id="dp-no">
+                        NO
+                    </button>
+
+                    <button id="dp-yes">
+                        YES
+                    </button>
+
                 </div>
 
                 <div id="dp-yes-extra" style="display:none">
@@ -127,8 +392,15 @@ const popup=()=>new Promise(resolve=>{
                     </div>
 
                     <div id="dp-verified-buttons">
-                        <button id="dp-verified-no">NO</button>
-                        <button id="dp-verified-yes">YES</button>
+
+                        <button id="dp-verified-no">
+                            NO
+                        </button>
+
+                        <button id="dp-verified-yes">
+                            YES
+                        </button>
+
                     </div>
 
                     <button id="dp-continue">
@@ -136,11 +408,14 @@ const popup=()=>new Promise(resolve=>{
                     </button>
 
                 </div>
+
             </div>
+
         </div>
     `;
 
     const style=document.createElement("style");
+
     style.id="dispute-popup-style";
 
     style.textContent=`
@@ -535,12 +810,9 @@ const popup=()=>new Promise(resolve=>{
         stateInput.value=state.toUpperCase();
         eligible.style.display="block";
         yesExtra.style.display="none";
-
         selectedChoice="";
         resetVerified();
-
         goBtn.disabled=true;
-
         status.textContent="Choose eligibility to continue.";
         noBtn.focus();
     };
@@ -573,24 +845,19 @@ const popup=()=>new Promise(resolve=>{
 
     noBtn.onclick=()=>{
         selectedChoice="NO";
-
         yesExtra.style.display="none";
         emailInput.value="";
-
         resetVerified();
-
         finish("NO");
     };
 
     yesBtn.onclick=()=>{
         selectedChoice="YES";
-
         yesExtra.style.display="block";
-
         resetVerified();
 
         status.textContent=
-            "Enter PLANTYPE_IDRE_EMAIL, then select Verified? (Yes/No).";
+            "Enter PLANTYPE_IDRE_EMAIL, then choose Verified? (Yes/No).";
 
         emailInput.focus();
     };
@@ -684,7 +951,7 @@ const popup=()=>new Promise(resolve=>{
 });
 
 /* =========================================================
-   POPUP RESULT
+   GET POPUP DATA
    ========================================================= */
 
 const input=await popup();
@@ -698,7 +965,7 @@ const plantypeIdreEmail=input.plantypeIdreEmail||"";
 const verified=input.verified||"";
 
 /* =========================================================
-   EXISTING PAGE VALUES
+   EXISTING PAGE DATA
    ========================================================= */
 
 const disputeNumber=
@@ -774,29 +1041,30 @@ const makeNoRow=(id,i)=>[
 
 /* =========================================================
    YES ROW
+
    COLUMN G = verified
    ========================================================= */
 
 const makeYesRow=(id,i)=>[
-    plantypeIdreEmail,   // A
-    getPlanType(i),      // B
-    disputeNumber,       // C
-    id,                  // D
-    disputeStatus,       // E
-    disputeUserName,     // F
-    verified,            // G
-    "-",                 // H
-    "-",                 // I
-    columnJValue,        // J
-    "N/A",               // K
-    "N/A",               // L
-    stateValue,           // M
-    "N/A",               // N
-    "Yes"                 // O
+    plantypeIdreEmail,
+    getPlanType(i),
+    disputeNumber,
+    id,
+    disputeStatus,
+    disputeUserName,
+    verified,
+    "-",
+    "-",
+    columnJValue,
+    "N/A",
+    "N/A",
+    stateValue,
+    "N/A",
+    "Yes"
 ].join("\t");
 
 /* =========================================================
-   OUTPUT
+   CREATE EXCEL OUTPUT
    ========================================================= */
 
 const output=
@@ -813,10 +1081,10 @@ const output=
     );
 
 /* =========================================================
-   COPY
+   SAVE DATA TO CLIPBOARD
    ========================================================= */
 
-const copied=await copyText(output);
+const copied=await saveToClipboard(output);
 
 const rowCount=sameId?1:ids.length;
 
@@ -826,8 +1094,8 @@ if(copied){
 
     t.textContent=
         eligibleUpdatedToday==="YES"
-        ?`✅ Copied ${rowCount} row${rowCount!==1?"s":""} | YES | State: ${stateValue} | Email: ${plantypeIdreEmail} | Verified: ${verified} | User: ${disputeUserName}`
-        :`✅ Copied ${rowCount} row${rowCount!==1?"s":""} | NO | State: ${stateValue} | User: ${disputeUserName}`;
+        ?`✅ Copied ${rowCount} row${rowCount!==1?"s":""} | YES | Verified: ${verified} | Email: ${plantypeIdreEmail}`
+        :`✅ Copied ${rowCount} row${rowCount!==1?"s":""} | NO | State: ${stateValue}`;
 
     t.style.cssText=
         "position:fixed;top:80px;left:50%;transform:translateX(-50%);padding:12px 24px;border-radius:14px;background:rgba(0,0,0,.72);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);color:#fff;font:600 14px Arial,sans-serif;z-index:2147483647;box-shadow:0 8px 32px rgba(0,0,0,.35)";
@@ -838,178 +1106,20 @@ if(copied){
         t.style.transition="opacity .3s";
         t.style.opacity="0";
 
-        setTimeout(()=>t.remove(),300);
-    },2000);
+        setTimeout(()=>{
+            t.remove();
+        },300);
+
+    },2500);
 
 }else{
 
     /*
-       Final manual fallback.
-       The actual Excel data is shown and selected.
+       If the browser/userscript refuses clipboard access,
+       show the exact Excel data and automatically select it.
     */
 
-    const old=document.getElementById("dp-copy-fallback");
-
-    if(old)old.remove();
-
-    const copyBox=document.createElement("div");
-
-    copyBox.id="dp-copy-fallback";
-
-    copyBox.innerHTML=`
-        <div id="dp-copy-window">
-
-            <div style="
-                font-size:18px;
-                font-weight:700;
-                margin-bottom:8px;
-            ">
-                Clipboard Copy Failed
-            </div>
-
-            <div style="
-                font-size:13px;
-                color:rgba(255,255,255,.7);
-                margin-bottom:12px;
-            ">
-                Your Excel data is ready. Click COPY or press Ctrl+C.
-            </div>
-
-            <textarea
-                id="dp-copy-text"
-                spellcheck="false"
-            ></textarea>
-
-            <button id="dp-copy-now">
-                COPY
-            </button>
-
-            <button id="dp-copy-close">
-                CLOSE
-            </button>
-
-        </div>
-    `;
-
-    const copyStyle=document.createElement("style");
-
-    copyStyle.id="dp-copy-fallback-style";
-
-    copyStyle.textContent=`
-        #dp-copy-fallback{
-            position:fixed;
-            inset:0;
-            z-index:2147483647;
-            background:rgba(0,0,0,.4);
-            display:flex;
-            align-items:flex-start;
-            justify-content:center;
-            padding-top:100px;
-            box-sizing:border-box;
-        }
-
-        #dp-copy-window{
-            width:700px;
-            max-width:calc(100vw - 30px);
-            background:#151515;
-            border:1px solid rgba(255,255,255,.2);
-            border-radius:16px;
-            padding:20px;
-            box-shadow:0 20px 60px rgba(0,0,0,.55);
-            color:#fff;
-            font-family:Arial,sans-serif;
-            box-sizing:border-box;
-        }
-
-        #dp-copy-text{
-            width:100%;
-            height:220px;
-            box-sizing:border-box;
-            resize:vertical;
-            background:#080808;
-            color:#fff;
-            border:1px solid rgba(255,255,255,.2);
-            border-radius:10px;
-            padding:12px;
-            font-family:monospace;
-            font-size:12px;
-            outline:none;
-        }
-
-        #dp-copy-now,
-        #dp-copy-close{
-            margin-top:10px;
-            height:40px;
-            padding:0 18px;
-            border:0;
-            border-radius:9px;
-            color:#fff;
-            font-weight:700;
-            cursor:pointer;
-        }
-
-        #dp-copy-now{
-            background:rgba(35,150,70,.95);
-        }
-
-        #dp-copy-close{
-            background:rgba(255,255,255,.14);
-            margin-left:6px;
-        }
-    `;
-
-    document.head.appendChild(copyStyle);
-    document.body.appendChild(copyBox);
-
-    const copyTextArea=
-        document.getElementById("dp-copy-text");
-
-    const copyNow=
-        document.getElementById("dp-copy-now");
-
-    const copyClose=
-        document.getElementById("dp-copy-close");
-
-    copyTextArea.value=output;
-
-    copyTextArea.focus();
-    copyTextArea.select();
-    copyTextArea.setSelectionRange(
-        0,
-        copyTextArea.value.length
-    );
-
-    copyNow.onclick=async()=>{
-
-        const success=
-            await copyText(output);
-
-        if(success){
-
-            copyNow.textContent="COPIED ✓";
-
-            setTimeout(()=>{
-                copyBox.remove();
-                copyStyle.remove();
-            },700);
-
-        }else{
-
-            copyNow.textContent="PRESS CTRL+C";
-
-            copyTextArea.focus();
-            copyTextArea.select();
-            copyTextArea.setSelectionRange(
-                0,
-                copyTextArea.value.length
-            );
-        }
-    };
-
-    copyClose.onclick=()=>{
-        copyBox.remove();
-        copyStyle.remove();
-    };
+    showCopyWindow(output);
 }
 
 })();
