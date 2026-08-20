@@ -40,16 +40,15 @@ overlay.innerHTML=`
         <div id="dp-label-state">State</div>
         <div id="dp-state-row">
             <input id="dp-state" type="text" placeholder="Enter State" autocomplete="off">
+
+            <select id="dp-duplicate-comments">
+                <option value="">Duplicate Comments</option>
+                <option value="Duplicate Dispute Reviewed">Duplicate Dispute Reviewed</option>
+                <option value="N/A">N/A</option>
+            </select>
+
             <button id="dp-go">Go</button>
         </div>
-
-        <!-- NEW: Duplicate Comments -->
-        <div id="dp-label-duplicate-comments">Duplicate Comments</div>
-        <select id="dp-duplicate-comments">
-            <option value="">Select Duplicate Comments</option>
-            <option value="Duplicate Dispute Reviewed">Duplicate Dispute Reviewed</option>
-            <option value="N/A">N/A</option>
-        </select>
 
         <div id="dp-status"></div>
 
@@ -106,7 +105,7 @@ style.textContent=`
         top:20px;
         left:50%;
         transform:translateX(-50%);
-        width:460px;
+        width:600px;
         padding:24px;
         border-radius:18px;
         background:rgba(0,0,0,.76);
@@ -147,7 +146,6 @@ style.textContent=`
 
     #dp-label-name,
     #dp-label-state,
-    #dp-label-duplicate-comments,
     #dp-label-email,
     #dp-label-verified{
         font-size:13px;
@@ -185,15 +183,23 @@ style.textContent=`
         min-width:0
     }
 
-    #dp-state,
-    #dp-email,
-    #dp-verified,
+    #dp-state{
+        flex:1;
+        min-width:0
+    }
+
     #dp-duplicate-comments{
+        width:210px;
+        flex-shrink:0;
+        cursor:pointer
+    }
+
+    #dp-email,
+    #dp-verified{
         width:100%
     }
 
-    #dp-verified,
-    #dp-duplicate-comments{
+    #dp-verified{
         cursor:pointer
     }
 
@@ -456,6 +462,7 @@ const processState=()=>{
     duplicateComments=duplicateValue;
 
     stateInput.value=state.toUpperCase();
+
     eligible.style.display="block";
     yesExtra.style.display="none";
 
@@ -471,6 +478,13 @@ const processState=()=>{
 goBtn.onclick=processState;
 
 stateInput.onkeydown=e=>{
+    if(e.key==="Enter"){
+        e.preventDefault();
+        processState();
+    }
+};
+
+duplicateCommentsInput.onkeydown=e=>{
     if(e.key==="Enter"){
         e.preventDefault();
         processState();
@@ -683,7 +697,7 @@ disputeStatus,
 disputeUserName,
 
 // NEW:
-// Column G = Yes or No
+// Column H = Yes or No
 verificationStatus,
 
 "-",
