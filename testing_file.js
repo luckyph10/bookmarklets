@@ -374,10 +374,7 @@ const noBtn=document.getElementById("dp-no");
 const yesBtn=document.getElementById("dp-yes");
 const yesExtra=document.getElementById("dp-yes-extra");
 const emailInput=document.getElementById("dp-email");
-
-// NEW: Verified Yes/No select
 const verifiedInput=document.getElementById("dp-verified");
-
 const continueBtn=document.getElementById("dp-continue");
 
 let currentName=getName();
@@ -534,7 +531,6 @@ emailInput.onkeydown=e=>{
     }
 };
 
-// NEW: update status when Yes/No is selected
 verifiedInput.onchange=()=>{
     if(verifiedInput.value==="Yes"){
         status.textContent="Verified: Yes";
@@ -552,7 +548,6 @@ continueBtn.onclick=()=>{
         return;
     }
 
-    // NEW: get Yes/No value
     const verificationStatus=verifiedInput.value;
 
     if(!verificationStatus){
@@ -574,8 +569,6 @@ continueBtn.onclick=()=>{
         duplicateComments:duplicateComments,
         eligibleUpdatedToday:"YES",
         plantypeIdreEmail:email,
-
-        // NEW
         verificationStatus:verificationStatus
     });
 };
@@ -622,8 +615,6 @@ const disputeUserName=input.disputeUserName;
 const duplicateComments=input.duplicateComments||"";
 const eligibleUpdatedToday=input.eligibleUpdatedToday;
 const plantypeIdreEmail=input.plantypeIdreEmail||"";
-
-// NEW
 const verificationStatus=input.verificationStatus||"";
 
 const disputeNumber=
@@ -668,6 +659,27 @@ const sameId=ids.every(id=>id===ids[0]);
 
 const getPlanType=i=>planTypes[i]||planTypes[0]||"";
 
+/*
+COLUMN ORDER A:P
+
+A = PLANTYPE_IDRE_EMAIL
+B = Plan Type
+C = Duplicate Comments
+D = Dispute Number
+E = ID
+F = Dispute Status
+G = Dispute User Name
+H = Verified
+I = -
+J = -
+K = Column J Value
+L = N/A
+M = N/A
+N = State
+O = N/A / -
+P = Yes / No
+*/
+
 const makeNoRow=(id,i)=>[
 "-",
 getPlanType(i),
@@ -695,11 +707,7 @@ disputeNumber,
 id,
 disputeStatus,
 disputeUserName,
-
-// NEW:
-// Column H = Yes or No
 verificationStatus,
-
 "-",
 "-",
 columnJValue,
@@ -723,35 +731,108 @@ sameId
 :ids.map((id,i)=>makeNoRow(id,i)).join("\n")
 );
 
+
+/* =========================================================
+   RELIABLE CLIPBOARD FUNCTION
+   Tries Clipboard API first, then textarea fallback.
+   ========================================================= */
+
+const copyToClipboard=async text=>{
+
+    // Method 1: Clipboard API
+    try{
+        if(
+            navigator.clipboard &&
+            typeof navigator.clipboard.writeText==="function"
+        ){
+            await navigator.clipboard.writeText(text);
+            return true;
+        }
+    }catch(e){
+        console.warn("Clipboard API failed, using fallback:",e);
+    }
+
+    // Method 2: textarea + execCommand
+    try{
+        const textarea=document.createElement("textarea");
+
+        textarea.value=text;
+
+        textarea.setAttribute("readonly","");
+        textarea.style.position="fixed";
+        textarea.style.top="0";
+        textarea.style.left="0";
+        textarea.style.width="1px";
+        textarea.style.height="1px";
+        textarea.style.opacity="0";
+        textarea.style.pointerEvents="none";
+
+        document.body.appendChild(textarea);
+
+        textarea.focus();
+        textarea.select();
+        textarea.setSelectionRange(0,textarea.value.length);
+
+        const successful=document.execCommand("copy");
+
+        textarea.remove();
+
+        if(successful){
+            return true;
+        }
+
+    }catch(e){
+        console.error("Clipboard fallback failed:",e);
+    }
+
+    return false;
+};
+
+
 /*
-ORIGINAL CLIPBOARD CODE
-LEFT UNCHANGED
+ORIGINAL CLIPBOARD SECTION
+UPDATED ONLY TO MAKE COPYING MORE RELIABLE
 */
+
 try{
-await navigator.clipboard.writeText(output);
 
-const rowCount=sameId?1:ids.length;
+    const copied=await copyToClipboard(output);
 
-const t=document.createElement("div");
+    const rowCount=sameId?1:ids.length;
 
-t.textContent=
-    eligibleUpdatedToday==="YES"
-    ?`✅ Copied ${rowCount} row${rowCount!==1?"s":""} | YES | State: ${stateValue} | Duplicate Comments: ${duplicateComments} | Email: ${plantypeIdreEmail} | Verified: ${verificationStatus} | User: ${disputeUserName}`
-    :`✅ Copied ${rowCount} row${rowCount!==1?"s":""} | NO | State: ${stateValue} | Duplicate Comments: ${duplicateComments} | User: ${disputeUserName}`;
+    const t=document.createElement("div");
 
-t.style.cssText=
-    "position:fixed;top:80px;left:50%;transform:translateX(-50%);padding:12px 24px;border-radius:14px;background:rgba(0,0,0,.72);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);color:#fff;font:600 14px Arial,sans-serif;z-index:2147483647;box-shadow:0 8px 32px rgba(0,0,0,.35)";
+    if(copied){
 
-document.body.appendChild(t);
+        t.textContent=
+            eligibleUpdatedToday==="YES"
+            ?`✅ Copied ${rowCount} row${rowCount!==1?"s":""} | YES | State: ${stateValue} | Duplicate Comments: ${duplicateComments} | Email: ${plantypeIdreEmail} | Verified: ${verificationStatus} | User: ${disputeUserName}`
+            :`✅ Copied ${rowCount} row${rowCount!==1?"s":""} | NO | State: ${stateValue} | Duplicate Comments: ${duplicateComments} | User: ${disputeUserName}`;
 
-setTimeout(()=>{
-    t.style.transition="opacity .3s";
-    t.style.opacity="0";
+        t.style.cssText=
+            "position:fixed;top:80px;left:50%;transform:translateX(-50%);padding:12px 24px;border-radius:14px;background:rgba(0,0,0,.72);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);color:#fff;font:600 14px Arial,sans-serif;z-index:2147483647;box-shadow:0 8px 32px rgba(0,0,0,.35)";
 
-    setTimeout(()=>t.remove(),300);
-},2000);
+    }else{
+
+        t.textContent=
+            "❌ Clipboard copy failed. Your browser blocked clipboard access.";
+
+        t.style.cssText=
+            "position:fixed;top:80px;left:50%;transform:translateX(-50%);padding:12px 24px;border-radius:14px;background:rgba(150,0,0,.85);color:#fff;font:600 14px Arial,sans-serif;z-index:2147483647;box-shadow:0 8px 32px rgba(0,0,0,.35)";
+
+    }
+
+    document.body.appendChild(t);
+
+    setTimeout(()=>{
+        t.style.transition="opacity .3s";
+        t.style.opacity="0";
+
+        setTimeout(()=>t.remove(),300);
+    },3000);
 
 }catch(e){
-console.error(e);
+console.error("Copy operation failed:",e);
 }
+
 })();
