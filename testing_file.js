@@ -17,7 +17,7 @@ const saveName=n=>{
 };
 
 /* =========================================================
-   GET PAGE DATA BEFORE POPUP
+   GET PAGE DATA
    ========================================================= */
 
 const disputeNumber=
@@ -42,28 +42,49 @@ const columnJValue=
     )?.textContent?.trim()||"";
 
 const ids=[
-    ...document.querySelectorAll("#table-body tr td:nth-child(2)")
+    ...document.querySelectorAll(
+        "#table-body tr td:nth-child(2)"
+    )
 ]
 .map(td=>td.textContent.trim())
 .filter(Boolean);
 
 const planTypes=[
-    ...document.querySelectorAll('[id^="planType_"]')
+    ...document.querySelectorAll(
+        '[id^="planType_"]'
+    )
 ]
-.map(el=>(el.innerText||el.textContent||el.value||"").trim())
+.map(el=>
+    (
+        el.innerText||
+        el.textContent||
+        el.value||
+        ""
+    ).trim()
+)
 .filter(Boolean);
 
-if(!disputeNumber||!disputeStatus||!ids.length){
-    console.error("Missing Dispute Number, Dispute Status, or IDs.");
+if(
+    !disputeNumber||
+    !disputeStatus||
+    !ids.length
+){
+    console.error(
+        "Missing Dispute Number, Dispute Status, or IDs."
+    );
     return;
 }
 
-const sameId=ids.every(id=>id===ids[0]);
+const sameId=
+    ids.every(id=>id===ids[0]);
 
-const getPlanType=i=>planTypes[i]||planTypes[0]||"";
+const getPlanType=
+    i=>planTypes[i]||
+        planTypes[0]||
+        "";
 
 /* =========================================================
-   CLIPBOARD FUNCTION
+   CLIPBOARD
    ========================================================= */
 
 const copyText=function(text){
@@ -124,6 +145,7 @@ const copyText=function(text){
 
         textarea.focus();
         textarea.select();
+
         textarea.setSelectionRange(
             0,
             text.length
@@ -150,7 +172,7 @@ const copyText=function(text){
 };
 
 /* =========================================================
-   SHOW COPY MESSAGE
+   COPY TOAST
    ========================================================= */
 
 const showCopyMessage=(
@@ -209,20 +231,12 @@ const showCopyMessage=(
             ?"COPIED ✓"
             :"COPY FAILED";
 
-        copyAgainBtn.style.background=
-            ok
-            ?"rgba(35,150,70,.9)"
-            :"rgba(190,35,35,.9)";
-
         if(ok){
 
             setTimeout(()=>{
 
                 copyAgainBtn.textContent=
                     "COPY AGAIN";
-
-                copyAgainBtn.style.background=
-                    "rgba(35,150,70,.9)";
 
             },1500);
 
@@ -253,7 +267,6 @@ const showCopyMessage=(
     },5000);
 
     return toast;
-
 };
 
 /* =========================================================
@@ -290,7 +303,7 @@ const popup=()=>new Promise(resolve=>{
                 Dispute Information
             </div>
 
-            <!-- USER NAME -->
+            <!-- DISPUTE USER -->
 
             <div id="dp-label-name">
                 Dispute User Name
@@ -319,7 +332,7 @@ const popup=()=>new Promise(resolve=>{
 
             </div>
 
-            <!-- STATE + DUPLICATE COMMENTS -->
+            <!-- STATE -->
 
             <div id="dp-label-state">
                 State + Duplicate Comments
@@ -363,16 +376,14 @@ const popup=()=>new Promise(resolve=>{
 
             </div>
 
-            <!-- SHORTCUT INFORMATION -->
-
             <div id="dp-shortcuts">
 
                 <span>
-                    Ctrl + 2 = N/A
+                    2 = N/A
                 </span>
 
                 <span>
-                    Ctrl + 3 = Duplicate Dispute Reviewed
+                    3 = Duplicate Dispute Reviewed
                 </span>
 
             </div>
@@ -452,11 +463,10 @@ const popup=()=>new Promise(resolve=>{
             </div>
 
         </div>
-
     `;
 
     /* =====================================================
-       CSS
+       STYLE
        ===================================================== */
 
     const style=
@@ -470,13 +480,14 @@ const popup=()=>new Promise(resolve=>{
         #dispute-popup-overlay{
 
             position:fixed;
-            top:0;
-            left:0;
+            inset:0;
+
             width:100%;
             height:100%;
-            z-index:2147483647;
-            pointer-events:none;
 
+            z-index:2147483647;
+
+            pointer-events:none;
         }
 
         #dispute-popup{
@@ -486,7 +497,6 @@ const popup=()=>new Promise(resolve=>{
             position:absolute;
 
             top:20px;
-
             left:50%;
 
             transform:
@@ -502,7 +512,7 @@ const popup=()=>new Promise(resolve=>{
             border-radius:18px;
 
             background:
-                rgba(0,0,0,.76);
+                rgba(0,0,0,.78);
 
             border:
                 1px solid
@@ -525,19 +535,16 @@ const popup=()=>new Promise(resolve=>{
 
             box-sizing:
                 border-box;
-
         }
 
         #dp-title{
 
             font-size:20px;
-
             font-weight:700;
 
             margin-bottom:20px;
 
             padding-right:35px;
-
         }
 
         #dp-close{
@@ -545,11 +552,9 @@ const popup=()=>new Promise(resolve=>{
             position:absolute;
 
             top:8px;
-
             right:10px;
 
             width:34px;
-
             height:34px;
 
             border:0;
@@ -562,17 +567,13 @@ const popup=()=>new Promise(resolve=>{
 
             font-size:27px;
 
-            line-height:30px;
-
             cursor:pointer;
-
         }
 
         #dp-close:hover{
 
             background:
                 rgba(255,255,255,.14);
-
         }
 
         #dp-label-name,
@@ -589,7 +590,6 @@ const popup=()=>new Promise(resolve=>{
 
             margin:
                 10px 0 7px;
-
         }
 
         #dp-name-row,
@@ -602,7 +602,6 @@ const popup=()=>new Promise(resolve=>{
             width:100%;
 
             align-items:center;
-
         }
 
         #dp-name,
@@ -632,23 +631,14 @@ const popup=()=>new Promise(resolve=>{
                 0 12px;
 
             font-size:14px;
-
         }
 
-        #dp-name{
-
-            flex:1;
-
-            min-width:0;
-
-        }
-
+        #dp-name,
         #dp-state{
 
             flex:1;
 
             min-width:0;
-
         }
 
         #dp-duplicate-comments{
@@ -658,29 +648,24 @@ const popup=()=>new Promise(resolve=>{
             flex-shrink:0;
 
             cursor:pointer;
-
         }
 
         #dp-email,
         #dp-verified{
 
             width:100%;
-
         }
 
         #dp-verified{
 
             cursor:pointer;
-
         }
 
         #dp-verified option,
         #dp-duplicate-comments option{
 
             background:#222;
-
             color:#fff;
-
         }
 
         #dp-name:read-only{
@@ -690,9 +675,6 @@ const popup=()=>new Promise(resolve=>{
 
             color:
                 rgba(255,255,255,.72);
-
-            cursor:default;
-
         }
 
         #dp-name::placeholder,
@@ -701,7 +683,6 @@ const popup=()=>new Promise(resolve=>{
 
             color:
                 rgba(255,255,255,.5);
-
         }
 
         #dp-name:focus,
@@ -716,7 +697,6 @@ const popup=()=>new Promise(resolve=>{
             box-shadow:
                 0 0 0 3px
                 rgba(255,255,255,.08);
-
         }
 
         #dp-edit,
@@ -746,7 +726,6 @@ const popup=()=>new Promise(resolve=>{
             cursor:pointer;
 
             white-space:nowrap;
-
         }
 
         #dp-edit:hover,
@@ -754,7 +733,6 @@ const popup=()=>new Promise(resolve=>{
 
             background:
                 rgba(255,255,255,.24);
-
         }
 
         #dp-go{
@@ -764,20 +742,17 @@ const popup=()=>new Promise(resolve=>{
 
             border-color:
                 rgba(35,150,70,.65);
-
         }
 
         #dp-go:hover{
 
             background:
                 rgba(45,175,80,.98);
-
         }
 
         #dp-save{
 
             display:none;
-
         }
 
         #dp-saved{
@@ -805,7 +780,6 @@ const popup=()=>new Promise(resolve=>{
             justify-content:center;
 
             white-space:nowrap;
-
         }
 
         #dp-shortcuts{
@@ -822,7 +796,6 @@ const popup=()=>new Promise(resolve=>{
 
             color:
                 rgba(255,255,255,.5);
-
         }
 
         #dp-shortcuts span{
@@ -834,7 +807,6 @@ const popup=()=>new Promise(resolve=>{
                 4px 7px;
 
             border-radius:5px;
-
         }
 
         #dp-status{
@@ -847,7 +819,6 @@ const popup=()=>new Promise(resolve=>{
                 rgba(255,255,255,.65);
 
             min-height:16px;
-
         }
 
         #dp-eligible{
@@ -859,7 +830,6 @@ const popup=()=>new Promise(resolve=>{
             border-top:
                 1px solid
                 rgba(255,255,255,.14);
-
         }
 
         #dp-eligible-title{
@@ -868,11 +838,7 @@ const popup=()=>new Promise(resolve=>{
 
             font-weight:600;
 
-            color:
-                rgba(255,255,255,.9);
-
             margin-bottom:9px;
-
         }
 
         #dp-eligible-buttons{
@@ -880,7 +846,6 @@ const popup=()=>new Promise(resolve=>{
             display:flex;
 
             gap:8px;
-
         }
 
         #dp-no,
@@ -903,35 +868,30 @@ const popup=()=>new Promise(resolve=>{
             font-weight:700;
 
             cursor:pointer;
-
         }
 
         #dp-no{
 
             background:
                 rgba(190,35,35,.88);
-
         }
 
         #dp-no:hover{
 
             background:
                 rgba(220,45,45,.95);
-
         }
 
         #dp-yes{
 
             background:
                 rgba(30,95,190,.9);
-
         }
 
         #dp-yes:hover{
 
             background:
                 rgba(40,115,220,.98);
-
         }
 
         #dp-yes-extra{
@@ -943,7 +903,6 @@ const popup=()=>new Promise(resolve=>{
             border-top:
                 1px solid
                 rgba(255,255,255,.14);
-
         }
 
         #dp-continue{
@@ -970,14 +929,12 @@ const popup=()=>new Promise(resolve=>{
             font-weight:700;
 
             cursor:pointer;
-
         }
 
         #dp-continue:hover{
 
             background:
                 rgba(45,175,80,.98);
-
         }
 
         @media(max-width:650px){
@@ -985,7 +942,6 @@ const popup=()=>new Promise(resolve=>{
             #dp-state-row{
 
                 flex-wrap:wrap;
-
             }
 
             #dp-state{
@@ -993,7 +949,6 @@ const popup=()=>new Promise(resolve=>{
                 width:100%;
 
                 flex:none;
-
             }
 
             #dp-duplicate-comments{
@@ -1001,13 +956,6 @@ const popup=()=>new Promise(resolve=>{
                 flex:1;
 
                 width:auto;
-
-            }
-
-            #dp-go{
-
-                width:auto;
-
             }
 
         }
@@ -1102,7 +1050,7 @@ const popup=()=>new Promise(resolve=>{
         );
 
     /* =====================================================
-       USERNAME STATE
+       USERNAME
        ===================================================== */
 
     let currentName=
@@ -1148,7 +1096,7 @@ const popup=()=>new Promise(resolve=>{
     }
 
     /* =====================================================
-       EDIT USERNAME
+       EDIT
        ===================================================== */
 
     editBtn.onclick=()=>{
@@ -1168,16 +1116,12 @@ const popup=()=>new Promise(resolve=>{
         savedLabel.style.display=
             "none";
 
-        saveBtn.textContent=
-            "Save";
-
         status.textContent=
             "Editing username...";
-
     };
 
     /* =====================================================
-       SAVE USERNAME
+       SAVE
        ===================================================== */
 
     saveBtn.onclick=()=>{
@@ -1193,7 +1137,6 @@ const popup=()=>new Promise(resolve=>{
             nameInput.focus();
 
             return;
-
         }
 
         if(!saveName(n)){
@@ -1202,7 +1145,6 @@ const popup=()=>new Promise(resolve=>{
                 "Could not save the username.";
 
             return;
-
         }
 
         currentName=n;
@@ -1225,11 +1167,10 @@ const popup=()=>new Promise(resolve=>{
             "Username saved.";
 
         stateInput.focus();
-
     };
 
     /* =====================================================
-       VALIDATE STATE + DUPLICATE COMMENTS
+       VALIDATION
        ===================================================== */
 
     const validateStateAndDuplicate=()=>{
@@ -1242,7 +1183,6 @@ const popup=()=>new Promise(resolve=>{
             nameInput.focus();
 
             return false;
-
         }
 
         const state=
@@ -1256,7 +1196,6 @@ const popup=()=>new Promise(resolve=>{
             stateInput.focus();
 
             return false;
-
         }
 
         const duplicateComments=
@@ -1273,11 +1212,9 @@ const popup=()=>new Promise(resolve=>{
             duplicateCommentsInput.focus();
 
             return false;
-
         }
 
         return true;
-
     };
 
     /* =====================================================
@@ -1290,11 +1227,10 @@ const popup=()=>new Promise(resolve=>{
             return;
         }
 
-        const state=
-            stateInput.value.trim();
-
         stateInput.value=
-            state.toUpperCase();
+            stateInput.value
+                .trim()
+                .toUpperCase();
 
         eligible.style.display=
             "block";
@@ -1302,14 +1238,12 @@ const popup=()=>new Promise(resolve=>{
         yesExtra.style.display=
             "none";
 
-        verifiedInput.value=
-            "";
+        verifiedInput.value="";
 
         status.textContent=
             "Choose eligibility to continue.";
 
         noBtn.focus();
-
     };
 
     goBtn.onclick=
@@ -1322,25 +1256,11 @@ const popup=()=>new Promise(resolve=>{
             e.preventDefault();
 
             processStateAndDuplicate();
-
         }
-
-    };
-
-    duplicateCommentsInput.onkeydown=e=>{
-
-        if(e.key==="Enter"){
-
-            e.preventDefault();
-
-            processStateAndDuplicate();
-
-        }
-
     };
 
     /* =====================================================
-       BUILD NO OUTPUT
+       OUTPUT - NO
        ===================================================== */
 
     const buildNoOutput=(
@@ -1351,35 +1271,20 @@ const popup=()=>new Promise(resolve=>{
         const makeNoRow=(id,i)=>[
 
             "-",
-
             getPlanType(i),
-
             duplicateComments,
-
             disputeNumber,
-
             id,
-
             disputeStatus,
-
             "-",
-
             "-",
-
             "-",
-
             "-",
-
             columnJValue,
-
             "N/A",
-
             "N/A",
-
             stateValue,
-
             "-",
-
             "No"
 
         ].join("\t");
@@ -1393,11 +1298,10 @@ const popup=()=>new Promise(resolve=>{
                     makeNoRow(id,i)
                 )
                 .join("\n");
-
     };
 
     /* =====================================================
-       BUILD YES OUTPUT
+       OUTPUT - YES
        ===================================================== */
 
     const buildYesOutput=(
@@ -1411,35 +1315,20 @@ const popup=()=>new Promise(resolve=>{
         const makeYesRow=(id,i)=>[
 
             plantypeIdreEmail,
-
             getPlanType(i),
-
             duplicateComments,
-
             disputeNumber,
-
             id,
-
             disputeStatus,
-
             disputeUserName,
-
             verificationStatus,
-
             "-",
-
             "-",
-
             columnJValue,
-
             "N/A",
-
             "N/A",
-
             stateValue,
-
             "N/A",
-
             "Yes"
 
         ].join("\t");
@@ -1453,7 +1342,6 @@ const popup=()=>new Promise(resolve=>{
                     makeYesRow(id,i)
                 )
                 .join("\n");
-
     };
 
     /* =====================================================
@@ -1501,7 +1389,6 @@ const popup=()=>new Promise(resolve=>{
                 :"❌ Automatic copy was blocked. Click COPY AGAIN below.",
 
                 copied
-
             );
 
         toast
@@ -1510,7 +1397,6 @@ const popup=()=>new Promise(resolve=>{
                 output;
 
         resolve(null);
-
     };
 
     /* =====================================================
@@ -1530,7 +1416,6 @@ const popup=()=>new Promise(resolve=>{
             "Enter PLANTYPE_IDRE_EMAIL and select Verified: Yes or No.";
 
         emailInput.focus();
-
     };
 
     emailInput.onkeydown=e=>{
@@ -1540,33 +1425,19 @@ const popup=()=>new Promise(resolve=>{
             e.preventDefault();
 
             continueBtn.click();
-
         }
-
     };
 
     verifiedInput.onchange=()=>{
 
-        if(
-            verifiedInput.value==="Yes"
-        ){
-
-            status.textContent=
-                "Verified: Yes";
-
-        }else if(
-            verifiedInput.value==="No"
-        ){
-
-            status.textContent=
-                "Verified: No";
-
-        }
-
+        status.textContent=
+            verifiedInput.value
+            ?"Verified: "+verifiedInput.value
+            :"";
     };
 
     /* =====================================================
-       YES CONTINUE
+       CONTINUE YES
        ===================================================== */
 
     continueBtn.onclick=()=>{
@@ -1586,7 +1457,6 @@ const popup=()=>new Promise(resolve=>{
             emailInput.focus();
 
             return;
-
         }
 
         const verificationStatus=
@@ -1600,7 +1470,6 @@ const popup=()=>new Promise(resolve=>{
             verifiedInput.focus();
 
             return;
-
         }
 
         const stateValue=
@@ -1623,7 +1492,6 @@ const popup=()=>new Promise(resolve=>{
                 email,
 
                 verificationStatus
-
             );
 
         const copied=
@@ -1647,7 +1515,6 @@ const popup=()=>new Promise(resolve=>{
                 :"❌ Automatic copy was blocked. Click COPY AGAIN below.",
 
                 copied
-
             );
 
         toast
@@ -1656,46 +1523,32 @@ const popup=()=>new Promise(resolve=>{
                 output;
 
         resolve(null);
-
     };
 
     /* =====================================================
        KEYBOARD SHORTCUTS
 
-       Ctrl + 2 = N/A
-       Ctrl + 3 = Duplicate Dispute Reviewed
+       2 = N/A
+       3 = Duplicate Dispute Reviewed
 
        IMPORTANT:
-       These shortcuts work EVEN when the user is typing
-       inside the State, Name, Email, or other input fields.
+       capture=true makes these shortcuts work while typing
+       inside the State input, Name input, Email input, etc.
        ===================================================== */
 
     overlay.addEventListener(
         "keydown",
         e=>{
 
-            /* ESC = CLOSE */
-
-            if(e.key==="Escape"){
-
-                e.preventDefault();
-
-                overlay.remove();
-                style.remove();
-
-                resolve(null);
-
-                return;
-
-            }
-
-            /* =================================================
-               CTRL + 2
-               SELECT N/A
-               ================================================= */
-
+            /*
+             * Ignore modifier combinations.
+             * Plain 2 and plain 3 are the shortcuts.
+             */
             if(
-                e.ctrlKey &&
+                !e.ctrlKey &&
+                !e.altKey &&
+                !e.metaKey &&
+                !e.shiftKey &&
                 e.key==="2"
             ){
 
@@ -1718,16 +1571,13 @@ const popup=()=>new Promise(resolve=>{
                     "Duplicate Dispute Comments: N/A";
 
                 return;
-
             }
 
-            /* =================================================
-               CTRL + 3
-               SELECT DUPLICATE DISPUTE REVIEWED
-               ================================================= */
-
             if(
-                e.ctrlKey &&
+                !e.ctrlKey &&
+                !e.altKey &&
+                !e.metaKey &&
+                !e.shiftKey &&
                 e.key==="3"
             ){
 
@@ -1750,12 +1600,23 @@ const popup=()=>new Promise(resolve=>{
                     "Duplicate Dispute Comments: Duplicate Dispute Reviewed";
 
                 return;
-
             }
 
-            /* =================================================
-               0 = NO
-               ================================================= */
+            /* ESC */
+
+            if(e.key==="Escape"){
+
+                e.preventDefault();
+
+                overlay.remove();
+                style.remove();
+
+                resolve(null);
+
+                return;
+            }
+
+            /* 0 = NO */
 
             if(
                 e.key==="0" &&
@@ -1767,12 +1628,9 @@ const popup=()=>new Promise(resolve=>{
                 noBtn.click();
 
                 return;
-
             }
 
-            /* =================================================
-               1 = YES
-               ================================================= */
+            /* 1 = YES */
 
             if(
                 e.key==="1" &&
@@ -1784,10 +1642,10 @@ const popup=()=>new Promise(resolve=>{
                 yesBtn.click();
 
                 return;
-
             }
 
-        }
+        },
+        true
     );
 
     /* =====================================================
@@ -1801,7 +1659,6 @@ const popup=()=>new Promise(resolve=>{
         style.remove();
 
         resolve(null);
-
     };
 
     stateInput.focus();
@@ -1809,7 +1666,7 @@ const popup=()=>new Promise(resolve=>{
 });
 
 /* =========================================================
-   START POPUP
+   START
    ========================================================= */
 
 await popup();
