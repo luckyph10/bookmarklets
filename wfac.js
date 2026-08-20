@@ -4,448 +4,13 @@
     );
 
     if (!el) {
-        alert('Comment textbox not found');
+        console.error('Comment textbox not found');
         return;
     }
 
-    function businessDaysBetween(startDate, endDate) {
-        let count = 0;
-        let cur = new Date(startDate);
-
-        cur.setHours(0, 0, 0, 0);
-
-        while (cur < endDate) {
-            cur.setDate(cur.getDate() + 1);
-
-            const day = cur.getDay();
-
-            if (day !== 0 && day !== 6) {
-                count++;
-            }
-        }
-
-        return count;
-    }
-
-    function checkRecentComment(textarea) {
-        const matches = (textarea.value || '').match(/\b\d{2}\/\d{2}\/\d{2}\b/g);
-
-        if (!matches || !matches.length) {
-            return true;
-        }
-
-        let newest = null;
-        let newestText = '';
-
-        matches.forEach(function (dt) {
-            const p = dt.split('/');
-
-            const d = new Date(
-                2000 + parseInt(p[2], 10),
-                parseInt(p[0], 10) - 1,
-                parseInt(p[1], 10)
-            );
-
-            if (!newest || d > newest) {
-                newest = d;
-                newestText = dt;
-            }
-        });
-
-        if (!newest) {
-            return true;
-        }
-
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-
-        const days = businessDaysBetween(newest, today);
-
-        return true;
-    }
-
-    function parseDatesFromText(text) {
-        const dates = [];
-        let m;
-
-        const patterns = [
-            {
-                regex: /\b(0?[1-9]|1[0-2])[\/\-\.](0?[1-9]|[12]\d|3[01])[\/\-\.](\d{4})\b/g,
-                type: 'mdy4'
-            },
-            {
-                regex: /\b(0?[1-9]|1[0-2])[\/\-\.](0?[1-9]|[12]\d|3[01])[\/\-\.](\d{2})\b/g,
-                type: 'mdy2'
-            },
-            {
-                regex: /\b(\d{4})[\/\-\.](0?[1-9]|1[0-2])[\/\-\.](0?[1-9]|[12]\d|3[01])\b/g,
-                type: 'ymd'
-            },
-            {
-                regex: /\b(0?[1-9]|[12]\d|3[01])[\/\-\.](0?[1-9]|1[0-2])[\/\-\.](\d{4})\b/g,
-                type: 'dmy4'
-            },
-            {
-                regex: /\b(0?[1-9]|[12]\d|3[01])[\/\-\.](0?[1-9]|1[0-2])[\/\-\.](\d{2})\b/g,
-                type: 'dmy2'
-            }
-        ];
-
-        patterns.forEach(function (pattern) {
-            while ((m = pattern.regex.exec(text)) !== null) {
-                let date = null;
-                const original = m[0];
-
-                if (pattern.type === 'mdy4') {
-                    const month = parseInt(m[1], 10);
-                    const day = parseInt(m[2], 10);
-                    const year = parseInt(m[3], 10);
-
-                    date = new Date(year, month - 1, day);
-                }
-
-                if (pattern.type === 'mdy2') {
-                    const month = parseInt(m[1], 10);
-                    const day = parseInt(m[2], 10);
-                    const year = 2000 + parseInt(m[3], 10);
-
-                    date = new Date(year, month - 1, day);
-                }
-
-                if (pattern.type === 'ymd') {
-                    const year = parseInt(m[1], 10);
-                    const month = parseInt(m[2], 10);
-                    const day = parseInt(m[3], 10);
-
-                    date = new Date(year, month - 1, day);
-                }
-
-                if (pattern.type === 'dmy4') {
-                    const day = parseInt(m[1], 10);
-                    const month = parseInt(m[2], 10);
-                    const year = parseInt(m[3], 10);
-
-                    date = new Date(year, month - 1, day);
-                }
-
-                if (pattern.type === 'dmy2') {
-                    const day = parseInt(m[1], 10);
-                    const month = parseInt(m[2], 10);
-                    const year = 2000 + parseInt(m[3], 10);
-
-                    date = new Date(year, month - 1, day);
-                }
-
-                if (date && !isNaN(date.getTime())) {
-                    date.setHours(0, 0, 0, 0);
-
-                    dates.push({
-                        date: date,
-                        text: original
-                    });
-                }
-            }
-        });
-
-        return dates;
-    }
-
-    function showRecentDateWarning(recentDates) {
-        const oldWarning = document.getElementById(
-            'afRecentDateWarning'
-        );
-
-        if (oldWarning) {
-            oldWarning.remove();
-        }
-
-        if (!recentDates || !recentDates.length) {
-            return;
-        }
-
-        const warning = document.createElement('div');
-
-        warning.id = 'afRecentDateWarning';
-
-        warning.style.cssText =
-            'position:fixed;' +
-            'top:20px;' +
-            'left:50%;' +
-            'transform:translateX(-50%);' +
-            'width:560px;' +
-            'max-width:90vw;' +
-            'background:#b36b00;' +
-            'color:#fff;' +
-            'padding:18px 45px 18px 22px;' +
-            'border:3px solid #fff;' +
-            'border-radius:10px;' +
-            'box-shadow:0 6px 25px rgba(0,0,0,.65);' +
-            'z-index:10000001;' +
-            'font-family:Arial,sans-serif;' +
-            'text-align:center;' +
-            'opacity:0;' +
-            'transition:opacity .2s ease;';
-
-        const closeBtn = document.createElement('button');
-
-        closeBtn.textContent = '✕';
-
-        closeBtn.style.cssText =
-            'position:absolute;' +
-            'right:8px;' +
-            'top:8px;' +
-            'width:32px;' +
-            'height:32px;' +
-            'background:#000;' +
-            'color:#fff;' +
-            'border:1px solid #fff;' +
-            'border-radius:5px;' +
-            'font-size:18px;' +
-            'font-weight:bold;' +
-            'cursor:pointer;';
-
-        const title = document.createElement('div');
-
-        title.textContent = 'Recent Comment Date Warning';
-
-        title.style.cssText =
-            'font-size:22px;' +
-            'font-weight:bold;' +
-            'margin-bottom:8px;';
-
-        const message = document.createElement('div');
-
-        const dateTexts = recentDates.map(function (x) {
-            return x.text;
-        });
-
-        message.textContent =
-            'Recent date(s) found in the comment box: ' +
-            dateTexts.join(', ');
-
-        message.style.cssText =
-            'font-size:17px;' +
-            'font-weight:bold;' +
-            'line-height:1.5;';
-
-        const subMessage = document.createElement('div');
-
-        subMessage.textContent =
-            'A date from the previous 3 days was detected.';
-
-        subMessage.style.cssText =
-            'font-size:15px;' +
-            'margin-top:7px;' +
-            'font-weight:normal;';
-
-        warning.appendChild(closeBtn);
-        warning.appendChild(title);
-        warning.appendChild(message);
-        warning.appendChild(subMessage);
-
-        document.body.appendChild(warning);
-
-        requestAnimationFrame(function () {
-            warning.style.opacity = '1';
-        });
-
-        let removed = false;
-
-        function removeWarning() {
-            if (removed) {
-                return;
-            }
-
-            removed = true;
-            warning.style.opacity = '0';
-
-            setTimeout(function () {
-                if (warning && warning.parentNode) {
-                    warning.remove();
-                }
-            }, 200);
-        }
-
-        closeBtn.onclick = function () {
-            removeWarning();
-        };
-
-        setTimeout(function () {
-            removeWarning();
-        }, 2000);
-    }
-
-    function checkForRecentDates() {
-        const text = el.value || '';
-
-        if (!text.trim()) {
-            return;
-        }
-
-        const foundDates = parseDatesFromText(text);
-
-        if (!foundDates.length) {
-            return;
-        }
-
-        const today = new Date();
-
-        today.setHours(0, 0, 0, 0);
-
-        const recentDates = [];
-
-        foundDates.forEach(function (item) {
-            const diff =
-                (today - item.date) /
-                (1000 * 60 * 60 * 24);
-
-            if (diff >= 1 && diff <= 3) {
-                recentDates.push(item);
-            }
-        });
-
-        if (recentDates.length) {
-            const unique = {};
-
-            recentDates.forEach(function (item) {
-                const key =
-                    item.date.getTime() +
-                    '_' +
-                    item.text;
-
-                unique[key] = item;
-            });
-
-            showRecentDateWarning(
-                Object.keys(unique).map(function (key) {
-                    return unique[key];
-                })
-            );
-        }
-    }
-
-    function showExistingCommentWarning(
-        onContinue,
-        onDecline
-    ) {
-        const oldWarning = document.getElementById(
-            'afExistingCommentWarning'
-        );
-
-        if (oldWarning) {
-            oldWarning.remove();
-        }
-
-        const warning = document.createElement('div');
-
-        warning.id = 'afExistingCommentWarning';
-
-        warning.style.cssText =
-            'position:fixed;' +
-            'top:20px;' +
-            'left:50%;' +
-            'transform:translateX(-50%);' +
-            'width:520px;' +
-            'max-width:90vw;' +
-            'background:#8b0000;' +
-            'color:#fff;' +
-            'padding:25px;' +
-            'border:3px solid #fff;' +
-            'border-radius:10px;' +
-            'box-shadow:0 6px 25px rgba(0,0,0,.7);' +
-            'z-index:10000000;' +
-            'font-family:Arial,sans-serif;' +
-            'text-align:center;';
-
-        const title = document.createElement('div');
-
-        title.textContent = 'Warning';
-
-        title.style.cssText =
-            'font-size:26px;' +
-            'font-weight:bold;' +
-            'margin-bottom:15px;';
-
-        const message = document.createElement('div');
-
-        message.textContent =
-            'This comment already exists in the comment box.';
-
-        message.style.cssText =
-            'font-size:19px;' +
-            'font-weight:bold;' +
-            'line-height:1.5;' +
-            'margin-bottom:22px;';
-
-        const buttonWrap = document.createElement('div');
-
-        buttonWrap.style.cssText =
-            'display:flex;' +
-            'justify-content:center;' +
-            'gap:15px;';
-
-        const continueBtn = document.createElement('button');
-
-        continueBtn.textContent = 'CONTINUE';
-
-        continueBtn.style.cssText =
-            'padding:11px 28px;' +
-            'background:#1976d2;' +
-            'color:#fff;' +
-            'border:2px solid #fff;' +
-            'border-radius:6px;' +
-            'cursor:pointer;' +
-            'font-size:17px;' +
-            'font-weight:bold;';
-
-        continueBtn.onclick = function () {
-            warning.remove();
-
-            if (typeof onContinue === 'function') {
-                onContinue();
-            }
-        };
-
-        const declineBtn = document.createElement('button');
-
-        declineBtn.textContent = 'DECLINE';
-
-        declineBtn.style.cssText =
-            'padding:11px 28px;' +
-            'background:#333;' +
-            'color:#fff;' +
-            'border:2px solid #fff;' +
-            'border-radius:6px;' +
-            'cursor:pointer;' +
-            'font-size:17px;' +
-            'font-weight:bold;';
-
-        declineBtn.onclick = function () {
-            warning.remove();
-
-            const commentPopup =
-                document.getElementById(
-                    'afCommentPopup'
-                );
-
-            if (commentPopup) {
-                commentPopup.remove();
-            }
-
-            if (typeof onDecline === 'function') {
-                onDecline();
-            }
-        };
-
-        buttonWrap.appendChild(continueBtn);
-        buttonWrap.appendChild(declineBtn);
-
-        warning.appendChild(title);
-        warning.appendChild(message);
-        warning.appendChild(buttonWrap);
-
-        document.body.appendChild(warning);
-    }
+    /* =========================================================
+       COMMENT LIST
+       ========================================================= */
 
     const items = [
         {
@@ -525,6 +90,10 @@
         }
     ];
 
+    /* =========================================================
+       REMOVE EXISTING POPUP
+       ========================================================= */
+
     const old = document.getElementById(
         'afCommentPopup'
     );
@@ -532,6 +101,10 @@
     if (old) {
         old.remove();
     }
+
+    /* =========================================================
+       CREATE POPUP
+       ========================================================= */
 
     const popup = document.createElement('div');
 
@@ -566,6 +139,10 @@
         'Plan Type Comment List' +
         '</div>';
 
+    /* =========================================================
+       INITIALS
+       ========================================================= */
+
     const initialsWrap = document.createElement('div');
 
     initialsWrap.style.cssText =
@@ -581,6 +158,7 @@
     initialsInput.type = 'text';
     initialsInput.placeholder = 'Initials';
     initialsInput.maxLength = 10;
+
     initialsInput.value =
         localStorage.getItem('afCommentInitials') || '';
 
@@ -614,8 +192,8 @@
                 .toUpperCase();
 
         if (!val) {
-            alert(
-                'Enter your initials first. Comments cannot be added until your initials are set.'
+            console.error(
+                'Enter your initials first.'
             );
 
             initialsInput.focus();
@@ -629,16 +207,16 @@
         );
 
         initialsInput.value = val;
-
-        alert(
-            'Initials saved: ' + val
-        );
     };
 
     initialsWrap.appendChild(initialsInput);
     initialsWrap.appendChild(saveBtn);
 
     popup.appendChild(initialsWrap);
+
+    /* =========================================================
+       CLOSE BUTTON
+       ========================================================= */
 
     const topClose = document.createElement('button');
 
@@ -664,7 +242,12 @@
 
     popup.appendChild(topClose);
 
+    /* =========================================================
+       COMMENT BUTTONS
+       ========================================================= */
+
     items.forEach(function (item) {
+
         if (item.header) {
             const h = document.createElement('div');
 
@@ -715,9 +298,10 @@
         };
 
         btn.onclick = function () {
-            if (!checkRecentComment(el)) {
-                return;
-            }
+
+            /* =================================================
+               INITIALS ARE REQUIRED
+               ================================================= */
 
             const initials =
                 (
@@ -729,7 +313,7 @@
                     .toUpperCase();
 
             if (!initials) {
-                alert(
+                console.error(
                     'Your initials are not set yet. Please enter your initials and click Save before adding a comment.'
                 );
 
@@ -740,7 +324,12 @@
 
             let finalComment = item.text;
 
+            /* =================================================
+               DISPUTE NUMBER
+               ================================================= */
+
             if (item.needsDisp) {
+
                 const disp = prompt(
                     'Enter Dispute Number (example: DISP-6731470)',
                     ''
@@ -750,8 +339,8 @@
                     return;
                 }
 
-                if (disp.trim() === '') {
-                    alert(
+                if (!disp.trim()) {
+                    console.error(
                         'Dispute Number is required.'
                     );
 
@@ -765,91 +354,73 @@
                     );
             }
 
-            function addComment() {
-                const d = new Date();
+            /* =================================================
+               ADD COMMENT
+               ================================================= */
 
-                d.setDate(
-                    d.getDate() + 1
+            const d = new Date();
+
+            /*
+             * Keep the existing behavior:
+             * comment date = tomorrow.
+             */
+
+            d.setDate(
+                d.getDate() + 1
+            );
+
+            const mm = String(
+                d.getMonth() + 1
+            ).padStart(2, '0');
+
+            const dd = String(
+                d.getDate()
+            ).padStart(2, '0');
+
+            const yy = String(
+                d.getFullYear()
+            ).slice(-2);
+
+            const note =
+                finalComment +
+                ' - ' +
+                mm +
+                '/' +
+                dd +
+                '/' +
+                yy +
+                ' - ' +
+                initials;
+
+            el.value =
+                note +
+                (
+                    el.value.trim()
+                        ? '\n\n' + el.value
+                        : ''
                 );
 
-                const mm = String(
-                    d.getMonth() + 1
-                ).padStart(2, '0');
+            el.dispatchEvent(
+                new Event('input', {
+                    bubbles: true
+                })
+            );
 
-                const dd = String(
-                    d.getDate()
-                ).padStart(2, '0');
+            el.dispatchEvent(
+                new Event('change', {
+                    bubbles: true
+                })
+            );
 
-                const yy = String(
-                    d.getFullYear()
-                ).slice(-2);
-
-                /*
-                 * UPDATED COMMENT FORMAT:
-                 *
-                 * Comment - MM/DD/YY - INITIALS
-                 *
-                 * Example:
-                 * Reviewed, no action required - 08/18/26 - ALD
-                 */
-                const note =
-                    finalComment +
-                    ' - ' +
-                    mm +
-                    '/' +
-                    dd +
-                    '/' +
-                    yy +
-                    ' - ' +
-                    initials;
-
-                el.value =
-                    note +
-                    (
-                        el.value.trim()
-                            ? '\n\n' + el.value
-                            : ''
-                    );
-
-                el.dispatchEvent(
-                    new Event('input', {
-                        bubbles: true
-                    })
-                );
-
-                el.dispatchEvent(
-                    new Event('change', {
-                        bubbles: true
-                    })
-                );
-
-                popup.remove();
-
-                checkForRecentDates();
-            }
-
-            if (
-                (el.value || '').includes(
-                    finalComment
-                )
-            ) {
-                showExistingCommentWarning(
-                    function () {
-                        addComment();
-                    },
-                    function () {
-                        return;
-                    }
-                );
-
-                return;
-            }
-
-            addComment();
+            popup.remove();
         };
 
         popup.appendChild(btn);
     });
+
+    /* =========================================================
+       CLOSE
+       ========================================================= */
 
     const close = document.createElement('button');
 
@@ -874,5 +445,4 @@
 
     document.body.appendChild(popup);
 
-    checkForRecentDates();
 })();
