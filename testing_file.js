@@ -9,357 +9,6 @@
     }
 
     /* =========================================================
-       DATE PARSER
-       ========================================================= */
-
-    function parseDatesFromText(text) {
-        const dates = [];
-        let m;
-
-        const patterns = [
-            {
-                regex: /\b(0?[1-9]|1[0-2])[\/\-\.](0?[1-9]|[12]\d|3[01])[\/\-\.](\d{4})\b/g,
-                type: 'mdy4'
-            },
-            {
-                regex: /\b(0?[1-9]|1[0-2])[\/\-\.](0?[1-9]|[12]\d|3[01])[\/\-\.](\d{2})\b/g,
-                type: 'mdy2'
-            },
-            {
-                regex: /\b(\d{4})[\/\-\.](0?[1-9]|1[0-2])[\/\-\.](0?[1-9]|[12]\d|3[01])\b/g,
-                type: 'ymd'
-            },
-            {
-                regex: /\b(0?[1-9]|[12]\d|3[01])[\/\-\.](0?[1-9]|1[0-2])[\/\-\.](\d{4})\b/g,
-                type: 'dmy4'
-            },
-            {
-                regex: /\b(0?[1-9]|[12]\d|3[01])[\/\-\.](0?[1-9]|1[0-2])[\/\-\.](\d{2})\b/g,
-                type: 'dmy2'
-            }
-        ];
-
-        patterns.forEach(function (pattern) {
-            while ((m = pattern.regex.exec(text)) !== null) {
-                let date = null;
-                const original = m[0];
-
-                if (pattern.type === 'mdy4') {
-                    const month = parseInt(m[1], 10);
-                    const day = parseInt(m[2], 10);
-                    const year = parseInt(m[3], 10);
-
-                    date = new Date(year, month - 1, day);
-                }
-
-                if (pattern.type === 'mdy2') {
-                    const month = parseInt(m[1], 10);
-                    const day = parseInt(m[2], 10);
-                    const year = 2000 + parseInt(m[3], 10);
-
-                    date = new Date(year, month - 1, day);
-                }
-
-                if (pattern.type === 'ymd') {
-                    const year = parseInt(m[1], 10);
-                    const month = parseInt(m[2], 10);
-                    const day = parseInt(m[3], 10);
-
-                    date = new Date(year, month - 1, day);
-                }
-
-                if (pattern.type === 'dmy4') {
-                    const day = parseInt(m[1], 10);
-                    const month = parseInt(m[2], 10);
-                    const year = parseInt(m[3], 10);
-
-                    date = new Date(year, month - 1, day);
-                }
-
-                if (pattern.type === 'dmy2') {
-                    const day = parseInt(m[1], 10);
-                    const month = parseInt(m[2], 10);
-                    const year = 2000 + parseInt(m[3], 10);
-
-                    date = new Date(year, month - 1, day);
-                }
-
-                if (date && !isNaN(date.getTime())) {
-                    date.setHours(0, 0, 0, 0);
-
-                    /*
-                     * Make sure JavaScript did not roll an invalid
-                     * date into another date.
-                     */
-                    const originalParts = original.split(/[\/\-\.]/);
-
-                    if (
-                        pattern.type === 'mdy4' ||
-                        pattern.type === 'mdy2'
-                    ) {
-                        const expectedMonth = parseInt(
-                            originalParts[0],
-                            10
-                        );
-
-                        const expectedDay = parseInt(
-                            originalParts[1],
-                            10
-                        );
-
-                        if (
-                            date.getMonth() + 1 !== expectedMonth ||
-                            date.getDate() !== expectedDay
-                        ) {
-                            continue;
-                        }
-                    }
-
-                    if (
-                        pattern.type === 'dmy4' ||
-                        pattern.type === 'dmy2'
-                    ) {
-                        const expectedDay = parseInt(
-                            originalParts[0],
-                            10
-                        );
-
-                        const expectedMonth = parseInt(
-                            originalParts[1],
-                            10
-                        );
-
-                        if (
-                            date.getDate() !== expectedDay ||
-                            date.getMonth() + 1 !== expectedMonth
-                        ) {
-                            continue;
-                        }
-                    }
-
-                    if (pattern.type === 'ymd') {
-                        const expectedYear = parseInt(
-                            originalParts[0],
-                            10
-                        );
-
-                        const expectedMonth = parseInt(
-                            originalParts[1],
-                            10
-                        );
-
-                        const expectedDay = parseInt(
-                            originalParts[2],
-                            10
-                        );
-
-                        if (
-                            date.getFullYear() !== expectedYear ||
-                            date.getMonth() + 1 !== expectedMonth ||
-                            date.getDate() !== expectedDay
-                        ) {
-                            continue;
-                        }
-                    }
-
-                    dates.push({
-                        date: date,
-                        text: original
-                    });
-                }
-            }
-        });
-
-        return dates;
-    }
-
-    /* =========================================================
-       RECENT DATE WARNING
-       Only detects dates from 1 to 3 calendar days ago.
-       ========================================================= */
-
-    function showRecentDateWarning(recentDates) {
-        const oldWarning = document.getElementById(
-            'afRecentDateWarning'
-        );
-
-        if (oldWarning) {
-            oldWarning.remove();
-        }
-
-        if (!recentDates || !recentDates.length) {
-            return;
-        }
-
-        const warning = document.createElement('div');
-
-        warning.id = 'afRecentDateWarning';
-
-        warning.style.cssText =
-            'position:fixed;' +
-            'top:20px;' +
-            'left:50%;' +
-            'transform:translateX(-50%);' +
-            'width:560px;' +
-            'max-width:90vw;' +
-            'background:#b36b00;' +
-            'color:#fff;' +
-            'padding:18px 45px 18px 22px;' +
-            'border:3px solid #fff;' +
-            'border-radius:10px;' +
-            'box-shadow:0 6px 25px rgba(0,0,0,.65);' +
-            'z-index:10000001;' +
-            'font-family:Arial,sans-serif;' +
-            'text-align:center;' +
-            'opacity:0;' +
-            'transition:opacity .2s ease;';
-
-        const closeBtn = document.createElement('button');
-
-        closeBtn.textContent = '✕';
-
-        closeBtn.style.cssText =
-            'position:absolute;' +
-            'right:8px;' +
-            'top:8px;' +
-            'width:32px;' +
-            'height:32px;' +
-            'background:#000;' +
-            'color:#fff;' +
-            'border:1px solid #fff;' +
-            'border-radius:5px;' +
-            'font-size:18px;' +
-            'font-weight:bold;' +
-            'cursor:pointer;';
-
-        const title = document.createElement('div');
-
-        title.textContent = 'Recent Comment Date Warning';
-
-        title.style.cssText =
-            'font-size:22px;' +
-            'font-weight:bold;' +
-            'margin-bottom:8px;';
-
-        const message = document.createElement('div');
-
-        const dateTexts = recentDates.map(function (x) {
-            return x.text;
-        });
-
-        message.textContent =
-            'Recent date(s) found in the comment box: ' +
-            dateTexts.join(', ');
-
-        message.style.cssText =
-            'font-size:17px;' +
-            'font-weight:bold;' +
-            'line-height:1.5;';
-
-        const subMessage = document.createElement('div');
-
-        subMessage.textContent =
-            'A date from the previous 3 days was detected.';
-
-        subMessage.style.cssText =
-            'font-size:15px;' +
-            'margin-top:7px;' +
-            'font-weight:normal;';
-
-        warning.appendChild(closeBtn);
-        warning.appendChild(title);
-        warning.appendChild(message);
-        warning.appendChild(subMessage);
-
-        document.body.appendChild(warning);
-
-        requestAnimationFrame(function () {
-            warning.style.opacity = '1';
-        });
-
-        let removed = false;
-
-        function removeWarning() {
-            if (removed) {
-                return;
-            }
-
-            removed = true;
-
-            warning.style.opacity = '0';
-
-            setTimeout(function () {
-                if (warning && warning.parentNode) {
-                    warning.remove();
-                }
-            }, 200);
-        }
-
-        closeBtn.onclick = function () {
-            removeWarning();
-        };
-
-        /*
-         * Automatically disappear after 2 seconds.
-         */
-        setTimeout(function () {
-            removeWarning();
-        }, 2000);
-    }
-
-    function checkForRecentDates() {
-        const text = el.value || '';
-
-        if (!text.trim()) {
-            return;
-        }
-
-        const foundDates = parseDatesFromText(text);
-
-        if (!foundDates.length) {
-            return;
-        }
-
-        const today = new Date();
-
-        today.setHours(0, 0, 0, 0);
-
-        const recentDates = [];
-
-        foundDates.forEach(function (item) {
-            const diff =
-                (today - item.date) /
-                (1000 * 60 * 60 * 24);
-
-            /*
-             * Only dates from 1, 2, or 3 days ago.
-             */
-            if (diff >= 1 && diff <= 3) {
-                recentDates.push(item);
-            }
-        });
-
-        if (recentDates.length) {
-            const unique = {};
-
-            recentDates.forEach(function (item) {
-                const key =
-                    item.date.getTime() +
-                    '_' +
-                    item.text;
-
-                unique[key] = item;
-            });
-
-            showRecentDateWarning(
-                Object.keys(unique).map(function (key) {
-                    return unique[key];
-                })
-            );
-        }
-    }
-
-    /* =========================================================
        COMMENT LIST
        ========================================================= */
 
@@ -442,7 +91,7 @@
     ];
 
     /* =========================================================
-       REMOVE OLD POPUP
+       REMOVE EXISTING POPUP
        ========================================================= */
 
     const old = document.getElementById(
@@ -509,6 +158,7 @@
     initialsInput.type = 'text';
     initialsInput.placeholder = 'Initials';
     initialsInput.maxLength = 10;
+
     initialsInput.value =
         localStorage.getItem('afCommentInitials') || '';
 
@@ -543,7 +193,7 @@
 
         if (!val) {
             console.error(
-                'Enter your initials first. Comments cannot be added until your initials are set.'
+                'Enter your initials first.'
             );
 
             initialsInput.focus();
@@ -593,10 +243,11 @@
     popup.appendChild(topClose);
 
     /* =========================================================
-       BUILD COMMENT BUTTONS
+       COMMENT BUTTONS
        ========================================================= */
 
     items.forEach(function (item) {
+
         if (item.header) {
             const h = document.createElement('div');
 
@@ -648,9 +299,9 @@
 
         btn.onclick = function () {
 
-            /*
-             * NO duplicate/existing comment check here.
-             */
+            /* =================================================
+               INITIALS ARE REQUIRED
+               ================================================= */
 
             const initials =
                 (
@@ -678,6 +329,7 @@
                ================================================= */
 
             if (item.needsDisp) {
+
                 const disp = prompt(
                     'Enter Dispute Number (example: DISP-6731470)',
                     ''
@@ -687,7 +339,7 @@
                     return;
                 }
 
-                if (disp.trim() === '') {
+                if (!disp.trim()) {
                     console.error(
                         'Dispute Number is required.'
                     );
@@ -706,82 +358,61 @@
                ADD COMMENT
                ================================================= */
 
-            function addComment() {
-                const d = new Date();
-
-                /*
-                 * Existing behavior:
-                 * Use tomorrow's date.
-                 */
-                d.setDate(
-                    d.getDate() + 1
-                );
-
-                const mm = String(
-                    d.getMonth() + 1
-                ).padStart(2, '0');
-
-                const dd = String(
-                    d.getDate()
-                ).padStart(2, '0');
-
-                const yy = String(
-                    d.getFullYear()
-                ).slice(-2);
-
-                const note =
-                    finalComment +
-                    ' - ' +
-                    mm +
-                    '/' +
-                    dd +
-                    '/' +
-                    yy +
-                    ' - ' +
-                    initials;
-
-                el.value =
-                    note +
-                    (
-                        el.value.trim()
-                            ? '\n\n' + el.value
-                            : ''
-                    );
-
-                el.dispatchEvent(
-                    new Event('input', {
-                        bubbles: true
-                    })
-                );
-
-                el.dispatchEvent(
-                    new Event('change', {
-                        bubbles: true
-                    })
-                );
-
-                popup.remove();
-
-                /*
-                 * Run ONLY the date detector after adding.
-                 */
-                checkForRecentDates();
-            }
+            const d = new Date();
 
             /*
-             * IMPORTANT:
-             *
-             * There is intentionally NO:
-             *
-             * - duplicate comment detection
-             * - existing comment popup
-             * - CONTINUE / DECLINE popup
-             * - duplicate alert
-             *
-             * The selected comment is added immediately.
+             * Keep the existing behavior:
+             * comment date = tomorrow.
              */
 
-            addComment();
+            d.setDate(
+                d.getDate() + 1
+            );
+
+            const mm = String(
+                d.getMonth() + 1
+            ).padStart(2, '0');
+
+            const dd = String(
+                d.getDate()
+            ).padStart(2, '0');
+
+            const yy = String(
+                d.getFullYear()
+            ).slice(-2);
+
+            const note =
+                finalComment +
+                ' - ' +
+                mm +
+                '/' +
+                dd +
+                '/' +
+                yy +
+                ' - ' +
+                initials;
+
+            el.value =
+                note +
+                (
+                    el.value.trim()
+                        ? '\n\n' + el.value
+                        : ''
+                );
+
+            el.dispatchEvent(
+                new Event('input', {
+                    bubbles: true
+                })
+            );
+
+            el.dispatchEvent(
+                new Event('change', {
+                    bubbles: true
+                })
+            );
+
+            popup.remove();
         };
 
         popup.appendChild(btn);
@@ -813,11 +444,5 @@
     popup.appendChild(close);
 
     document.body.appendChild(popup);
-
-    /* =========================================================
-       INITIAL DATE CHECK
-       ========================================================= */
-
-    checkForRecentDates();
 
 })();
