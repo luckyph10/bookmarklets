@@ -107,10 +107,6 @@ const columnJValue=
 
 /* =========================================================
    GET PAGE K VALUE
-   =========================================================
-
-   Kept for debugging only.
-   The ACTUAL Column K in the copied output is columnJValue.
    ========================================================= */
 
 const columnKPageElement=
@@ -279,21 +275,12 @@ const getPlanType=i=>{
 
 /* =========================================================
    COLUMN F + COLUMN K -> COLUMN Q
-   =========================================================
-
-   IMPORTANT:
-
-   actualF = the value copied into Column F
-   actualK = the value copied into Column K
-
-   Q is calculated ONLY from these two values.
    ========================================================= */
 
 const getColumnQValue=(actualF,actualK)=>{
 
     const f=normalizeValue(actualF);
     const k=normalizeValue(actualK);
-
 
     console.log(
         "========================================"
@@ -324,13 +311,6 @@ const getColumnQValue=(actualF,actualK)=>{
     );
 
 
-    /* =====================================================
-       COLUMN K = CLOSED
-       =====================================================
-
-       CLOSED ALWAYS HAS PRIORITY OVER COLUMN F.
-       ===================================================== */
-
     if(
         k==="closed"||
         k.includes("closed")
@@ -346,10 +326,6 @@ const getColumnQValue=(actualF,actualK)=>{
 
     }
 
-
-    /* =====================================================
-       COLUMN F = PLAN TYPE VALIDATED
-       ===================================================== */
 
     if(
         f.includes(
@@ -368,10 +344,6 @@ const getColumnQValue=(actualF,actualK)=>{
     }
 
 
-    /* =====================================================
-       COLUMN F = PLAN TYPE OBJECTION SUBMITTED
-       ===================================================== */
-
     if(
         f.includes(
             "plan type objection submitted"
@@ -388,10 +360,6 @@ const getColumnQValue=(actualF,actualK)=>{
 
     }
 
-
-    /* =====================================================
-       COLUMN F = TIMELINE ENFORCEMENT SUBMITTED TO IDRE
-       ===================================================== */
 
     if(
         f.includes(
@@ -410,11 +378,6 @@ const getColumnQValue=(actualF,actualK)=>{
     }
 
 
-    /* =====================================================
-       COLUMN F = ADDITIONAL INFO PROVIDED TO IDRE
-       THROUGH EMAIL
-       ===================================================== */
-
     if(
         f.includes(
             "additional info provided to idre through email"
@@ -431,11 +394,6 @@ const getColumnQValue=(actualF,actualK)=>{
 
     }
 
-
-    /* =====================================================
-       COLUMN F = ADDITIONAL INFO PROVIDED TO IDRE
-       THROUGH PORTAL
-       ===================================================== */
 
     if(
         f.includes(
@@ -454,10 +412,6 @@ const getColumnQValue=(actualF,actualK)=>{
     }
 
 
-    /* =====================================================
-       NO MATCH
-       ===================================================== */
-
     console.warn(
         "NO F -> Q RULE MATCHED",
         {
@@ -469,41 +423,6 @@ const getColumnQValue=(actualF,actualK)=>{
     return"";
 
 };
-
-
-/* =========================================================
-   TEST THE ACTUAL F + K
-   ========================================================= */
-
-console.log(
-    "========================================"
-);
-
-console.log(
-    "INITIAL Q TEST"
-);
-
-console.log(
-    "Actual copied F:",
-    disputeStatus
-);
-
-console.log(
-    "Actual copied K:",
-    columnJValue
-);
-
-console.log(
-    "Calculated Q:",
-    getColumnQValue(
-        disputeStatus,
-        columnJValue
-    )
-);
-
-console.log(
-    "========================================"
-);
 
 
 /* =========================================================
@@ -835,10 +754,11 @@ const popup=()=>new Promise(resolve=>{
                     style="display:none"
                 >
 
+                    <!-- PLANTYPE_IDRE_EMAIL -->
+
                     <div id="dp-label-email">
                         PLANTYPE_IDRE_EMAIL
                     </div>
-
 
                     <input
                         id="dp-email"
@@ -847,6 +767,61 @@ const popup=()=>new Promise(resolve=>{
                         autocomplete="off"
                     >
 
+
+                    <!-- ARBIT CASE NOTES -->
+
+                    <div id="dp-label-arbit-notes">
+                        Arbit Case Notes
+                    </div>
+
+                    <input
+                        id="dp-arbit-notes"
+                        type="text"
+                        placeholder="Enter Arbit Case Notes"
+                        autocomplete="off"
+                    >
+
+
+                    <!-- PLAN TYPE EVIDENCE -->
+
+                    <div id="dp-label-plan-evidence">
+                        Plan Type Evidence?
+                    </div>
+
+                    <select id="dp-plan-evidence">
+
+                        <option
+                            value=""
+                            selected
+                            disabled
+                        >
+                            Select Plan Type Evidence
+                        </option>
+
+                        <option value="Yes - VOB">
+                            Yes - VOB
+                        </option>
+
+                        <option value="Yes - VOB Team">
+                            Yes - VOB Team
+                        </option>
+
+                        <option value="Yes - Insurance Card">
+                            Yes - Insurance Card
+                        </option>
+
+                        <option value="Yes - State Authority">
+                            Yes - State Authority
+                        </option>
+
+                        <option value="Yes - EOB">
+                            Yes - EOB
+                        </option>
+
+                    </select>
+
+
+                    <!-- VERIFIED -->
 
                     <div id="dp-label-verified">
                         Verified?
@@ -870,7 +845,38 @@ const popup=()=>new Promise(resolve=>{
                     </select>
 
 
-                    <button id="dp-continue">
+                    <!-- NON-BIFURCATED -->
+
+                    <div id="dp-label-non-bifurcated">
+                        Non-Bifurcated state/Federal.
+                    </div>
+
+
+                    <select id="dp-non-bifurcated">
+
+                        <option
+                            value=""
+                            selected
+                            disabled
+                        >
+                            Select N/A or Yes
+                        </option>
+
+                        <option value="N/A">
+                            N/A
+                        </option>
+
+                        <option value="Yes">
+                            Yes
+                        </option>
+
+                    </select>
+
+
+                    <button
+                        id="dp-continue"
+                        disabled
+                    >
                         Continue
                     </button>
 
@@ -922,6 +928,9 @@ const popup=()=>new Promise(resolve=>{
 
             width:620px;
             max-width:calc(100vw - 30px);
+
+            max-height:calc(100vh - 40px);
+            overflow-y:auto;
 
             padding:24px;
 
@@ -994,7 +1003,10 @@ const popup=()=>new Promise(resolve=>{
         #dp-label-name,
         #dp-label-state,
         #dp-label-email,
-        #dp-label-verified{
+        #dp-label-arbit-notes,
+        #dp-label-plan-evidence,
+        #dp-label-verified,
+        #dp-label-non-bifurcated{
 
             font-size:13px;
 
@@ -1026,7 +1038,10 @@ const popup=()=>new Promise(resolve=>{
         #dp-name,
         #dp-state,
         #dp-email,
+        #dp-arbit-notes,
+        #dp-plan-evidence,
         #dp-verified,
+        #dp-non-bifurcated,
         #dp-duplicate-comments{
 
             height:42px;
@@ -1076,14 +1091,19 @@ const popup=()=>new Promise(resolve=>{
 
 
         #dp-email,
-        #dp-verified{
+        #dp-arbit-notes,
+        #dp-plan-evidence,
+        #dp-verified,
+        #dp-non-bifurcated{
 
             width:100%;
 
         }
 
 
-        #dp-verified{
+        #dp-plan-evidence,
+        #dp-verified,
+        #dp-non-bifurcated{
 
             cursor:pointer;
 
@@ -1091,6 +1111,8 @@ const popup=()=>new Promise(resolve=>{
 
 
         #dp-verified option,
+        #dp-plan-evidence option,
+        #dp-non-bifurcated option,
         #dp-duplicate-comments option{
 
             background:#222;
@@ -1112,7 +1134,8 @@ const popup=()=>new Promise(resolve=>{
 
         #dp-name::placeholder,
         #dp-state::placeholder,
-        #dp-email::placeholder{
+        #dp-email::placeholder,
+        #dp-arbit-notes::placeholder{
 
             color:
                 rgba(255,255,255,.5);
@@ -1123,7 +1146,10 @@ const popup=()=>new Promise(resolve=>{
         #dp-name:focus,
         #dp-state:focus,
         #dp-email:focus,
+        #dp-arbit-notes:focus,
+        #dp-plan-evidence:focus,
         #dp-verified:focus,
+        #dp-non-bifurcated:focus,
         #dp-duplicate-comments:focus{
 
             border-color:
@@ -1375,10 +1401,32 @@ const popup=()=>new Promise(resolve=>{
         }
 
 
-        #dp-continue:hover{
+        #dp-continue:hover:not(:disabled){
 
             background:
                 rgba(45,175,80,.98);
+
+        }
+
+
+        /* ================================================
+           DISABLED CONTINUE
+           ================================================ */
+
+        #dp-continue:disabled{
+
+            background:
+                rgba(100,100,100,.45);
+
+            border-color:
+                rgba(255,255,255,.12);
+
+            color:
+                rgba(255,255,255,.45);
+
+            cursor:not-allowed;
+
+            opacity:.65;
 
         }
 
@@ -1462,8 +1510,17 @@ const popup=()=>new Promise(resolve=>{
     const emailInput=
         document.getElementById("dp-email");
 
+    const arbitNotesInput=
+        document.getElementById("dp-arbit-notes");
+
+    const planEvidenceInput=
+        document.getElementById("dp-plan-evidence");
+
     const verifiedInput=
         document.getElementById("dp-verified");
+
+    const nonBifurcatedInput=
+        document.getElementById("dp-non-bifurcated");
 
     const continueBtn=
         document.getElementById("dp-continue");
@@ -1600,7 +1657,7 @@ const popup=()=>new Promise(resolve=>{
 
 
     /* =====================================================
-       VALIDATE
+       VALIDATE MAIN FORM
        ===================================================== */
 
     const validate=()=>{
@@ -1647,6 +1704,98 @@ const popup=()=>new Promise(resolve=>{
 
 
     /* =====================================================
+       VALIDATE YES FORM
+       ===================================================== */
+
+    const validateYesFields=()=>{
+
+        const email=
+            emailInput.value.trim();
+
+        const arbitNotes=
+            arbitNotesInput.value.trim();
+
+        const planEvidence=
+            planEvidenceInput.value;
+
+        const verificationStatus=
+            verifiedInput.value;
+
+        const nonBifurcated=
+            nonBifurcatedInput.value;
+
+
+        return(
+            !!email &&
+            !!arbitNotes &&
+            !!planEvidence &&
+            !!verificationStatus &&
+            !!nonBifurcated
+        );
+
+    };
+
+
+    /* =====================================================
+       UPDATE CONTINUE BUTTON
+       ===================================================== */
+
+    const updateContinueButton=()=>{
+
+        const complete=
+            validateYesFields();
+
+
+        continueBtn.disabled=
+            !complete;
+
+
+        if(complete){
+
+            continueBtn.title=
+                "All required fields are complete.";
+
+        }else{
+
+            continueBtn.title=
+                "Complete all required fields before continuing.";
+
+        }
+
+    };
+
+
+    /* =====================================================
+       YES FIELD LISTENERS
+       ===================================================== */
+
+    emailInput.addEventListener(
+        "input",
+        updateContinueButton
+    );
+
+    arbitNotesInput.addEventListener(
+        "input",
+        updateContinueButton
+    );
+
+    planEvidenceInput.addEventListener(
+        "change",
+        updateContinueButton
+    );
+
+    verifiedInput.addEventListener(
+        "change",
+        updateContinueButton
+    );
+
+    nonBifurcatedInput.addEventListener(
+        "change",
+        updateContinueButton
+    );
+
+
+    /* =====================================================
        GO
        ===================================================== */
 
@@ -1668,7 +1817,13 @@ const popup=()=>new Promise(resolve=>{
         yesExtra.style.display=
             "none";
 
+        emailInput.value="";
+        arbitNotesInput.value="";
+        planEvidenceInput.value="";
         verifiedInput.value="";
+        nonBifurcatedInput.value="";
+
+        continueBtn.disabled=true;
 
         status.textContent=
             "Choose eligibility to continue.";
@@ -1697,13 +1852,10 @@ const popup=()=>new Promise(resolve=>{
 
     /* =====================================================
        BUILD ONE ROW
-       =====================================================
-
+       
        EXACTLY 17 COLUMNS:
 
        A B C D E F G H I J K L M N O P Q
-
-       Q = row[16]
        ===================================================== */
 
     const buildRow=(
@@ -1714,7 +1866,10 @@ const popup=()=>new Promise(resolve=>{
         isYes,
         disputeUserName="",
         email="",
-        verificationStatus=""
+        verificationStatus="",
+        arbitCaseNotes="",
+        planTypeEvidence="",
+        nonBifurcated="N/A"
     )=>{
 
 
@@ -1728,10 +1883,6 @@ const popup=()=>new Promise(resolve=>{
 
         /* ================================================
            ACTUAL COLUMN K
-           ================================================
-
-           IMPORTANT:
-           This is the value actually placed in Column K.
            ================================================ */
 
         const actualK=
@@ -1740,14 +1891,6 @@ const popup=()=>new Promise(resolve=>{
 
         /* ================================================
            CALCULATE Q
-           ================================================
-
-           FIXED:
-
-           getColumnQValue now receives BOTH F and K.
-
-           Q is therefore based on the exact values
-           being placed into columns F and K.
            ================================================ */
 
         const actualQ=
@@ -1785,25 +1928,29 @@ const popup=()=>new Promise(resolve=>{
                 ?verificationStatus
                 :"-",                         // H
 
-            "-",                             // I
-
-            "-",                             // J
-
-            actualK,                          // K
-
-            "N/A",                            // L
-
-            "N/A",                            // M
-
-            stateValue,                       // N
+            isYes
+                ?arbitCaseNotes
+                :"-",                         // I
 
             isYes
-                ?"N/A"
-                :"-",                         // O
+                ?planTypeEvidence
+                :"-",                         // J
+
+            actualK,                         // K
+
+            "N/A",                           // L
+
+            "N/A",                           // M
+
+            stateValue,                      // N
+
+            isYes
+                ?nonBifurcated
+                :"-",                        // O
 
             isYes
                 ?"Yes"
-                :"No",                        // P
+                :"No",                       // P
 
             actualQ                           // Q
 
@@ -1838,89 +1985,37 @@ const popup=()=>new Promise(resolve=>{
             "FINAL ROW"
         );
 
-        console.log(
-            "A:",
-            row[0]
-        );
+        console.log("A:",row[0]);
+        console.log("B:",row[1]);
+        console.log("C:",row[2]);
+        console.log("D:",row[3]);
+        console.log("E:",row[4]);
+        console.log("F:",row[5]);
+        console.log("G:",row[6]);
+        console.log("H:",row[7]);
+        console.log("I:",row[8]);
+        console.log("J:",row[9]);
+        console.log("K:",row[10]);
+        console.log("L:",row[11]);
+        console.log("M:",row[12]);
+        console.log("N:",row[13]);
+        console.log("O:",row[14]);
+        console.log("P:",row[15]);
+        console.log("Q:",row[16]);
 
         console.log(
-            "B:",
-            row[1]
-        );
-
-        console.log(
-            "C:",
-            row[2]
-        );
-
-        console.log(
-            "D:",
-            row[3]
-        );
-
-        console.log(
-            "E:",
-            row[4]
-        );
-
-        console.log(
-            "F:",
-            row[5]
-        );
-
-        console.log(
-            "G:",
-            row[6]
-        );
-
-        console.log(
-            "H:",
-            row[7]
-        );
-
-        console.log(
-            "I:",
+            "Arbit Case Notes -> Column I:",
             row[8]
         );
 
         console.log(
-            "J:",
+            "Plan Type Evidence -> Column J:",
             row[9]
         );
 
         console.log(
-            "K:",
-            row[10]
-        );
-
-        console.log(
-            "L:",
-            row[11]
-        );
-
-        console.log(
-            "M:",
-            row[12]
-        );
-
-        console.log(
-            "N:",
-            row[13]
-        );
-
-        console.log(
-            "O:",
+            "Non-Bifurcated -> Column O:",
             row[14]
-        );
-
-        console.log(
-            "P:",
-            row[15]
-        );
-
-        console.log(
-            "Q:",
-            row[16]
         );
 
         console.log(
@@ -1948,7 +2043,10 @@ const popup=()=>new Promise(resolve=>{
         isYes,
         disputeUserName="",
         email="",
-        verificationStatus=""
+        verificationStatus="",
+        arbitCaseNotes="",
+        planTypeEvidence="",
+        nonBifurcated="N/A"
     )=>{
 
         const rows=
@@ -1962,7 +2060,10 @@ const popup=()=>new Promise(resolve=>{
                     isYes,
                     disputeUserName,
                     email,
-                    verificationStatus
+                    verificationStatus,
+                    arbitCaseNotes,
+                    planTypeEvidence,
+                    nonBifurcated
                 )
             ]
             :ids.map((id,i)=>
@@ -1974,7 +2075,10 @@ const popup=()=>new Promise(resolve=>{
                     isYes,
                     disputeUserName,
                     email,
-                    verificationStatus
+                    verificationStatus,
+                    arbitCaseNotes,
+                    planTypeEvidence,
+                    nonBifurcated
                 )
             );
 
@@ -2050,16 +2154,15 @@ const popup=()=>new Promise(resolve=>{
             :ids.length;
 
 
-        const toast=
-            showCopyMessage(
+        showCopyMessage(
 
-                copied
-                ?`✅ COPIED ${rowCount} ROW${rowCount!==1?"S":""} — COLUMN Q FILLED`
-                :`❌ COPY FAILED — CLICK COPY AGAIN`,
+            copied
+            ?`✅ COPIED ${rowCount} ROW${rowCount!==1?"S":""} — COLUMN Q FILLED`
+            :`❌ COPY FAILED — CLICK COPY AGAIN`,
 
-                output
+            output
 
-            );
+        );
 
 
         resolve(null);
@@ -2082,7 +2185,11 @@ const popup=()=>new Promise(resolve=>{
 
 
         status.textContent=
-            "Enter PLANTYPE_IDRE_EMAIL and select Verified.";
+            "Complete all required YES fields.";
+
+
+        updateContinueButton();
+
 
         emailInput.focus();
 
@@ -2099,36 +2206,43 @@ const popup=()=>new Promise(resolve=>{
             return;
 
 
-        const email=
-            emailInput.value.trim();
+        /* ================================================
+           SAFETY CHECK
+           
+           Continue should NEVER process if a field
+           is missing, even if clicked programmatically.
+           ================================================ */
 
-
-        if(!email){
+        if(!validateYesFields()){
 
             status.textContent=
-                "Enter PLANTYPE_IDRE_EMAIL.";
+                "Please complete all required fields before continuing.";
 
-            emailInput.focus();
+            updateContinueButton();
 
             return;
 
         }
+
+
+        const email=
+            emailInput.value.trim();
+
+
+        const arbitCaseNotes=
+            arbitNotesInput.value.trim();
+
+
+        const planTypeEvidence=
+            planEvidenceInput.value;
 
 
         const verificationStatus=
             verifiedInput.value;
 
 
-        if(!verificationStatus){
-
-            status.textContent=
-                "Select Yes or No for Verified.";
-
-            verifiedInput.focus();
-
-            return;
-
-        }
+        const nonBifurcated=
+            nonBifurcatedInput.value;
 
 
         const stateValue=
@@ -2141,6 +2255,10 @@ const popup=()=>new Promise(resolve=>{
             duplicateCommentsInput.value;
 
 
+        /* ================================================
+           FINAL OUTPUT
+           ================================================ */
+
         const output=
             buildOutput(
                 stateValue,
@@ -2148,7 +2266,10 @@ const popup=()=>new Promise(resolve=>{
                 true,
                 currentName,
                 email,
-                verificationStatus
+                verificationStatus,
+                arbitCaseNotes,
+                planTypeEvidence,
+                nonBifurcated
             );
 
 
@@ -2166,16 +2287,15 @@ const popup=()=>new Promise(resolve=>{
             :ids.length;
 
 
-        const toast=
-            showCopyMessage(
+        showCopyMessage(
 
-                copied
-                ?`✅ COPIED ${rowCount} ROW${rowCount!==1?"S":""} — COLUMN Q FILLED`
-                :`❌ COPY FAILED — CLICK COPY AGAIN`,
+            copied
+            ?`✅ COPIED ${rowCount} ROW${rowCount!==1?"S":""} — COLUMNS I, J, O & Q FILLED`
+            :`❌ COPY FAILED — CLICK COPY AGAIN`,
 
-                output
+            output
 
-            );
+        );
 
 
         resolve(null);
