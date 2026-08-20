@@ -1,4 +1,4 @@
-```javascript
+javascript
 (async()=>{
 
 const KEY="disputeUserName";
@@ -1785,4 +1785,3 @@ const popup=()=>new Promise(resolve=>{
 await popup();
 
 })();
-```
