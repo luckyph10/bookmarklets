@@ -383,7 +383,7 @@ const getColumnQValue=(actualF,actualK)=>{
         );
 
         return(
-            "Already completed by Onshore"
+            "Already completed by Onshore."
         );
 
     }
