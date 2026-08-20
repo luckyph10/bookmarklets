@@ -79,11 +79,7 @@ const disputeStatus=
 
 
 /* =========================================================
-   GET COLUMN K SOURCE
-   =========================================================
-
-   This is the value from the page that is copied into
-   the new spreadsheet's Column K / Plan Type Evidence.
+   GET COLUMN J SOURCE
    ========================================================= */
 
 const columnJElement=
@@ -225,17 +221,17 @@ console.log(
 );
 
 console.log(
-    "Actual Dispute Status:",
+    "Dispute Status:",
     disputeStatus
 );
 
 console.log(
-    "Actual Plan Type Evidence source:",
+    "Page Column J source:",
     columnJValue
 );
 
 console.log(
-    "Other page K value:",
+    "Page K value:",
     columnKPageValue
 );
 
@@ -278,17 +274,13 @@ const getPlanType=i=>{
 
 
 /* =========================================================
-   NOTES / COLUMN R
-   =========================================================
-
-   The old Column Q calculation is now Column R
-   because the spreadsheet has been expanded to A:R.
+   COLUMN R / NOTES RULE
    ========================================================= */
 
 const getColumnRValue=(actualG,actualL)=>{
 
-    const f=normalizeValue(actualG);
-    const k=normalizeValue(actualL);
+    const g=normalizeValue(actualG);
+    const l=normalizeValue(actualL);
 
 
     console.log(
@@ -300,37 +292,33 @@ const getColumnRValue=(actualG,actualL)=>{
     );
 
     console.log(
-        "Dispute Review Status:",
+        "G / Dispute Review Status:",
         actualG
     );
 
     console.log(
-        "Normalized Dispute Review Status:",
-        f
+        "Normalized G:",
+        g
     );
 
     console.log(
-        "Dispute Status:",
+        "L / Dispute Status:",
         actualL
     );
 
     console.log(
-        "Normalized Dispute Status:",
-        k
+        "Normalized L:",
+        l
     );
 
 
-    /* =====================================================
-       DISPUTE STATUS = CLOSED
-       ===================================================== */
-
     if(
-        k==="closed"||
-        k.includes("closed")
+        l==="closed"||
+        l.includes("closed")
     ){
 
         console.log(
-            "R RULE MATCH: DISPUTE STATUS = CLOSED"
+            "R RULE MATCH: L = CLOSED"
         );
 
         return(
@@ -340,12 +328,8 @@ const getColumnRValue=(actualG,actualL)=>{
     }
 
 
-    /* =====================================================
-       DISPUTE REVIEW STATUS = PLAN TYPE VALIDATED
-       ===================================================== */
-
     if(
-        f.includes(
+        g.includes(
             "plan type validated post idr initiation"
         )
     ){
@@ -361,12 +345,8 @@ const getColumnRValue=(actualG,actualL)=>{
     }
 
 
-    /* =====================================================
-       DISPUTE REVIEW STATUS = PLAN TYPE OBJECTION
-       ===================================================== */
-
     if(
-        f.includes(
+        g.includes(
             "plan type objection submitted"
         )
     ){
@@ -382,18 +362,14 @@ const getColumnRValue=(actualG,actualL)=>{
     }
 
 
-    /* =====================================================
-       DISPUTE REVIEW STATUS = TIMELINE
-       ===================================================== */
-
     if(
-        f.includes(
+        g.includes(
             "timeline enforcement submitted to idre"
         )
     ){
 
         console.log(
-            "R RULE MATCH: TIMELINE ENFORCEMENT"
+            "R RULE MATCH: TIMELINE ENFORCEMENT SUBMITTED TO IDRE"
         );
 
         return(
@@ -403,12 +379,8 @@ const getColumnRValue=(actualG,actualL)=>{
     }
 
 
-    /* =====================================================
-       ADDITIONAL INFO EMAIL
-       ===================================================== */
-
     if(
-        f.includes(
+        g.includes(
             "additional info provided to idre through email"
         )
     ){
@@ -424,12 +396,8 @@ const getColumnRValue=(actualG,actualL)=>{
     }
 
 
-    /* =====================================================
-       ADDITIONAL INFO PORTAL
-       ===================================================== */
-
     if(
-        f.includes(
+        g.includes(
             "additional info provided to idre through portal"
         )
     ){
@@ -444,10 +412,6 @@ const getColumnRValue=(actualG,actualL)=>{
 
     }
 
-
-    /* =====================================================
-       NO MATCH
-       ===================================================== */
 
     console.warn(
         "NO G/L -> R RULE MATCHED",
@@ -688,7 +652,7 @@ const popup=()=>new Promise(resolve=>{
             </div>
 
 
-            <!-- USER NAME -->
+            <!-- DISPUTE USER NAME -->
 
             <div id="dp-label-name">
                 Dispute User Name
@@ -756,12 +720,40 @@ const popup=()=>new Promise(resolve=>{
 
                 </select>
 
-
-                <button id="dp-go">
-                    Go
-                </button>
-
             </div>
+
+
+            <!-- PLANTYPE MISMATCH / COLUMN C -->
+
+            <div id="dp-label-mismatch">
+                Plantype Mismatch
+            </div>
+
+
+            <select id="dp-mismatch">
+
+                <option
+                    value=""
+                    selected
+                    disabled
+                >
+                    Select Yes or No
+                </option>
+
+                <option value="Yes">
+                    Yes
+                </option>
+
+                <option value="No">
+                    No
+                </option>
+
+            </select>
+
+
+            <button id="dp-go">
+                Go
+            </button>
 
 
             <div id="dp-status"></div>
@@ -792,12 +784,14 @@ const popup=()=>new Promise(resolve=>{
                 </div>
 
 
+                <!-- YES EXTRA -->
+
                 <div
                     id="dp-yes-extra"
                     style="display:none"
                 >
 
-                    <!-- PLANTYPE IDRE EMAIL -->
+                    <!-- PLANTYPE_IDRE_EMAIL -->
 
                     <div id="dp-label-email">
                         PLANTYPE_IDRE_EMAIL
@@ -814,13 +808,13 @@ const popup=()=>new Promise(resolve=>{
 
                     <!-- ARBIT CASE NOTES -->
 
-                    <div id="dp-label-case-note">
+                    <div id="dp-label-arbit-notes">
                         Arbit Case Notes
                     </div>
 
 
                     <input
-                        id="dp-case-note"
+                        id="dp-arbit-notes"
                         type="text"
                         placeholder="Enter Arbit Case Notes"
                         autocomplete="off"
@@ -829,14 +823,18 @@ const popup=()=>new Promise(resolve=>{
 
                     <!-- PLAN TYPE EVIDENCE -->
 
-                    <div id="dp-label-evidence">
+                    <div id="dp-label-plan-evidence">
                         Plan Type Evidence?
                     </div>
 
 
-                    <select id="dp-evidence">
+                    <select id="dp-plan-evidence">
 
-                        <option value="">
+                        <option
+                            value=""
+                            selected
+                            disabled
+                        >
                             Select Plan Type Evidence
                         </option>
 
@@ -889,14 +887,18 @@ const popup=()=>new Promise(resolve=>{
 
                     <!-- NON-BIFURCATED -->
 
-                    <div id="dp-label-nonbif">
-                        Non-Bifurcated state/Federal?
+                    <div id="dp-label-non-bifurcated">
+                        Non-Bifurcated state/Federal.
                     </div>
 
 
-                    <select id="dp-nonbif">
+                    <select id="dp-non-bifurcated">
 
-                        <option value="">
+                        <option
+                            value=""
+                            selected
+                            disabled
+                        >
                             Select N/A or Yes
                         </option>
 
@@ -911,29 +913,7 @@ const popup=()=>new Promise(resolve=>{
                     </select>
 
 
-                    <!-- PLANTYPE MISMATCH -->
-
-                    <div id="dp-label-mismatch">
-                        Plantype Mismatch?
-                    </div>
-
-
-                    <select id="dp-mismatch">
-
-                        <option value="">
-                            Select No or Yes
-                        </option>
-
-                        <option value="No">
-                            No
-                        </option>
-
-                        <option value="Yes">
-                            Yes
-                        </option>
-
-                    </select>
-
+                    <!-- CONTINUE -->
 
                     <button
                         id="dp-continue"
@@ -969,9 +949,12 @@ const popup=()=>new Promise(resolve=>{
 
             position:fixed;
             inset:0;
+
             width:100%;
             height:100%;
+
             z-index:2147483647;
+
             pointer-events:none;
 
         }
@@ -989,9 +972,12 @@ const popup=()=>new Promise(resolve=>{
             transform:translateX(-50%);
 
             width:620px;
-            max-width:calc(100vw - 30px);
 
-            max-height:calc(100vh - 40px);
+            max-width:
+                calc(100vw - 30px);
+
+            max-height:
+                calc(100vh - 40px);
 
             overflow-y:auto;
 
@@ -999,7 +985,8 @@ const popup=()=>new Promise(resolve=>{
 
             border-radius:18px;
 
-            background:rgba(0,0,0,.78);
+            background:
+                rgba(0,0,0,.78);
 
             border:
                 1px solid
@@ -1013,7 +1000,8 @@ const popup=()=>new Promise(resolve=>{
 
             -webkit-backdrop-filter:blur(14px);
 
-            font-family:Arial,sans-serif;
+            font-family:
+                Arial,sans-serif;
 
             color:#fff;
 
@@ -1025,7 +1013,9 @@ const popup=()=>new Promise(resolve=>{
         #dp-title{
 
             font-size:20px;
+
             font-weight:700;
+
             margin-bottom:20px;
 
         }
@@ -1065,12 +1055,12 @@ const popup=()=>new Promise(resolve=>{
 
         #dp-label-name,
         #dp-label-state,
+        #dp-label-mismatch,
         #dp-label-email,
-        #dp-label-case-note,
-        #dp-label-evidence,
+        #dp-label-arbit-notes,
+        #dp-label-plan-evidence,
         #dp-label-verified,
-        #dp-label-nonbif,
-        #dp-label-mismatch{
+        #dp-label-non-bifurcated{
 
             font-size:13px;
 
@@ -1102,11 +1092,11 @@ const popup=()=>new Promise(resolve=>{
         #dp-name,
         #dp-state,
         #dp-email,
-        #dp-case-note,
-        #dp-evidence,
-        #dp-verified,
-        #dp-nonbif,
+        #dp-arbit-notes,
         #dp-mismatch,
+        #dp-plan-evidence,
+        #dp-verified,
+        #dp-non-bifurcated,
         #dp-duplicate-comments{
 
             height:42px;
@@ -1155,35 +1145,36 @@ const popup=()=>new Promise(resolve=>{
         }
 
 
+        #dp-mismatch,
         #dp-email,
-        #dp-case-note,
-        #dp-evidence,
+        #dp-arbit-notes,
+        #dp-plan-evidence,
         #dp-verified,
-        #dp-nonbif,
-        #dp-mismatch{
+        #dp-non-bifurcated{
 
             width:100%;
 
         }
 
 
-        #dp-evidence,
+        #dp-mismatch,
+        #dp-plan-evidence,
         #dp-verified,
-        #dp-nonbif,
-        #dp-mismatch{
+        #dp-non-bifurcated{
 
             cursor:pointer;
 
         }
 
 
-        #dp-evidence option,
-        #dp-verified option,
-        #dp-nonbif option,
         #dp-mismatch option,
+        #dp-plan-evidence option,
+        #dp-verified option,
+        #dp-non-bifurcated option,
         #dp-duplicate-comments option{
 
             background:#222;
+
             color:#fff;
 
         }
@@ -1203,7 +1194,7 @@ const popup=()=>new Promise(resolve=>{
         #dp-name::placeholder,
         #dp-state::placeholder,
         #dp-email::placeholder,
-        #dp-case-note::placeholder{
+        #dp-arbit-notes::placeholder{
 
             color:
                 rgba(255,255,255,.5);
@@ -1214,11 +1205,11 @@ const popup=()=>new Promise(resolve=>{
         #dp-name:focus,
         #dp-state:focus,
         #dp-email:focus,
-        #dp-case-note:focus,
-        #dp-evidence:focus,
-        #dp-verified:focus,
-        #dp-nonbif:focus,
+        #dp-arbit-notes:focus,
         #dp-mismatch:focus,
+        #dp-plan-evidence:focus,
+        #dp-verified:focus,
+        #dp-non-bifurcated:focus,
         #dp-duplicate-comments:focus{
 
             border-color:
@@ -1232,8 +1223,7 @@ const popup=()=>new Promise(resolve=>{
 
 
         #dp-edit,
-        #dp-save,
-        #dp-go{
+        #dp-save{
 
             height:42px;
 
@@ -1273,11 +1263,28 @@ const popup=()=>new Promise(resolve=>{
 
         #dp-go{
 
+            width:100%;
+
+            height:42px;
+
+            margin-top:10px;
+
+            border:
+                1px solid
+                rgba(35,150,70,.65);
+
+            border-radius:10px;
+
             background:
                 rgba(35,150,70,.9);
 
-            border-color:
-                rgba(35,150,70,.65);
+            color:#fff;
+
+            font-weight:700;
+
+            font-size:14px;
+
+            cursor:pointer;
 
         }
 
@@ -1448,7 +1455,7 @@ const popup=()=>new Promise(resolve=>{
 
             height:42px;
 
-            margin-top:14px;
+            margin-top:10px;
 
             border-radius:10px;
 
@@ -1481,13 +1488,13 @@ const popup=()=>new Promise(resolve=>{
         #dp-continue:disabled{
 
             background:
-                rgba(100,100,100,.35);
+                rgba(100,100,100,.45);
 
             border-color:
                 rgba(255,255,255,.12);
 
             color:
-                rgba(255,255,255,.4);
+                rgba(255,255,255,.45);
 
             cursor:not-allowed;
 
@@ -1507,14 +1514,14 @@ const popup=()=>new Promise(resolve=>{
             #dp-state{
 
                 width:100%;
+
                 flex:none;
 
             }
 
             #dp-duplicate-comments{
 
-                flex:1;
-                width:auto;
+                width:100%;
 
             }
 
@@ -1540,6 +1547,11 @@ const popup=()=>new Promise(resolve=>{
     const duplicateCommentsInput=
         document.getElementById(
             "dp-duplicate-comments"
+        );
+
+    const mismatchInput=
+        document.getElementById(
+            "dp-mismatch"
         );
 
     const editBtn=
@@ -1575,20 +1587,17 @@ const popup=()=>new Promise(resolve=>{
     const emailInput=
         document.getElementById("dp-email");
 
-    const caseNoteInput=
-        document.getElementById("dp-case-note");
+    const arbitNotesInput=
+        document.getElementById("dp-arbit-notes");
 
-    const evidenceInput=
-        document.getElementById("dp-evidence");
+    const planEvidenceInput=
+        document.getElementById("dp-plan-evidence");
 
     const verifiedInput=
         document.getElementById("dp-verified");
 
-    const nonBifInput=
-        document.getElementById("dp-nonbif");
-
-    const mismatchInput=
-        document.getElementById("dp-mismatch");
+    const nonBifurcatedInput=
+        document.getElementById("dp-non-bifurcated");
 
     const continueBtn=
         document.getElementById("dp-continue");
@@ -1725,7 +1734,7 @@ const popup=()=>new Promise(resolve=>{
 
 
     /* =====================================================
-       VALIDATE INITIAL FORM
+       VALIDATE MAIN FORM
        ===================================================== */
 
     const validate=()=>{
@@ -1766,59 +1775,74 @@ const popup=()=>new Promise(resolve=>{
         }
 
 
+        if(!mismatchInput.value){
+
+            status.textContent=
+                "Please select Plantype Mismatch: Yes or No.";
+
+            mismatchInput.focus();
+
+            return false;
+
+        }
+
+
         return true;
 
     };
 
 
     /* =====================================================
-       YES FORM VALIDATION
-       =====================================================
-
-       CONTINUE REMAINS DISABLED UNTIL ALL REQUIRED
-       YES-FORM FIELDS ARE FILLED.
+       VALIDATE YES FORM
        ===================================================== */
 
-    const updateContinueButton=()=>{
+    const validateYesFields=()=>{
 
         const email=
             emailInput.value.trim();
 
-        const caseNote=
-            caseNoteInput.value.trim();
+        const arbitNotes=
+            arbitNotesInput.value.trim();
 
-        const evidence=
-            evidenceInput.value;
+        const planEvidence=
+            planEvidenceInput.value;
 
-        const verified=
+        const verificationStatus=
             verifiedInput.value;
 
-        const nonBif=
-            nonBifInput.value;
-
-        const mismatch=
-            mismatchInput.value;
+        const nonBifurcated=
+            nonBifurcatedInput.value;
 
 
-        const allFilled=
-            Boolean(
-                email &&
-                caseNote &&
-                evidence &&
-                verified &&
-                nonBif &&
-                mismatch
-            );
+        return(
+            !!email &&
+            !!arbitNotes &&
+            !!planEvidence &&
+            !!verificationStatus &&
+            !!nonBifurcated
+        );
+
+    };
+
+
+    /* =====================================================
+       UPDATE CONTINUE BUTTON
+       ===================================================== */
+
+    const updateContinueButton=()=>{
+
+        const complete=
+            validateYesFields();
 
 
         continueBtn.disabled=
-            !allFilled;
+            !complete;
 
 
-        if(allFilled){
+        if(complete){
 
             continueBtn.title=
-                "All required fields completed.";
+                "All required fields are complete.";
 
         }else{
 
@@ -1830,26 +1854,34 @@ const popup=()=>new Promise(resolve=>{
     };
 
 
-    [
-        emailInput,
-        caseNoteInput,
-        evidenceInput,
-        verifiedInput,
-        nonBifInput,
-        mismatchInput
-    ].forEach(input=>{
+    /* =====================================================
+       YES FIELD LISTENERS
+       ===================================================== */
 
-        input.addEventListener(
-            "input",
-            updateContinueButton
-        );
+    emailInput.addEventListener(
+        "input",
+        updateContinueButton
+    );
 
-        input.addEventListener(
-            "change",
-            updateContinueButton
-        );
+    arbitNotesInput.addEventListener(
+        "input",
+        updateContinueButton
+    );
 
-    });
+    planEvidenceInput.addEventListener(
+        "change",
+        updateContinueButton
+    );
+
+    verifiedInput.addEventListener(
+        "change",
+        updateContinueButton
+    );
+
+    nonBifurcatedInput.addEventListener(
+        "change",
+        updateContinueButton
+    );
 
 
     /* =====================================================
@@ -1876,13 +1908,13 @@ const popup=()=>new Promise(resolve=>{
 
 
         emailInput.value="";
-        caseNoteInput.value="";
-        evidenceInput.value="";
+        arbitNotesInput.value="";
+        planEvidenceInput.value="";
         verifiedInput.value="";
-        nonBifInput.value="";
-        mismatchInput.value="";
+        nonBifurcatedInput.value="";
 
-        continueBtn.disabled=true;
+
+        updateContinueButton();
 
 
         status.textContent=
@@ -1918,24 +1950,24 @@ const popup=()=>new Promise(resolve=>{
 
        A B C D E F G H I J K L M N O P Q R
 
-       0 = A
-       1 = B
-       2 = C
-       3 = D
-       4 = E
-       5 = F
-       6 = G
-       7 = H
-       8 = I
-       9 = J
-       10 = K
-       11 = L
-       12 = M
-       13 = N
-       14 = O
-       15 = P
-       16 = Q
-       17 = R
+       A = PLANTYPE_IDRE_EMAIL
+       B = ARBIT_PLAN_TYPE_LIST
+       C = Plantype Mismatch
+       D = Duplicate Comments
+       E = DISPUTE #
+       F = Arbit ID
+       G = Dispute Review Status
+       H = Dispute User
+       I = Verified?
+       J = Arbit Case Note
+       K = Plan Type Evidence?
+       L = Dispute Status
+       M = Email sent to VOB?
+       N = Email sent to Closures?
+       O = State
+       P = Non-Bifurcated
+       Q = Eligible updated today
+       R = Notes
        ===================================================== */
 
     const buildRow=(
@@ -1947,52 +1979,29 @@ const popup=()=>new Promise(resolve=>{
         disputeUserName="",
         email="",
         verificationStatus="",
-        caseNote="",
-        evidence="",
+        arbitCaseNotes="",
+        planTypeEvidence="",
         nonBifurcated="",
         plantypeMismatch=""
     )=>{
 
-
-        /* ================================================
-           COLUMN G
-           ================================================
-
-           Dispute Review Status
-           ================================================ */
-
+        /* COLUMN G */
         const actualG=
             disputeStatus;
 
 
-        /* ================================================
-           COLUMN L
-           ================================================
-
-           Dispute Status
-
-           The existing page source used for the old
-           Column K is now placed into Column L.
-           ================================================ */
-
+        /* COLUMN L */
         const actualL=
             columnJValue;
 
 
-        /* ================================================
-           COLUMN R / NOTES
-           ================================================ */
-
+        /* COLUMN R */
         const actualR=
             getColumnRValue(
                 actualG,
                 actualL
             );
 
-
-        /* ================================================
-           CREATE EXACT 18 COLUMNS
-           ================================================ */
 
         const row=[
 
@@ -2005,9 +2014,7 @@ const popup=()=>new Promise(resolve=>{
             getPlanType(i),
 
             /* C */
-            isYes
-                ?plantypeMismatch
-                :"-",
+            plantypeMismatch,
 
             /* D */
             duplicateComments,
@@ -2033,12 +2040,12 @@ const popup=()=>new Promise(resolve=>{
 
             /* J */
             isYes
-                ?caseNote
+                ?arbitCaseNotes
                 :"-",
 
             /* K */
             isYes
-                ?evidence
+                ?planTypeEvidence
                 :"-",
 
             /* L */
@@ -2073,10 +2080,6 @@ const popup=()=>new Promise(resolve=>{
         ];
 
 
-        /* ================================================
-           VERIFY EXACTLY 18 COLUMNS
-           ================================================ */
-
         if(row.length!==18){
 
             console.error(
@@ -2089,10 +2092,6 @@ const popup=()=>new Promise(resolve=>{
         }
 
 
-        /* ================================================
-           FINAL DEBUG
-           ================================================ */
-
         console.log(
             "========================================"
         );
@@ -2103,22 +2102,22 @@ const popup=()=>new Promise(resolve=>{
 
         console.log("A:",row[0]);
         console.log("B:",row[1]);
-        console.log("C:",row[2]);
-        console.log("D:",row[3]);
-        console.log("E:",row[4]);
-        console.log("F:",row[5]);
-        console.log("G:",row[6]);
-        console.log("H:",row[7]);
-        console.log("I:",row[8]);
-        console.log("J:",row[9]);
-        console.log("K:",row[10]);
-        console.log("L:",row[11]);
-        console.log("M:",row[12]);
-        console.log("N:",row[13]);
-        console.log("O:",row[14]);
-        console.log("P:",row[15]);
-        console.log("Q:",row[16]);
-        console.log("R:",row[17]);
+        console.log("C - PLANTYPE MISMATCH:",row[2]);
+        console.log("D - DUPLICATE COMMENTS:",row[3]);
+        console.log("E - DISPUTE #:",row[4]);
+        console.log("F - ARBIT ID:",row[5]);
+        console.log("G - DISPUTE REVIEW STATUS:",row[6]);
+        console.log("H - DISPUTE USER:",row[7]);
+        console.log("I - VERIFIED:",row[8]);
+        console.log("J - ARBIT CASE NOTE:",row[9]);
+        console.log("K - PLAN TYPE EVIDENCE:",row[10]);
+        console.log("L - DISPUTE STATUS:",row[11]);
+        console.log("M - EMAIL VOB:",row[12]);
+        console.log("N - EMAIL CLOSURES:",row[13]);
+        console.log("O - STATE:",row[14]);
+        console.log("P - NON-BIFURCATED:",row[15]);
+        console.log("Q - ELIGIBLE:",row[16]);
+        console.log("R - NOTES:",row[17]);
 
         console.log(
             "ROW LENGTH:",
@@ -2146,8 +2145,8 @@ const popup=()=>new Promise(resolve=>{
         disputeUserName="",
         email="",
         verificationStatus="",
-        caseNote="",
-        evidence="",
+        arbitCaseNotes="",
+        planTypeEvidence="",
         nonBifurcated="",
         plantypeMismatch=""
     )=>{
@@ -2164,8 +2163,8 @@ const popup=()=>new Promise(resolve=>{
                     disputeUserName,
                     email,
                     verificationStatus,
-                    caseNote,
-                    evidence,
+                    arbitCaseNotes,
+                    planTypeEvidence,
                     nonBifurcated,
                     plantypeMismatch
                 )
@@ -2180,8 +2179,8 @@ const popup=()=>new Promise(resolve=>{
                     disputeUserName,
                     email,
                     verificationStatus,
-                    caseNote,
-                    evidence,
+                    arbitCaseNotes,
+                    planTypeEvidence,
                     nonBifurcated,
                     plantypeMismatch
                 )
@@ -2205,6 +2204,11 @@ const popup=()=>new Promise(resolve=>{
         console.log(
             "Number of rows:",
             rows.length
+        );
+
+        console.log(
+            "Number of columns:",
+            18
         );
 
         console.log(
@@ -2237,11 +2241,22 @@ const popup=()=>new Promise(resolve=>{
             duplicateCommentsInput.value;
 
 
+        const plantypeMismatch=
+            mismatchInput.value;
+
+
         const output=
             buildOutput(
                 stateValue,
                 duplicateComments,
-                false
+                false,
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                plantypeMismatch
             );
 
 
@@ -2262,7 +2277,7 @@ const popup=()=>new Promise(resolve=>{
         showCopyMessage(
 
             copied
-            ?`✅ COPIED ${rowCount} ROW${rowCount!==1?"S":""} — 18 COLUMNS`
+            ?`✅ COPIED ${rowCount} ROW${rowCount!==1?"S":""} — COLUMN C UPDATED`
             :`❌ COPY FAILED — CLICK COPY AGAIN`,
 
             output
@@ -2290,7 +2305,7 @@ const popup=()=>new Promise(resolve=>{
 
 
         status.textContent=
-            "Complete all required fields before continuing.";
+            "Complete all required YES fields.";
 
 
         updateContinueButton();
@@ -2321,16 +2336,28 @@ const popup=()=>new Promise(resolve=>{
             return;
 
 
+        if(!validateYesFields()){
+
+            status.textContent=
+                "Please complete all required YES fields.";
+
+            updateContinueButton();
+
+            return;
+
+        }
+
+
         const email=
             emailInput.value.trim();
 
 
-        const caseNote=
-            caseNoteInput.value.trim();
+        const arbitCaseNotes=
+            arbitNotesInput.value.trim();
 
 
-        const evidence=
-            evidenceInput.value;
+        const planTypeEvidence=
+            planEvidenceInput.value;
 
 
         const verificationStatus=
@@ -2338,16 +2365,12 @@ const popup=()=>new Promise(resolve=>{
 
 
         const nonBifurcated=
-            nonBifInput.value;
+            nonBifurcatedInput.value;
 
 
         const plantypeMismatch=
             mismatchInput.value;
 
-
-        /* =================================================
-           FINAL SAFETY VALIDATION
-           ================================================= */
 
         if(!email){
 
@@ -2361,24 +2384,24 @@ const popup=()=>new Promise(resolve=>{
         }
 
 
-        if(!caseNote){
+        if(!arbitCaseNotes){
 
             status.textContent=
                 "Enter Arbit Case Notes.";
 
-            caseNoteInput.focus();
+            arbitNotesInput.focus();
 
             return;
 
         }
 
 
-        if(!evidence){
+        if(!planTypeEvidence){
 
             status.textContent=
                 "Select Plan Type Evidence.";
 
-            evidenceInput.focus();
+            planEvidenceInput.focus();
 
             return;
 
@@ -2402,7 +2425,7 @@ const popup=()=>new Promise(resolve=>{
             status.textContent=
                 "Select N/A or Yes for Non-Bifurcated state/Federal.";
 
-            nonBifInput.focus();
+            nonBifurcatedInput.focus();
 
             return;
 
@@ -2412,7 +2435,7 @@ const popup=()=>new Promise(resolve=>{
         if(!plantypeMismatch){
 
             status.textContent=
-                "Select No or Yes for Plantype Mismatch.";
+                "Select Yes or No for Plantype Mismatch.";
 
             mismatchInput.focus();
 
@@ -2439,8 +2462,8 @@ const popup=()=>new Promise(resolve=>{
                 currentName,
                 email,
                 verificationStatus,
-                caseNote,
-                evidence,
+                arbitCaseNotes,
+                planTypeEvidence,
                 nonBifurcated,
                 plantypeMismatch
             );
@@ -2463,7 +2486,7 @@ const popup=()=>new Promise(resolve=>{
         showCopyMessage(
 
             copied
-            ?`✅ COPIED ${rowCount} ROW${rowCount!==1?"S":""} — 18 COLUMNS A:R`
+            ?`✅ COPIED ${rowCount} ROW${rowCount!==1?"S":""} — COLUMNS A:R`
             :`❌ COPY FAILED — CLICK COPY AGAIN`,
 
             output
@@ -2483,11 +2506,6 @@ const popup=()=>new Promise(resolve=>{
     overlay.addEventListener(
         "keydown",
         e=>{
-
-
-            /* =================================================
-               2 = N/A
-               ================================================= */
 
             if(
                 !e.ctrlKey &&
@@ -2520,10 +2538,6 @@ const popup=()=>new Promise(resolve=>{
             }
 
 
-            /* =================================================
-               3 = DUPLICATE REVIEWED
-               ================================================= */
-
             if(
                 !e.ctrlKey &&
                 !e.altKey &&
@@ -2555,10 +2569,6 @@ const popup=()=>new Promise(resolve=>{
             }
 
 
-            /* =================================================
-               ESC
-               ================================================= */
-
             if(e.key==="Escape"){
 
                 e.preventDefault();
@@ -2573,10 +2583,6 @@ const popup=()=>new Promise(resolve=>{
             }
 
 
-            /* =================================================
-               0 = NO
-               ================================================= */
-
             if(
                 e.key==="0" &&
                 eligible.style.display==="block"
@@ -2590,10 +2596,6 @@ const popup=()=>new Promise(resolve=>{
 
             }
 
-
-            /* =================================================
-               1 = YES
-               ================================================= */
 
             if(
                 e.key==="1" &&
