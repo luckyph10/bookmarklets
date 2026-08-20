@@ -996,9 +996,11 @@ const popup=()=>new Promise(resolve=>{
                 0 15px 45px
                 rgba(0,0,0,.45);
 
-            backdrop-filter:blur(14px);
+            backdrop-filter:
+                blur(14px);
 
-            -webkit-backdrop-filter:blur(14px);
+            -webkit-backdrop-filter:
+                blur(14px);
 
             font-family:
                 Arial,sans-serif;
@@ -1591,16 +1593,24 @@ const popup=()=>new Promise(resolve=>{
         document.getElementById("dp-arbit-notes");
 
     const planEvidenceInput=
-        document.getElementById("dp-plan-evidence");
+        document.getElementById(
+            "dp-plan-evidence"
+        );
 
     const verifiedInput=
-        document.getElementById("dp-verified");
+        document.getElementById(
+            "dp-verified"
+        );
 
     const nonBifurcatedInput=
-        document.getElementById("dp-non-bifurcated");
+        document.getElementById(
+            "dp-non-bifurcated"
+        );
 
     const continueBtn=
-        document.getElementById("dp-continue");
+        document.getElementById(
+            "dp-continue"
+        );
 
 
     /* =====================================================
@@ -1944,30 +1954,6 @@ const popup=()=>new Promise(resolve=>{
 
     /* =====================================================
        BUILD ONE ROW
-       =====================================================
-
-       EXACTLY 18 COLUMNS:
-
-       A B C D E F G H I J K L M N O P Q R
-
-       A = PLANTYPE_IDRE_EMAIL
-       B = ARBIT_PLAN_TYPE_LIST
-       C = Plantype Mismatch
-       D = Duplicate Comments
-       E = DISPUTE #
-       F = Arbit ID
-       G = Dispute Review Status
-       H = Dispute User
-       I = Verified?
-       J = Arbit Case Note
-       K = Plan Type Evidence?
-       L = Dispute Status
-       M = Email sent to VOB?
-       N = Email sent to Closures?
-       O = State
-       P = Non-Bifurcated
-       Q = Eligible updated today
-       R = Notes
        ===================================================== */
 
     const buildRow=(
@@ -2002,6 +1988,8 @@ const popup=()=>new Promise(resolve=>{
                 actualL
             );
 
+
+        /* EXACTLY 18 COLUMNS: A:R */
 
         const row=[
 
@@ -2500,12 +2488,16 @@ const popup=()=>new Promise(resolve=>{
 
 
     /* =====================================================
-       KEYBOARD
+       KEYBOARD SHORTCUTS
        ===================================================== */
 
     overlay.addEventListener(
         "keydown",
         e=>{
+
+            /* =================================================
+               2 = N/A DUPLICATE COMMENTS
+               ================================================= */
 
             if(
                 !e.ctrlKey &&
@@ -2538,6 +2530,10 @@ const popup=()=>new Promise(resolve=>{
             }
 
 
+            /* =================================================
+               3 = DUPLICATE REVIEWED
+               ================================================= */
+
             if(
                 !e.ctrlKey &&
                 !e.altKey &&
@@ -2569,6 +2565,80 @@ const popup=()=>new Promise(resolve=>{
             }
 
 
+            /* =================================================
+               4 = PLANTYPE MISMATCH -> NO
+               ================================================= */
+
+            if(
+                !e.ctrlKey &&
+                !e.altKey &&
+                !e.metaKey &&
+                !e.shiftKey &&
+                e.key==="4"
+            ){
+
+                e.preventDefault();
+                e.stopPropagation();
+
+                mismatchInput.value=
+                    "No";
+
+                mismatchInput.dispatchEvent(
+                    new Event(
+                        "change",
+                        {
+                            bubbles:true
+                        }
+                    )
+                );
+
+                status.textContent=
+                    "Plantype Mismatch: No";
+
+                return;
+
+            }
+
+
+            /* =================================================
+               5 = PLANTYPE MISMATCH -> YES
+               ================================================= */
+
+            if(
+                !e.ctrlKey &&
+                !e.altKey &&
+                !e.metaKey &&
+                !e.shiftKey &&
+                e.key==="5"
+            ){
+
+                e.preventDefault();
+                e.stopPropagation();
+
+                mismatchInput.value=
+                    "Yes";
+
+                mismatchInput.dispatchEvent(
+                    new Event(
+                        "change",
+                        {
+                            bubbles:true
+                        }
+                    )
+                );
+
+                status.textContent=
+                    "Plantype Mismatch: Yes";
+
+                return;
+
+            }
+
+
+            /* =================================================
+               ESC
+               ================================================= */
+
             if(e.key==="Escape"){
 
                 e.preventDefault();
@@ -2583,6 +2653,10 @@ const popup=()=>new Promise(resolve=>{
             }
 
 
+            /* =================================================
+               0 = NO
+               ================================================= */
+
             if(
                 e.key==="0" &&
                 eligible.style.display==="block"
@@ -2596,6 +2670,10 @@ const popup=()=>new Promise(resolve=>{
 
             }
 
+
+            /* =================================================
+               1 = YES
+               ================================================= */
 
             if(
                 e.key==="1" &&
