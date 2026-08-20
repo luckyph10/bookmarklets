@@ -244,7 +244,7 @@ const popup=()=>new Promise(resolve=>{
                 >
 
                 <select id="dp-duplicate-comments">
-                    <option value="">Duplicate Comments</option>
+                    
                     <option value="Duplicate Dispute Reviewed">
                         Duplicate Dispute Reviewed
                     </option>
