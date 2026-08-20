@@ -97,12 +97,20 @@
     const PH_TIMEZONE = 'Asia/Manila';
 
     /*
-     * Gets the current date based ONLY on Philippine Time.
+     * Get TODAY'S date based on Philippine Time.
      *
-     * This prevents the computer/browser timezone from affecting
-     * the date used in the comment.
+     * IMPORTANT:
+     * This uses Asia/Manila and does NOT use the computer's
+     * local timezone.
+     *
+     * Example:
+     *
+     * Philippine date = August 20, 2026
+     * Result = 08/20/26
+     *
+     * There is NO +1 day.
      */
-    function getPHDate() {
+    function getTodayPHDate() {
         const parts = new Intl.DateTimeFormat('en-US', {
             timeZone: PH_TIMEZONE,
             year: 'numeric',
@@ -118,55 +126,17 @@
             }
         });
 
-        return {
-            year: Number(result.year),
-            month: Number(result.month),
-            day: Number(result.day)
-        };
-    }
-
-    /*
-     * Returns TOMORROW based on Philippine calendar date.
-     *
-     * Example:
-     * PH date = 08/20/2026
-     * Result   = 08/21/26
-     *
-     * This does NOT depend on the computer's local timezone.
-     */
-    function getTomorrowPHDate() {
-        const ph = getPHDate();
-
-        /*
-         * Use UTC only as a safe calendar calculation.
-         * The starting year/month/day came from Philippine Time.
-         */
-        const tomorrow = new Date(
-            Date.UTC(
-                ph.year,
-                ph.month - 1,
-                ph.day + 1
-            )
-        );
-
-        const mm = String(
-            tomorrow.getUTCMonth() + 1
-        ).padStart(2, '0');
-
-        const dd = String(
-            tomorrow.getUTCDate()
-        ).padStart(2, '0');
-
-        const yy = String(
-            tomorrow.getUTCFullYear()
-        ).slice(-2);
+        const mm = String(result.month).padStart(2, '0');
+        const dd = String(result.day).padStart(2, '0');
+        const yy = String(result.year).slice(-2);
 
         return mm + '/' + dd + '/' + yy;
     }
 
     /*
-     * Optional helper for checking the current PH date/time
-     * in the browser console.
+     * Get the current Philippine date/time for debugging.
+     *
+     * You can see this in the browser console.
      */
     function getCurrentPHDateTime() {
         return new Intl.DateTimeFormat('en-US', {
@@ -187,8 +157,8 @@
     );
 
     console.log(
-        'Comment Date (Tomorrow PH):',
-        getTomorrowPHDate()
+        'Automatic Comment Date:',
+        getTodayPHDate()
     );
 
     /* =========================================================
@@ -349,6 +319,10 @@
 
     items.forEach(function (item) {
 
+        /* =====================================================
+           HEADER
+           ===================================================== */
+
         if (item.header) {
             const h = document.createElement('div');
 
@@ -368,6 +342,10 @@
 
             return;
         }
+
+        /* =====================================================
+           COMMENT BUTTON
+           ===================================================== */
 
         const btn = document.createElement('button');
 
@@ -456,23 +434,29 @@
             }
 
             /* =================================================
-               ADD COMMENT
+               GET TODAY'S PHILIPPINE DATE
                ================================================= */
 
             /*
              * IMPORTANT:
              *
-             * The comment date is TOMORROW according to
-             * PHILIPPINE TIME (Asia/Manila).
+             * This gets TODAY in the Philippines.
              *
-             * It does NOT use:
+             * NO +1 DAY.
              *
-             *     new Date().getDate()
+             * If PH today is:
              *
-             * because that would use the browser/computer
-             * timezone.
+             * 08/20/26
+             *
+             * the comment date will be:
+             *
+             * 08/20/26
              */
-            const commentDate = getTomorrowPHDate();
+            const commentDate = getTodayPHDate();
+
+            /* =================================================
+               CREATE FINAL COMMENT
+               ================================================= */
 
             const note =
                 finalComment +
@@ -480,6 +464,10 @@
                 commentDate +
                 ' - ' +
                 initials;
+
+            /* =================================================
+               INSERT COMMENT
+               ================================================= */
 
             el.value =
                 note +
@@ -489,17 +477,29 @@
                         : ''
                 );
 
+            /* =================================================
+               TRIGGER INPUT EVENT
+               ================================================= */
+
             el.dispatchEvent(
                 new Event('input', {
                     bubbles: true
                 })
             );
 
+            /* =================================================
+               TRIGGER CHANGE EVENT
+               ================================================= */
+
             el.dispatchEvent(
                 new Event('change', {
                     bubbles: true
                 })
             );
+
+            /* =================================================
+               CLOSE POPUP
+               ================================================= */
 
             popup.remove();
         };
@@ -531,6 +531,10 @@
     };
 
     popup.appendChild(close);
+
+    /* =========================================================
+       ADD POPUP TO PAGE
+       ========================================================= */
 
     document.body.appendChild(popup);
 
