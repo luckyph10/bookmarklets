@@ -1,448 +1,1876 @@
-(function () {
-    const el = document.querySelector(
-        '#ngForm > fieldset > div:nth-child(1) > div:nth-child(1) > div:nth-child(6) > textarea'
-    );
+(async()=>{
 
-    if (!el) {
-        console.error('Comment textbox not found');
-        return;
+const KEY="disputeUserName";
+
+const getName=()=>{
+    try{
+        return(localStorage.getItem(KEY)||"").trim();
+    }catch(e){
+        return"";
     }
+};
 
-    /* =========================================================
-       COMMENT LIST
-       ========================================================= */
+const saveName=n=>{
+    try{
+        localStorage.setItem(KEY,n);
+        return true;
+    }catch(e){
+        console.error(e);
+        return false;
+    }
+};
 
-    const items = [
-        {
-            header: true,
-            text: 'REVIEW'
-        },
-        {
-            header: false,
-            text: 'Reviewed, no action required'
-        },
-        {
-            header: false,
-            text: 'Reviewed. Eligible. IDR Initiation document attached'
-        },
-        {
-            header: false,
-            text: 'VOB verified, no change to NSA jurisdiction'
-        },
+/* =========================================================
+   GET PAGE DATA
+   ========================================================= */
 
-        {
-            header: true,
-            text: 'BATCH CASE DIFFERENT PLAN TYPE'
-        },
-        {
-            header: false,
-            text: 'Plan type review'
-        },
-        {
-            header: false,
-            text: 'Self-Funded NSA eligible - Plan type review'
-        },
-        {
-            header: false,
-            text: 'Balanced Funding NSA eligible - Plan type review'
-        },
-        {
-            header: false,
-            text: 'Fully Insured NSA eligible - Plan type review'
-        },
-        {
-            header: false,
-            text: 'Fully Insured (Opt In) NSA eligible - Plan type review'
-        },
-        {
-            header: false,
-            text: 'Exchange/Marketplace NSA eligible - Plan type review'
-        },
-        {
-            header: false,
-            text: 'Fully Insured BlueCard NSA eligible - Plan type review'
-        },
-        {
-            header: false,
-            text: 'VOB pending. Verified, no evidence'
-        },
-        {
-            header: false,
-            text: 'Additional Information Requested'
-        },
+const disputeNumber=
+    document.querySelector(
+        "#ngForm fieldset > div:nth-child(1) > div:nth-child(1) > div:nth-child(1) > input"
+    )?.value?.trim();
 
-        {
-            header: true,
-            text: 'CLOSURE/CLOSED'
-        },
-        {
-            header: false,
-            text: 'Email sent for closure'
-        },
-        {
-            header: false,
-            text: 'Arbit ID AppID - Ineligible, closure has been verified'
-        },
-        {
-            header: false,
-            text: 'IDRE sent email. DISP-XXXX has been closed',
-            needsDisp: true
+const disputeStatus=
+    document.querySelector(
+        "#ngForm fieldset > div:nth-child(1) > div:nth-child(1) > div:nth-child(4) > ng-select"
+    )?.querySelector(".ng-value-label")?.textContent?.trim()
+    ||
+    document.querySelector(
+        "#ngForm fieldset > div:nth-child(1) > div:nth-child(1) > div:nth-child(4) > ng-select"
+    )?.textContent?.trim()
+    ||
+    "";
+
+const columnJValue=
+    document.querySelector(
+        "#ngForm > fieldset > div > div:nth-child(1) > div:nth-child(2) > ng-select > div > div > div.ng-value > span.ng-value-label"
+    )?.textContent?.trim()||"";
+
+const ids=[
+    ...document.querySelectorAll(
+        "#table-body tr td:nth-child(2)"
+    )
+]
+.map(td=>td.textContent.trim())
+.filter(Boolean);
+
+const planTypes=[
+    ...document.querySelectorAll(
+        '[id^="planType_"]'
+    )
+]
+.map(el=>
+    (
+        el.innerText||
+        el.textContent||
+        el.value||
+        ""
+    ).trim()
+)
+.filter(Boolean);
+
+if(
+    !disputeNumber||
+    !disputeStatus||
+    !ids.length
+){
+    console.error(
+        "Missing Dispute Number, Dispute Status, or IDs."
+    );
+    return;
+}
+
+const sameId=
+    ids.every(id=>id===ids[0]);
+
+const getPlanType=
+    i=>planTypes[i]||
+        planTypes[0]||
+        "";
+
+/* =========================================================
+   CLIPBOARD
+   ========================================================= */
+
+const copyText=function(text){
+
+    try{
+
+        if(
+            navigator.clipboard &&
+            typeof navigator.clipboard.writeText==="function"
+        ){
+
+            const result=
+                navigator.clipboard.writeText(text);
+
+            if(
+                result &&
+                typeof result.catch==="function"
+            ){
+
+                result.catch(e=>{
+                    console.warn(
+                        "Clipboard API rejected:",
+                        e
+                    );
+                });
+
+            }
+
+            return true;
         }
-    ];
 
-    /* =========================================================
-       REMOVE EXISTING POPUP
-       ========================================================= */
+    }catch(e){
 
-    const old = document.getElementById(
-        'afCommentPopup'
-    );
+        console.warn(
+            "Clipboard API failed:",
+            e
+        );
 
-    if (old) {
-        old.remove();
     }
 
-    /* =========================================================
-       CREATE POPUP
-       ========================================================= */
+    try{
 
-    const popup = document.createElement('div');
+        const textarea=
+            document.createElement("textarea");
 
-    popup.id = 'afCommentPopup';
+        textarea.value=text;
+        textarea.readOnly=true;
 
-    popup.style.cssText =
-        'position:fixed;' +
-        'top:50%;' +
-        'left:50%;' +
-        'transform:translate(-50%,-50%);' +
-        'width:1100px;' +
-        'max-width:95vw;' +
-        'max-height:85vh;' +
-        'overflow:auto;' +
-        'background:rgba(0,0,0,.75);' +
-        'border:4px solid #fff;' +
-        'padding:15px;' +
-        'z-index:9999999;' +
-        'font-family:Arial,sans-serif;' +
-        'border-radius:10px;' +
-        'box-shadow:0 0 25px rgba(0,0,0,.6);' +
-        'color:#fff;';
+        textarea.style.position="fixed";
+        textarea.style.left="-10000px";
+        textarea.style.top="0";
+        textarea.style.width="1px";
+        textarea.style.height="1px";
+        textarea.style.opacity="0";
+        textarea.style.pointerEvents="none";
 
-    popup.innerHTML =
-        '<div style="' +
-        'font-size:30px;' +
-        'font-weight:bold;' +
-        'color:#fff;' +
-        'text-align:center;' +
-        'margin-bottom:15px;' +
-        '">' +
-        'Plan Type Comment List' +
-        '</div>';
+        document.body.appendChild(textarea);
 
-    /* =========================================================
-       INITIALS
-       ========================================================= */
+        textarea.focus();
+        textarea.select();
 
-    const initialsWrap = document.createElement('div');
+        textarea.setSelectionRange(
+            0,
+            text.length
+        );
 
-    initialsWrap.style.cssText =
-        'position:absolute;' +
-        'top:10px;' +
-        'left:10px;' +
-        'display:flex;' +
-        'align-items:center;' +
-        'gap:5px;';
+        const copied=
+            document.execCommand("copy");
 
-    const initialsInput = document.createElement('input');
+        textarea.remove();
 
-    initialsInput.type = 'text';
-    initialsInput.placeholder = 'Initials';
-    initialsInput.maxLength = 10;
+        return copied;
 
-    initialsInput.value =
-        localStorage.getItem('afCommentInitials') || '';
+    }catch(e){
 
-    initialsInput.style.cssText =
-        'width:80px;' +
-        'padding:6px;' +
-        'border:1px solid #fff;' +
-        'border-radius:4px;' +
-        'font-weight:bold;' +
-        'text-transform:uppercase;' +
-        'background:rgba(0,0,0,.5);' +
-        'color:#fff;';
+        console.error(
+            "Clipboard fallback failed:",
+            e
+        );
 
-    const saveBtn = document.createElement('button');
+        return false;
 
-    saveBtn.textContent = 'Save';
+    }
 
-    saveBtn.style.cssText =
-        'padding:6px 10px;' +
-        'background:#1976d2;' +
-        'color:#fff;' +
-        'border:none;' +
-        'border-radius:4px;' +
-        'cursor:pointer;' +
-        'font-weight:bold;';
+};
 
-    saveBtn.onclick = function () {
-        const val =
-            initialsInput.value
+/* =========================================================
+   COPY TOAST
+   ========================================================= */
+
+const showCopyMessage=(
+    message,
+    success=true
+)=>{
+
+    const old=
+        document.getElementById(
+            "dispute-copy-toast"
+        );
+
+    if(old)old.remove();
+
+    const toast=
+        document.createElement("div");
+
+    toast.id=
+        "dispute-copy-toast";
+
+    toast.innerHTML=`
+        <div id="dct-message"></div>
+        <button id="dct-copy">
+            COPY AGAIN
+        </button>
+    `;
+
+    toast.style.cssText=
+        "position:fixed;top:80px;left:50%;transform:translateX(-50%);padding:14px 16px;border-radius:14px;background:rgba(0,0,0,.86);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);color:#fff;font:600 14px Arial,sans-serif;z-index:2147483647;box-shadow:0 8px 32px rgba(0,0,0,.4);min-width:360px;text-align:center;box-sizing:border-box";
+
+    const messageEl=
+        toast.querySelector(
+            "#dct-message"
+        );
+
+    const copyAgainBtn=
+        toast.querySelector(
+            "#dct-copy"
+        );
+
+    messageEl.textContent=
+        message;
+
+    copyAgainBtn.style.cssText=
+        "margin-top:10px;height:36px;padding:0 16px;border:1px solid rgba(255,255,255,.25);border-radius:9px;background:rgba(35,150,70,.9);color:#fff;font:700 13px Arial,sans-serif;cursor:pointer";
+
+    copyAgainBtn.onclick=()=>{
+
+        const ok=
+            copyText(
+                messageEl.dataset.clipboard||""
+            );
+
+        copyAgainBtn.textContent=
+            ok
+            ?"COPIED ✓"
+            :"COPY FAILED";
+
+        if(ok){
+
+            setTimeout(()=>{
+
+                copyAgainBtn.textContent=
+                    "COPY AGAIN";
+
+            },1500);
+
+        }
+
+    };
+
+    document.body.appendChild(toast);
+
+    setTimeout(()=>{
+
+        if(toast.parentNode){
+
+            toast.style.transition=
+                "opacity .3s";
+
+            toast.style.opacity="0";
+
+            setTimeout(()=>{
+
+                if(toast.parentNode)
+                    toast.remove();
+
+            },300);
+
+        }
+
+    },5000);
+
+    return toast;
+};
+
+/* =========================================================
+   POPUP
+   ========================================================= */
+
+const popup=()=>new Promise(resolve=>{
+
+    const old=
+        document.getElementById(
+            "dispute-popup-overlay"
+        );
+
+    if(old)old.remove();
+
+    const oldStyle=
+        document.getElementById(
+            "dispute-popup-style"
+        );
+
+    if(oldStyle)oldStyle.remove();
+
+    const overlay=
+        document.createElement("div");
+
+    overlay.id=
+        "dispute-popup-overlay";
+
+    overlay.innerHTML=`
+
+        <div id="dispute-popup">
+
+            <button
+                id="dp-close"
+                title="Close"
+            >
+                ×
+            </button>
+
+            <div id="dp-title">
+                Dispute Information
+            </div>
+
+            <!-- DISPUTE USER -->
+
+            <div id="dp-label-name">
+                Dispute User Name
+            </div>
+
+            <div id="dp-name-row">
+
+                <input
+                    id="dp-name"
+                    type="text"
+                    placeholder="Enter Dispute User Name"
+                    autocomplete="off"
+                >
+
+                <button id="dp-edit">
+                    Edit
+                </button>
+
+                <span id="dp-saved">
+                    Saved ✓
+                </span>
+
+                <button id="dp-save">
+                    Save
+                </button>
+
+            </div>
+
+            <!-- STATE -->
+
+            <div id="dp-label-state">
+                State + Duplicate Comments
+            </div>
+
+            <div id="dp-state-row">
+
+                <input
+                    id="dp-state"
+                    type="text"
+                    placeholder="Enter State"
+                    autocomplete="off"
+                >
+
+                <select
+                    id="dp-duplicate-comments"
+                    required
+                >
+
+                    <option
+                        value=""
+                        selected
+                        disabled
+                    >
+                        Select Duplicate Dispute Comments
+                    </option>
+
+                    <option value="Duplicate Dispute Reviewed">
+                        Duplicate Dispute Reviewed
+                    </option>
+
+                    <option value="N/A">
+                        N/A
+                    </option>
+
+                </select>
+
+            </div>
+
+            <div id="dp-shortcuts">
+
+                <span>
+                    2 = N/A
+                </span>
+
+                <span>
+                    3 = Duplicate Dispute Reviewed
+                </span>
+
+                <span>
+                    ENTER = Continue
+                </span>
+
+            </div>
+
+            <div id="dp-status"></div>
+
+            <!-- ELIGIBILITY -->
+
+            <div
+                id="dp-eligible"
+                style="display:none"
+            >
+
+                <div id="dp-eligible-title">
+                    Eligible updated today?
+                </div>
+
+                <div id="dp-eligible-buttons">
+
+                    <button id="dp-no">
+                        NO
+                    </button>
+
+                    <button id="dp-yes">
+                        YES
+                    </button>
+
+                </div>
+
+                <!-- YES EXTRA -->
+
+                <div
+                    id="dp-yes-extra"
+                    style="display:none"
+                >
+
+                    <div id="dp-label-email">
+                        PLANTYPE_IDRE_EMAIL
+                    </div>
+
+                    <input
+                        id="dp-email"
+                        type="text"
+                        placeholder="Enter PLANTYPE_IDRE_EMAIL"
+                        autocomplete="off"
+                    >
+
+                    <div id="dp-label-verified">
+                        Verified?
+                    </div>
+
+                    <select
+                        id="dp-verified"
+                        required
+                    >
+
+                        <option value="">
+                            Select Yes or No
+                        </option>
+
+                        <option value="Yes">
+                            Yes
+                        </option>
+
+                        <option value="No">
+                            No
+                        </option>
+
+                    </select>
+
+                    <button id="dp-continue">
+                        Continue
+                    </button>
+
+                </div>
+
+            </div>
+
+        </div>
+    `;
+
+    /* =====================================================
+       STYLE
+       ===================================================== */
+
+    const style=
+        document.createElement("style");
+
+    style.id=
+        "dispute-popup-style";
+
+    style.textContent=`
+
+        #dispute-popup-overlay{
+
+            position:fixed;
+            inset:0;
+
+            width:100%;
+            height:100%;
+
+            z-index:2147483647;
+
+            pointer-events:none;
+        }
+
+        #dispute-popup{
+
+            pointer-events:auto;
+
+            position:absolute;
+
+            top:20px;
+            left:50%;
+
+            transform:
+                translateX(-50%);
+
+            width:620px;
+
+            max-width:
+                calc(100vw - 30px);
+
+            padding:24px;
+
+            border-radius:18px;
+
+            background:
+                rgba(0,0,0,.78);
+
+            border:
+                1px solid
+                rgba(255,255,255,.18);
+
+            box-shadow:
+                0 15px 45px
+                rgba(0,0,0,.45);
+
+            backdrop-filter:
+                blur(14px);
+
+            -webkit-backdrop-filter:
+                blur(14px);
+
+            font-family:
+                Arial,sans-serif;
+
+            color:#fff;
+
+            box-sizing:
+                border-box;
+        }
+
+        #dp-title{
+
+            font-size:20px;
+            font-weight:700;
+
+            margin-bottom:20px;
+
+            padding-right:35px;
+        }
+
+        #dp-close{
+
+            position:absolute;
+
+            top:8px;
+            right:10px;
+
+            width:34px;
+            height:34px;
+
+            border:0;
+
+            border-radius:50%;
+
+            background:transparent;
+
+            color:#fff;
+
+            font-size:27px;
+
+            cursor:pointer;
+        }
+
+        #dp-close:hover{
+
+            background:
+                rgba(255,255,255,.14);
+        }
+
+        #dp-label-name,
+        #dp-label-state,
+        #dp-label-email,
+        #dp-label-verified{
+
+            font-size:13px;
+
+            font-weight:600;
+
+            color:
+                rgba(255,255,255,.9);
+
+            margin:
+                10px 0 7px;
+        }
+
+        #dp-name-row,
+        #dp-state-row{
+
+            display:flex;
+
+            gap:8px;
+
+            width:100%;
+
+            align-items:center;
+        }
+
+        #dp-name,
+        #dp-state,
+        #dp-email,
+        #dp-verified,
+        #dp-duplicate-comments{
+
+            height:42px;
+
+            box-sizing:border-box;
+
+            border:
+                1px solid
+                rgba(255,255,255,.25);
+
+            border-radius:10px;
+
+            background:
+                rgba(255,255,255,.09);
+
+            color:#fff;
+
+            outline:none;
+
+            padding:
+                0 12px;
+
+            font-size:14px;
+        }
+
+        #dp-name,
+        #dp-state{
+
+            flex:1;
+
+            min-width:0;
+        }
+
+        #dp-duplicate-comments{
+
+            width:220px;
+
+            flex-shrink:0;
+
+            cursor:pointer;
+        }
+
+        #dp-email,
+        #dp-verified{
+
+            width:100%;
+        }
+
+        #dp-verified{
+
+            cursor:pointer;
+        }
+
+        #dp-verified option,
+        #dp-duplicate-comments option{
+
+            background:#222;
+            color:#fff;
+        }
+
+        #dp-name:read-only{
+
+            background:
+                rgba(255,255,255,.045);
+
+            color:
+                rgba(255,255,255,.72);
+        }
+
+        #dp-name::placeholder,
+        #dp-state::placeholder,
+        #dp-email::placeholder{
+
+            color:
+                rgba(255,255,255,.5);
+        }
+
+        #dp-name:focus,
+        #dp-state:focus,
+        #dp-email:focus,
+        #dp-verified:focus,
+        #dp-duplicate-comments:focus{
+
+            border-color:
+                rgba(255,255,255,.65);
+
+            box-shadow:
+                0 0 0 3px
+                rgba(255,255,255,.08);
+        }
+
+        /* =================================================
+           INVALID / REQUIRED FIELD
+           ================================================= */
+
+        #dp-state.dp-invalid,
+        #dp-duplicate-comments.dp-invalid,
+        #dp-name.dp-invalid,
+        #dp-email.dp-invalid,
+        #dp-verified.dp-invalid{
+
+            border:
+                2px solid #ff2222 !important;
+
+            box-shadow:
+                0 0 0 3px
+                rgba(255,0,0,.18) !important;
+
+            background:
+                rgba(120,0,0,.28) !important;
+        }
+
+        #dp-state.dp-valid,
+        #dp-duplicate-comments.dp-valid,
+        #dp-name.dp-valid,
+        #dp-email.dp-valid,
+        #dp-verified.dp-valid{
+
+            border:
+                1px solid
+                rgba(35,180,75,.85);
+        }
+
+        #dp-edit,
+        #dp-save{
+
+            height:42px;
+
+            padding:
+                0 15px;
+
+            border:
+                1px solid
+                rgba(255,255,255,.25);
+
+            border-radius:10px;
+
+            background:
+                rgba(255,255,255,.14);
+
+            color:#fff;
+
+            font-weight:700;
+
+            font-size:14px;
+
+            cursor:pointer;
+
+            white-space:nowrap;
+        }
+
+        #dp-edit:hover,
+        #dp-save:hover{
+
+            background:
+                rgba(255,255,255,.24);
+        }
+
+        #dp-save{
+
+            display:none;
+        }
+
+        #dp-saved{
+
+            display:none;
+
+            height:42px;
+
+            padding:
+                0 12px;
+
+            border-radius:10px;
+
+            background:
+                rgba(35,140,65,.8);
+
+            color:#fff;
+
+            font-weight:700;
+
+            font-size:13px;
+
+            align-items:center;
+
+            justify-content:center;
+
+            white-space:nowrap;
+        }
+
+        #dp-shortcuts{
+
+            margin-top:8px;
+
+            display:flex;
+
+            gap:8px;
+
+            flex-wrap:wrap;
+
+            font-size:11px;
+
+            color:
+                rgba(255,255,255,.5);
+        }
+
+        #dp-shortcuts span{
+
+            background:
+                rgba(255,255,255,.06);
+
+            padding:
+                4px 7px;
+
+            border-radius:5px;
+        }
+
+        #dp-status{
+
+            margin-top:9px;
+
+            font-size:12px;
+
+            color:
+                rgba(255,255,255,.65);
+
+            min-height:16px;
+        }
+
+        #dp-eligible{
+
+            margin-top:16px;
+
+            padding-top:14px;
+
+            border-top:
+                1px solid
+                rgba(255,255,255,.14);
+        }
+
+        #dp-eligible-title{
+
+            font-size:13px;
+
+            font-weight:600;
+
+            margin-bottom:9px;
+        }
+
+        #dp-eligible-buttons{
+
+            display:flex;
+
+            gap:8px;
+        }
+
+        #dp-no,
+        #dp-yes{
+
+            flex:1;
+
+            height:42px;
+
+            border-radius:10px;
+
+            border:
+                1px solid
+                rgba(255,255,255,.2);
+
+            color:#fff;
+
+            font-size:14px;
+
+            font-weight:700;
+
+            cursor:pointer;
+        }
+
+        #dp-no{
+
+            background:
+                rgba(190,35,35,.88);
+        }
+
+        #dp-no:hover{
+
+            background:
+                rgba(220,45,45,.95);
+        }
+
+        #dp-yes{
+
+            background:
+                rgba(30,95,190,.9);
+        }
+
+        #dp-yes:hover{
+
+            background:
+                rgba(40,115,220,.98);
+        }
+
+        #dp-yes-extra{
+
+            margin-top:14px;
+
+            padding-top:14px;
+
+            border-top:
+                1px solid
+                rgba(255,255,255,.14);
+        }
+
+        #dp-continue{
+
+            width:100%;
+
+            height:42px;
+
+            margin-top:10px;
+
+            border-radius:10px;
+
+            border:
+                1px solid
+                rgba(35,140,65,.45);
+
+            background:
+                rgba(35,150,70,.9);
+
+            color:#fff;
+
+            font-size:14px;
+
+            font-weight:700;
+
+            cursor:pointer;
+        }
+
+        #dp-continue:hover{
+
+            background:
+                rgba(45,175,80,.98);
+        }
+
+        @media(max-width:650px){
+
+            #dp-state-row{
+
+                flex-wrap:wrap;
+            }
+
+            #dp-state{
+
+                width:100%;
+
+                flex:none;
+            }
+
+            #dp-duplicate-comments{
+
+                flex:1;
+
+                width:auto;
+            }
+
+        }
+
+    `;
+
+    document.head.appendChild(style);
+    document.body.appendChild(overlay);
+
+    /* =====================================================
+       ELEMENTS
+       ===================================================== */
+
+    const nameInput=
+        document.getElementById(
+            "dp-name"
+        );
+
+    const stateInput=
+        document.getElementById(
+            "dp-state"
+        );
+
+    const duplicateCommentsInput=
+        document.getElementById(
+            "dp-duplicate-comments"
+        );
+
+    const editBtn=
+        document.getElementById(
+            "dp-edit"
+        );
+
+    const saveBtn=
+        document.getElementById(
+            "dp-save"
+        );
+
+    const savedLabel=
+        document.getElementById(
+            "dp-saved"
+        );
+
+    const closeBtn=
+        document.getElementById(
+            "dp-close"
+        );
+
+    const status=
+        document.getElementById(
+            "dp-status"
+        );
+
+    const eligible=
+        document.getElementById(
+            "dp-eligible"
+        );
+
+    const noBtn=
+        document.getElementById(
+            "dp-no"
+        );
+
+    const yesBtn=
+        document.getElementById(
+            "dp-yes"
+        );
+
+    const yesExtra=
+        document.getElementById(
+            "dp-yes-extra"
+        );
+
+    const emailInput=
+        document.getElementById(
+            "dp-email"
+        );
+
+    const verifiedInput=
+        document.getElementById(
+            "dp-verified"
+        );
+
+    const continueBtn=
+        document.getElementById(
+            "dp-continue"
+        );
+
+    /* =====================================================
+       INVALID FIELD HELPERS
+       ===================================================== */
+
+    const markInvalid=(
+        element,
+        message
+    )=>{
+
+        element.classList.remove(
+            "dp-valid"
+        );
+
+        element.classList.add(
+            "dp-invalid"
+        );
+
+        if(message){
+
+            status.textContent=
+                message;
+        }
+
+    };
+
+    const markValid=element=>{
+
+        element.classList.remove(
+            "dp-invalid"
+        );
+
+        element.classList.add(
+            "dp-valid"
+        );
+    };
+
+    const clearInvalid=element=>{
+
+        element.classList.remove(
+            "dp-invalid"
+        );
+
+    };
+
+    /* =====================================================
+       USERNAME
+       ===================================================== */
+
+    let currentName=
+        getName();
+
+    nameInput.value=
+        currentName;
+
+    if(currentName){
+
+        nameInput.readOnly=true;
+
+        editBtn.style.display=
+            "inline-block";
+
+        saveBtn.style.display=
+            "none";
+
+        savedLabel.style.display=
+            "inline-flex";
+
+        status.textContent=
+            "Saved username: "+currentName;
+
+    }else{
+
+        nameInput.readOnly=false;
+
+        editBtn.style.display=
+            "none";
+
+        saveBtn.style.display=
+            "inline-block";
+
+        savedLabel.style.display=
+            "none";
+
+        status.textContent=
+            "Please enter and save your Dispute User Name.";
+
+        nameInput.focus();
+
+    }
+
+    /* =====================================================
+       EDIT
+       ===================================================== */
+
+    editBtn.onclick=()=>{
+
+        nameInput.readOnly=false;
+
+        nameInput.focus();
+
+        nameInput.select();
+
+        editBtn.style.display=
+            "none";
+
+        saveBtn.style.display=
+            "inline-block";
+
+        savedLabel.style.display=
+            "none";
+
+        status.textContent=
+            "Editing username...";
+    };
+
+    /* =====================================================
+       SAVE
+       ===================================================== */
+
+    saveBtn.onclick=()=>{
+
+        const n=
+            nameInput.value.trim();
+
+        if(!n){
+
+            markInvalid(
+                nameInput,
+                "Enter a Dispute User Name first."
+            );
+
+            nameInput.focus();
+
+            return;
+        }
+
+        markValid(nameInput);
+
+        if(!saveName(n)){
+
+            status.textContent=
+                "Could not save the username.";
+
+            return;
+        }
+
+        currentName=n;
+
+        nameInput.value=
+            currentName;
+
+        nameInput.readOnly=true;
+
+        editBtn.style.display=
+            "inline-block";
+
+        saveBtn.style.display=
+            "none";
+
+        savedLabel.style.display=
+            "inline-flex";
+
+        status.textContent=
+            "Username saved.";
+
+        stateInput.focus();
+    };
+
+    /* =====================================================
+       CLEAR RED STATE WHEN USER TYPES
+       ===================================================== */
+
+    stateInput.addEventListener(
+        "input",
+        ()=>{
+
+            if(
+                stateInput.value.trim()
+            ){
+
+                clearInvalid(
+                    stateInput
+                );
+
+            }
+
+        }
+    );
+
+    /* =====================================================
+       CLEAR RED DUPLICATE WHEN SELECTED
+       ===================================================== */
+
+    duplicateCommentsInput.addEventListener(
+        "change",
+        ()=>{
+
+            if(
+                duplicateCommentsInput.value
+            ){
+
+                markValid(
+                    duplicateCommentsInput
+                );
+
+                status.textContent=
+                    "Duplicate Dispute Comments: "+
+                    duplicateCommentsInput.value;
+            }
+
+        }
+    );
+
+    /* =====================================================
+       VALIDATION
+       ===================================================== */
+
+    const validateStateAndDuplicate=()=>{
+
+        let valid=true;
+
+        if(!currentName){
+
+            markInvalid(
+                nameInput,
+                "Please save your Dispute User Name first."
+            );
+
+            nameInput.focus();
+
+            return false;
+        }
+
+        clearInvalid(nameInput);
+
+        const state=
+            stateInput.value.trim();
+
+        if(!state){
+
+            markInvalid(
+                stateInput,
+                "State is required."
+            );
+
+            stateInput.focus();
+
+            valid=false;
+        }else{
+
+            markValid(stateInput);
+        }
+
+        const duplicateComments=
+            duplicateCommentsInput.value;
+
+        if(
+            !duplicateComments ||
+            duplicateCommentsInput.selectedIndex===0
+        ){
+
+            markInvalid(
+                duplicateCommentsInput,
+                "Duplicate Dispute Comments is required."
+            );
+
+            if(valid){
+                duplicateCommentsInput.focus();
+            }
+
+            valid=false;
+
+        }else{
+
+            markValid(
+                duplicateCommentsInput
+            );
+        }
+
+        return valid;
+    };
+
+    /* =====================================================
+       PROCESS STATE + DUPLICATE
+       ===================================================== */
+
+    const processStateAndDuplicate=()=>{
+
+        if(!validateStateAndDuplicate()){
+
+            return;
+        }
+
+        stateInput.value=
+            stateInput.value
                 .trim()
                 .toUpperCase();
 
-        if (!val) {
-            console.error(
-                'Enter your initials first.'
+        eligible.style.display=
+            "block";
+
+        yesExtra.style.display=
+            "none";
+
+        verifiedInput.value="";
+
+        status.textContent=
+            "Choose eligibility to continue.";
+
+        noBtn.focus();
+    };
+
+    /* =====================================================
+       ENTER ON STATE
+       ===================================================== */
+
+    stateInput.addEventListener(
+        "keydown",
+        e=>{
+
+            if(e.key==="Enter"){
+
+                e.preventDefault();
+                e.stopPropagation();
+
+                processStateAndDuplicate();
+            }
+
+        },
+        true
+    );
+
+    /* =====================================================
+       OUTPUT - NO
+       ===================================================== */
+
+    const buildNoOutput=(
+        stateValue,
+        duplicateComments
+    )=>{
+
+        const makeNoRow=(id,i)=>[
+
+            "-",
+            getPlanType(i),
+            duplicateComments,
+            disputeNumber,
+            id,
+            disputeStatus,
+            "-",
+            "-",
+            "-",
+            "-",
+            columnJValue,
+            "N/A",
+            "N/A",
+            stateValue,
+            "-",
+            "No"
+
+        ].join("\t");
+
+        return sameId
+
+            ?makeNoRow(ids[0],0)
+
+            :ids
+                .map((id,i)=>
+                    makeNoRow(id,i)
+                )
+                .join("\n");
+    };
+
+    /* =====================================================
+       OUTPUT - YES
+       ===================================================== */
+
+    const buildYesOutput=(
+        stateValue,
+        duplicateComments,
+        disputeUserName,
+        plantypeIdreEmail,
+        verificationStatus
+    )=>{
+
+        const makeYesRow=(id,i)=>[
+
+            plantypeIdreEmail,
+            getPlanType(i),
+            duplicateComments,
+            disputeNumber,
+            id,
+            disputeStatus,
+            disputeUserName,
+            verificationStatus,
+            "-",
+            "-",
+            columnJValue,
+            "N/A",
+            "N/A",
+            stateValue,
+            "N/A",
+            "Yes"
+
+        ].join("\t");
+
+        return sameId
+
+            ?makeYesRow(ids[0],0)
+
+            :ids
+                .map((id,i)=>
+                    makeYesRow(id,i)
+                )
+                .join("\n");
+    };
+
+    /* =====================================================
+       NO
+       ===================================================== */
+
+    noBtn.onclick=()=>{
+
+        if(!validateStateAndDuplicate()){
+            return;
+        }
+
+        const stateValue=
+            stateInput.value
+                .trim()
+                .toUpperCase();
+
+        const duplicateComments=
+            duplicateCommentsInput.value;
+
+        const output=
+            buildNoOutput(
+                stateValue,
+                duplicateComments
             );
 
-            initialsInput.focus();
+        const copied=
+            copyText(output);
+
+        overlay.remove();
+        style.remove();
+
+        const rowCount=
+            sameId
+            ?1
+            :ids.length;
+
+        const toast=
+            showCopyMessage(
+
+                copied
+
+                ?`✅ Copied ${rowCount} row${rowCount!==1?"s":""} | NO | State: ${stateValue} | Duplicate Comments: ${duplicateComments}`
+
+                :"❌ Automatic copy was blocked. Click COPY AGAIN below.",
+
+                copied
+            );
+
+        toast
+            .querySelector("#dct-message")
+            .dataset.clipboard=
+                output;
+
+        resolve(null);
+    };
+
+    /* =====================================================
+       YES
+       ===================================================== */
+
+    yesBtn.onclick=()=>{
+
+        if(!validateStateAndDuplicate()){
+            return;
+        }
+
+        yesExtra.style.display=
+            "block";
+
+        status.textContent=
+            "Enter PLANTYPE_IDRE_EMAIL and select Verified: Yes or No.";
+
+        emailInput.focus();
+    };
+
+    /* =====================================================
+       EMAIL ENTER
+       ===================================================== */
+
+    emailInput.addEventListener(
+        "keydown",
+        e=>{
+
+            if(e.key==="Enter"){
+
+                e.preventDefault();
+                e.stopPropagation();
+
+                continueBtn.click();
+            }
+
+        },
+        true
+    );
+
+    /* =====================================================
+       VERIFIED
+       ===================================================== */
+
+    verifiedInput.onchange=()=>{
+
+        if(verifiedInput.value){
+
+            markValid(
+                verifiedInput
+            );
+
+            status.textContent=
+                "Verified: "+
+                verifiedInput.value;
+
+        }else{
+
+            clearInvalid(
+                verifiedInput
+            );
+
+        }
+
+    };
+
+    /* =====================================================
+       CONTINUE YES
+       ===================================================== */
+
+    continueBtn.onclick=()=>{
+
+        if(!validateStateAndDuplicate()){
+            return;
+        }
+
+        const email=
+            emailInput.value.trim();
+
+        if(!email){
+
+            markInvalid(
+                emailInput,
+                "PLANTYPE_IDRE_EMAIL is required."
+            );
+
+            emailInput.focus();
 
             return;
         }
 
-        localStorage.setItem(
-            'afCommentInitials',
-            val
-        );
+        markValid(emailInput);
 
-        initialsInput.value = val;
-    };
+        const verificationStatus=
+            verifiedInput.value;
 
-    initialsWrap.appendChild(initialsInput);
-    initialsWrap.appendChild(saveBtn);
+        if(!verificationStatus){
 
-    popup.appendChild(initialsWrap);
+            markInvalid(
+                verifiedInput,
+                "Verified selection is required."
+            );
 
-    /* =========================================================
-       CLOSE BUTTON
-       ========================================================= */
-
-    const topClose = document.createElement('button');
-
-    topClose.textContent = '✕';
-
-    topClose.style.cssText =
-        'position:absolute;' +
-        'top:10px;' +
-        'right:10px;' +
-        'width:40px;' +
-        'height:40px;' +
-        'background:#000;' +
-        'color:#fff;' +
-        'border:none;' +
-        'border-radius:6px;' +
-        'font-size:22px;' +
-        'font-weight:bold;' +
-        'cursor:pointer;';
-
-    topClose.onclick = function () {
-        popup.remove();
-    };
-
-    popup.appendChild(topClose);
-
-    /* =========================================================
-       COMMENT BUTTONS
-       ========================================================= */
-
-    items.forEach(function (item) {
-
-        if (item.header) {
-            const h = document.createElement('div');
-
-            h.textContent = item.text;
-
-            h.style.cssText =
-                'background:#1976d2;' +
-                'color:#fff;' +
-                'font-weight:bold;' +
-                'font-size:20px;' +
-                'text-align:center;' +
-                'padding:10px;' +
-                'margin:10px 0 5px;' +
-                'border-radius:6px;';
-
-            popup.appendChild(h);
+            verifiedInput.focus();
 
             return;
         }
 
-        const btn = document.createElement('button');
+        markValid(verifiedInput);
 
-        btn.textContent = item.text;
+        const stateValue=
+            stateInput.value
+                .trim()
+                .toUpperCase();
 
-        btn.style.cssText =
-            'display:block;' +
-            'width:100%;' +
-            'text-align:left;' +
-            'margin:5px 0;' +
-            'padding:12px;' +
-            'border:2px solid #fff;' +
-            'border-radius:6px;' +
-            'background:rgba(0,0,0,.45);' +
-            'cursor:pointer;' +
-            'font-weight:bold;' +
-            'font-size:18px;' +
-            'line-height:1.5;' +
-            'color:#fff;' +
-            'transition:background .15s ease;';
+        const duplicateComments=
+            duplicateCommentsInput.value;
 
-        btn.onmouseover = function () {
-            this.style.background = '#003366';
-        };
+        const output=
+            buildYesOutput(
 
-        btn.onmouseout = function () {
-            this.style.background =
-                'rgba(0,0,0,.45)';
-        };
+                stateValue,
 
-        btn.onclick = function () {
+                duplicateComments,
 
-            /* =================================================
-               INITIALS ARE REQUIRED
-               ================================================= */
+                currentName,
 
-            const initials =
-                (
-                    localStorage.getItem(
-                        'afCommentInitials'
-                    ) || ''
-                )
-                    .trim()
-                    .toUpperCase();
+                email,
 
-            if (!initials) {
-                console.error(
-                    'Your initials are not set yet. Please enter your initials and click Save before adding a comment.'
+                verificationStatus
+            );
+
+        const copied=
+            copyText(output);
+
+        overlay.remove();
+        style.remove();
+
+        const rowCount=
+            sameId
+            ?1
+            :ids.length;
+
+        const toast=
+            showCopyMessage(
+
+                copied
+
+                ?`✅ Copied ${rowCount} row${rowCount!==1?"s":""} | YES | State: ${stateValue} | Duplicate Comments: ${duplicateComments} | Email: ${email} | Verified: ${verificationStatus} | User: ${currentName}`
+
+                :"❌ Automatic copy was blocked. Click COPY AGAIN below.",
+
+                copied
+            );
+
+        toast
+            .querySelector("#dct-message")
+            .dataset.clipboard=
+                output;
+
+        resolve(null);
+    };
+
+    /* =====================================================
+       GLOBAL KEYBOARD SHORTCUTS
+       
+       2 = N/A
+       3 = Duplicate Dispute Reviewed
+
+       capture=true is IMPORTANT.
+
+       This allows 2 and 3 to work even when the cursor
+       is inside the State / Name / Email fields.
+       ===================================================== */
+
+    overlay.addEventListener(
+        "keydown",
+        e=>{
+
+            /* =============================================
+               2 = N/A
+               ============================================= */
+
+            if(
+                !e.ctrlKey &&
+                !e.altKey &&
+                !e.metaKey &&
+                !e.shiftKey &&
+                e.key==="2"
+            ){
+
+                e.preventDefault();
+                e.stopPropagation();
+                e.stopImmediatePropagation();
+
+                duplicateCommentsInput.value=
+                    "N/A";
+
+                markValid(
+                    duplicateCommentsInput
                 );
 
-                initialsInput.focus();
+                duplicateCommentsInput.dispatchEvent(
+                    new Event(
+                        "change",
+                        {
+                            bubbles:true
+                        }
+                    )
+                );
+
+                status.textContent=
+                    "Duplicate Dispute Comments: N/A";
 
                 return;
             }
 
-            let finalComment = item.text;
+            /* =============================================
+               3 = Duplicate Dispute Reviewed
+               ============================================= */
 
-            /* =================================================
-               DISPUTE NUMBER
-               ================================================= */
+            if(
+                !e.ctrlKey &&
+                !e.altKey &&
+                !e.metaKey &&
+                !e.shiftKey &&
+                e.key==="3"
+            ){
 
-            if (item.needsDisp) {
+                e.preventDefault();
+                e.stopPropagation();
+                e.stopImmediatePropagation();
 
-                const disp = prompt(
-                    'Enter Dispute Number (example: DISP-6731470)',
-                    ''
+                duplicateCommentsInput.value=
+                    "Duplicate Dispute Reviewed";
+
+                markValid(
+                    duplicateCommentsInput
                 );
 
-                if (disp === null) {
-                    return;
-                }
+                duplicateCommentsInput.dispatchEvent(
+                    new Event(
+                        "change",
+                        {
+                            bubbles:true
+                        }
+                    )
+                );
 
-                if (!disp.trim()) {
-                    console.error(
-                        'Dispute Number is required.'
-                    );
+                status.textContent=
+                    "Duplicate Dispute Comments: Duplicate Dispute Reviewed";
 
-                    return;
-                }
-
-                finalComment =
-                    finalComment.replace(
-                        'DISP-XXXX',
-                        disp.trim()
-                    );
+                return;
             }
 
-            /* =================================================
-               ADD COMMENT
-               ================================================= */
+            /* =============================================
+               ESC = CLOSE
+               ============================================= */
 
-            const d = new Date();
+            if(e.key==="Escape"){
 
-            /*
-             * Keep the existing behavior:
-             * comment date = tomorrow.
-             */
+                e.preventDefault();
+                e.stopPropagation();
 
-            d.setDate(
-                d.getDate() + 1
-            );
+                overlay.remove();
+                style.remove();
 
-            const mm = String(
-                d.getMonth() + 1
-            ).padStart(2, '0');
+                resolve(null);
 
-            const dd = String(
-                d.getDate()
-            ).padStart(2, '0');
+                return;
+            }
 
-            const yy = String(
-                d.getFullYear()
-            ).slice(-2);
+            /* =============================================
+               0 = NO
+               ============================================= */
 
-            const note =
-                finalComment +
-                ' - ' +
-                mm +
-                '/' +
-                dd +
-                '/' +
-                yy +
-                ' - ' +
-                initials;
+            if(
+                e.key==="0" &&
+                eligible.style.display==="block"
+            ){
 
-            el.value =
-                note +
-                (
-                    el.value.trim()
-                        ? '\n\n' + el.value
-                        : ''
-                );
+                e.preventDefault();
 
-            el.dispatchEvent(
-                new Event('input', {
-                    bubbles: true
-                })
-            );
+                noBtn.click();
 
-            el.dispatchEvent(
-                new Event('change', {
-                    bubbles: true
-                })
-            );
+                return;
+            }
 
-            popup.remove();
-        };
+            /* =============================================
+               1 = YES
+               ============================================= */
 
-        popup.appendChild(btn);
-    });
+            if(
+                e.key==="1" &&
+                eligible.style.display==="block"
+            ){
 
-    /* =========================================================
+                e.preventDefault();
+
+                yesBtn.click();
+
+                return;
+            }
+
+        },
+        true
+    );
+
+    /* =====================================================
        CLOSE
-       ========================================================= */
+       ===================================================== */
 
-    const close = document.createElement('button');
+    closeBtn.onclick=()=>{
 
-    close.textContent = 'CLOSE';
+        overlay.remove();
 
-    close.style.cssText =
-        'margin-top:10px;' +
-        'padding:12px 25px;' +
-        'background:#000;' +
-        'color:#fff;' +
-        'font-weight:bold;' +
-        'font-size:16px;' +
-        'border:none;' +
-        'border-radius:6px;' +
-        'cursor:pointer;';
+        style.remove();
 
-    close.onclick = function () {
-        popup.remove();
+        resolve(null);
     };
 
-    popup.appendChild(close);
+    stateInput.focus();
 
-    document.body.appendChild(popup);
+});
+
+/* =========================================================
+   START
+   ========================================================= */
+
+await popup();
 
 })();
