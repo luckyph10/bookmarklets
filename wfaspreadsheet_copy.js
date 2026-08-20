@@ -18,8 +18,6 @@ const saveName=n=>{
 
 /* =========================================================
    GET PAGE DATA BEFORE POPUP
-   This lets the final NO / Continue click perform the copy
-   while it is still a real user interaction.
    ========================================================= */
 
 const disputeNumber=
@@ -70,10 +68,6 @@ const getPlanType=i=>planTypes[i]||planTypes[0]||"";
 
 const copyText=function(text){
 
-    /*
-      First try the modern clipboard API.
-      This can work when the browser allows it.
-    */
     try{
         if(
             navigator.clipboard &&
@@ -81,10 +75,6 @@ const copyText=function(text){
         ){
             const result=navigator.clipboard.writeText(text);
 
-            /*
-              Do not wait for the promise here.
-              The fallback below is also executed immediately.
-            */
             if(result && typeof result.catch==="function"){
                 result.catch(e=>{
                     console.warn("Clipboard API rejected:",e);
@@ -97,11 +87,6 @@ const copyText=function(text){
         console.warn("Clipboard API failed:",e);
     }
 
-    /*
-      Reliable fallback:
-      textarea + execCommand("copy")
-      This is executed directly from the button click.
-    */
     try{
         const textarea=document.createElement("textarea");
 
@@ -195,7 +180,6 @@ const showCopyMessage=(message,success=true)=>{
     return toast;
 };
 
-
 /* =========================================================
    POPUP
    ========================================================= */
@@ -218,6 +202,7 @@ const popup=()=>new Promise(resolve=>{
             <div id="dp-label-name">Dispute User Name</div>
 
             <div id="dp-name-row">
+
                 <input
                     id="dp-name"
                     type="text"
@@ -230,9 +215,12 @@ const popup=()=>new Promise(resolve=>{
                 <span id="dp-saved">Saved ✓</span>
 
                 <button id="dp-save">Save</button>
+
             </div>
 
-            <div id="dp-label-state">State + Duplicate Comments</div>
+            <div id="dp-label-state">
+                State + Duplicate Comments
+            </div>
 
             <div id="dp-state-row">
 
@@ -243,14 +231,27 @@ const popup=()=>new Promise(resolve=>{
                     autocomplete="off"
                 >
 
-                <select id="dp-duplicate-comments">
-                    <option><option value="">
+                <!-- REQUIRED DUPLICATE COMMENTS -->
+                <select
+                    id="dp-duplicate-comments"
+                    required
+                >
+                    <option
+                        value=""
+                        selected
+                        disabled
+                    >
+                        Select
+                    </option>
+
                     <option value="Duplicate Dispute Reviewed">
                         Duplicate Dispute Reviewed
                     </option>
+
                     <option value="N/A">
                         N/A
                     </option>
+
                 </select>
 
                 <button id="dp-go">Go</button>
@@ -266,8 +267,15 @@ const popup=()=>new Promise(resolve=>{
                 </div>
 
                 <div id="dp-eligible-buttons">
-                    <button id="dp-no">NO</button>
-                    <button id="dp-yes">YES</button>
+
+                    <button id="dp-no">
+                        NO
+                    </button>
+
+                    <button id="dp-yes">
+                        YES
+                    </button>
+
                 </div>
 
                 <div id="dp-yes-extra" style="display:none">
@@ -287,7 +295,11 @@ const popup=()=>new Promise(resolve=>{
                         Verified?
                     </div>
 
-                    <select id="dp-verified">
+                    <select
+                        id="dp-verified"
+                        required
+                    >
+
                         <option value="">
                             Select Yes or No
                         </option>
@@ -299,6 +311,7 @@ const popup=()=>new Promise(resolve=>{
                         <option value="No">
                             No
                         </option>
+
                     </select>
 
                     <button id="dp-continue">
@@ -592,8 +605,6 @@ const popup=()=>new Promise(resolve=>{
 
         @media(max-width:650px){
 
-            #dp-popup{}
-
             #dp-state-row{
                 flex-wrap:wrap
             }
@@ -764,12 +775,11 @@ const popup=()=>new Promise(resolve=>{
 
     };
 
-    /*
-      Go applies to BOTH:
-      State
-      Duplicate Comments
-    */
-    const processStateAndDuplicate=()=>{
+    /* =====================================================
+       VALIDATE STATE + DUPLICATE COMMENTS
+       ===================================================== */
+
+    const validateStateAndDuplicate=()=>{
 
         if(!currentName){
 
@@ -778,7 +788,7 @@ const popup=()=>new Promise(resolve=>{
 
             nameInput.focus();
 
-            return;
+            return false;
         }
 
         const state=
@@ -791,21 +801,44 @@ const popup=()=>new Promise(resolve=>{
 
             stateInput.focus();
 
-            return;
+            return false;
         }
 
+        /*
+          REQUIRED:
+          The dropdown cannot remain on the placeholder.
+        */
         const duplicateComments=
             duplicateCommentsInput.value;
 
-        if(!duplicateComments){
+        if(
+            !duplicateComments ||
+            duplicateCommentsInput.selectedIndex===0
+        ){
 
             status.textContent=
-                "Select Duplicate Comments.";
+                "Please select Duplicate Dispute Comments before continuing.";
 
             duplicateCommentsInput.focus();
 
+            return false;
+        }
+
+        return true;
+    };
+
+    /* =====================================================
+       GO
+       ===================================================== */
+
+    const processStateAndDuplicate=()=>{
+
+        if(!validateStateAndDuplicate()){
             return;
         }
+
+        const state=
+            stateInput.value.trim();
 
         stateInput.value=
             state.toUpperCase();
@@ -818,9 +851,6 @@ const popup=()=>new Promise(resolve=>{
 
         verifiedInput.value=
             "";
-
-        goBtn.disabled=
-            true;
 
         status.textContent=
             "Choose eligibility to continue.";
@@ -856,9 +886,9 @@ const popup=()=>new Promise(resolve=>{
 
     };
 
-    /*
-      Build A:P exactly.
-    */
+    /* =====================================================
+       BUILD NO OUTPUT
+       ===================================================== */
 
     const buildNoOutput=(stateValue,duplicateComments)=>{
 
@@ -886,6 +916,10 @@ const popup=()=>new Promise(resolve=>{
             :ids.map((id,i)=>makeNoRow(id,i)).join("\n");
 
     };
+
+    /* =====================================================
+       BUILD YES OUTPUT
+       ===================================================== */
 
     const buildYesOutput=(
         stateValue,
@@ -920,38 +954,24 @@ const popup=()=>new Promise(resolve=>{
 
     };
 
-    /*
-      Finish NO.
-      IMPORTANT:
-      copyText() happens directly inside NO button click.
-    */
+    /* =====================================================
+       NO
+       ===================================================== */
+
     noBtn.onclick=()=>{
+
+        /*
+          Validate again because NO is a final action.
+        */
+        if(!validateStateAndDuplicate()){
+            return;
+        }
 
         const stateValue=
             stateInput.value.trim().toUpperCase();
 
         const duplicateComments=
             duplicateCommentsInput.value;
-
-        if(!stateValue){
-
-            status.textContent=
-                "Enter a State.";
-
-            stateInput.focus();
-
-            return;
-        }
-
-        if(!duplicateComments){
-
-            status.textContent=
-                "Select Duplicate Comments.";
-
-            duplicateCommentsInput.focus();
-
-            return;
-        }
 
         const output=
             buildNoOutput(
@@ -981,10 +1001,6 @@ const popup=()=>new Promise(resolve=>{
 
         if(toastCopy){
 
-            /*
-              Save the actual spreadsheet text on the toast
-              so COPY AGAIN always has the exact same output.
-            */
             toast.querySelector("#dct-message")
                 .dataset.clipboard=output;
 
@@ -994,7 +1010,19 @@ const popup=()=>new Promise(resolve=>{
 
     };
 
+    /* =====================================================
+       YES
+       ===================================================== */
+
     yesBtn.onclick=()=>{
+
+        /*
+          Validate duplicate comments again before opening
+          the YES section.
+        */
+        if(!validateStateAndDuplicate()){
+            return;
+        }
 
         yesExtra.style.display=
             "block";
@@ -1034,12 +1062,19 @@ const popup=()=>new Promise(resolve=>{
 
     };
 
-    /*
-      Finish YES.
-      IMPORTANT:
-      copyText() happens directly inside Continue button click.
-    */
+    /* =====================================================
+       YES CONTINUE
+       ===================================================== */
+
     continueBtn.onclick=()=>{
+
+        /*
+          Final validation of every required field.
+        */
+
+        if(!validateStateAndDuplicate()){
+            return;
+        }
 
         const email=
             emailInput.value.trim();
@@ -1072,26 +1107,6 @@ const popup=()=>new Promise(resolve=>{
 
         const duplicateComments=
             duplicateCommentsInput.value;
-
-        if(!stateValue){
-
-            status.textContent=
-                "Enter a State.";
-
-            stateInput.focus();
-
-            return;
-        }
-
-        if(!duplicateComments){
-
-            status.textContent=
-                "Select Duplicate Comments.";
-
-            duplicateCommentsInput.focus();
-
-            return;
-        }
 
         const output=
             buildYesOutput(
@@ -1133,6 +1148,10 @@ const popup=()=>new Promise(resolve=>{
 
     };
 
+    /* =====================================================
+       CLOSE
+       ===================================================== */
+
     closeBtn.onclick=()=>{
 
         overlay.remove();
@@ -1142,6 +1161,10 @@ const popup=()=>new Promise(resolve=>{
         resolve(null);
 
     };
+
+    /* =====================================================
+       KEYBOARD SHORTCUTS
+       ===================================================== */
 
     overlay.onkeydown=e=>{
 
@@ -1183,11 +1206,6 @@ const popup=()=>new Promise(resolve=>{
 
 });
 
-
-/*
-   Popup now performs the clipboard operation itself
-   from the actual button click.
-*/
 await popup();
 
 })();
