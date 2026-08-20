@@ -151,6 +151,7 @@ const showCopyMessage=(message,success=true)=>{
         const ok=copyText(messageEl.dataset.clipboard||"");
 
         copyAgainBtn.textContent=ok?"COPIED ✓":"COPY FAILED";
+
         copyAgainBtn.style.background=
             ok
             ?"rgba(35,150,70,.9)"
@@ -197,9 +198,13 @@ const popup=()=>new Promise(resolve=>{
 
             <button id="dp-close" title="Close">×</button>
 
-            <div id="dp-title">Dispute Information</div>
+            <div id="dp-title">
+                Dispute Information
+            </div>
 
-            <div id="dp-label-name">Dispute User Name</div>
+            <div id="dp-label-name">
+                Dispute User Name
+            </div>
 
             <div id="dp-name-row">
 
@@ -210,11 +215,17 @@ const popup=()=>new Promise(resolve=>{
                     autocomplete="off"
                 >
 
-                <button id="dp-edit">Edit</button>
+                <button id="dp-edit">
+                    Edit
+                </button>
 
-                <span id="dp-saved">Saved ✓</span>
+                <span id="dp-saved">
+                    Saved ✓
+                </span>
 
-                <button id="dp-save">Save</button>
+                <button id="dp-save">
+                    Save
+                </button>
 
             </div>
 
@@ -231,17 +242,17 @@ const popup=()=>new Promise(resolve=>{
                     autocomplete="off"
                 >
 
-                <!-- REQUIRED DUPLICATE COMMENTS -->
                 <select
                     id="dp-duplicate-comments"
                     required
                 >
+
                     <option
                         value=""
                         selected
                         disabled
                     >
-                        Select
+                        Select Duplicate Dispute Comments
                     </option>
 
                     <option value="Duplicate Dispute Reviewed">
@@ -254,8 +265,15 @@ const popup=()=>new Promise(resolve=>{
 
                 </select>
 
-                <button id="dp-go">Go</button>
+                <button id="dp-go">
+                    Go
+                </button>
 
+            </div>
+
+            <div id="dp-shortcuts">
+                <span>2 = N/A</span>
+                <span>3 = Duplicate Dispute Reviewed</span>
             </div>
 
             <div id="dp-status"></div>
@@ -527,6 +545,21 @@ const popup=()=>new Promise(resolve=>{
             white-space:nowrap
         }
 
+        #dp-shortcuts{
+            margin-top:8px;
+            display:flex;
+            gap:14px;
+            flex-wrap:wrap;
+            font-size:11px;
+            color:rgba(255,255,255,.5)
+        }
+
+        #dp-shortcuts span{
+            background:rgba(255,255,255,.06);
+            padding:4px 7px;
+            border-radius:5px
+        }
+
         #dp-status{
             margin-top:9px;
             font-size:12px;
@@ -712,6 +745,10 @@ const popup=()=>new Promise(resolve=>{
 
     }
 
+    /* =====================================================
+       EDIT USERNAME
+       ===================================================== */
+
     editBtn.onclick=()=>{
 
         nameInput.readOnly=false;
@@ -732,6 +769,10 @@ const popup=()=>new Promise(resolve=>{
             "Editing username...";
 
     };
+
+    /* =====================================================
+       SAVE USERNAME
+       ===================================================== */
 
     saveBtn.onclick=()=>{
 
@@ -804,13 +845,13 @@ const popup=()=>new Promise(resolve=>{
             return false;
         }
 
-        /*
-          REQUIRED:
-          The dropdown cannot remain on the placeholder.
-        */
         const duplicateComments=
             duplicateCommentsInput.value;
 
+        /*
+          Required:
+          Must be either N/A or Duplicate Dispute Reviewed.
+        */
         if(
             !duplicateComments ||
             duplicateCommentsInput.selectedIndex===0
@@ -828,7 +869,7 @@ const popup=()=>new Promise(resolve=>{
     };
 
     /* =====================================================
-       GO
+       PROCESS GO
        ===================================================== */
 
     const processStateAndDuplicate=()=>{
@@ -960,9 +1001,6 @@ const popup=()=>new Promise(resolve=>{
 
     noBtn.onclick=()=>{
 
-        /*
-          Validate again because NO is a final action.
-        */
         if(!validateStateAndDuplicate()){
             return;
         }
@@ -1016,10 +1054,6 @@ const popup=()=>new Promise(resolve=>{
 
     yesBtn.onclick=()=>{
 
-        /*
-          Validate duplicate comments again before opening
-          the YES section.
-        */
         if(!validateStateAndDuplicate()){
             return;
         }
@@ -1067,10 +1101,6 @@ const popup=()=>new Promise(resolve=>{
        ===================================================== */
 
     continueBtn.onclick=()=>{
-
-        /*
-          Final validation of every required field.
-        */
 
         if(!validateStateAndDuplicate()){
             return;
@@ -1149,7 +1179,127 @@ const popup=()=>new Promise(resolve=>{
     };
 
     /* =====================================================
-       CLOSE
+       KEYBOARD SHORTCUTS
+       
+       0 = NO
+       1 = YES
+       2 = N/A
+       3 = Duplicate Dispute Reviewed
+       
+       2 and 3 only activate when the user is NOT typing
+       in an input/select/textarea.
+       ===================================================== */
+
+    overlay.addEventListener("keydown",e=>{
+
+        const target=e.target;
+
+        const isTypingField=
+            target.tagName==="INPUT" ||
+            target.tagName==="TEXTAREA" ||
+            target.tagName==="SELECT";
+
+        /*
+          ESC = Close
+        */
+
+        if(e.key==="Escape"){
+
+            e.preventDefault();
+
+            overlay.remove();
+            style.remove();
+
+            resolve(null);
+
+            return;
+        }
+
+        /*
+          2 = N/A
+        */
+
+        if(
+            e.key==="2" &&
+            !isTypingField
+        ){
+
+            e.preventDefault();
+
+            duplicateCommentsInput.value="N/A";
+
+            duplicateCommentsInput.dispatchEvent(
+                new Event("change",{bubbles:true})
+            );
+
+            status.textContent=
+                "Duplicate Dispute Comments: N/A";
+
+            return;
+        }
+
+        /*
+          3 = Duplicate Dispute Reviewed
+        */
+
+        if(
+            e.key==="3" &&
+            !isTypingField
+        ){
+
+            e.preventDefault();
+
+            duplicateCommentsInput.value=
+                "Duplicate Dispute Reviewed";
+
+            duplicateCommentsInput.dispatchEvent(
+                new Event("change",{bubbles:true})
+            );
+
+            status.textContent=
+                "Duplicate Dispute Comments: Duplicate Dispute Reviewed";
+
+            return;
+        }
+
+        /*
+          0 = NO
+        */
+
+        if(
+            e.key==="0" &&
+            eligible.style.display==="block" &&
+            !isTypingField
+        ){
+
+            e.preventDefault();
+
+            noBtn.click();
+
+            return;
+        }
+
+        /*
+          1 = YES
+        */
+
+        if(
+            e.key==="1" &&
+            eligible.style.display==="block" &&
+            !isTypingField
+        ){
+
+            e.preventDefault();
+
+            yesBtn.click();
+
+            return;
+        }
+
+    });
+
+    /* =====================================================
+       CLOSE BUTTON
        ===================================================== */
 
     closeBtn.onclick=()=>{
@@ -1159,46 +1309,6 @@ const popup=()=>new Promise(resolve=>{
         style.remove();
 
         resolve(null);
-
-    };
-
-    /* =====================================================
-       KEYBOARD SHORTCUTS
-       ===================================================== */
-
-    overlay.onkeydown=e=>{
-
-        if(e.key==="Escape"){
-
-            overlay.remove();
-
-            style.remove();
-
-            resolve(null);
-
-        }
-
-        if(
-            e.key==="0" &&
-            eligible.style.display==="block"
-        ){
-
-            e.preventDefault();
-
-            noBtn.click();
-
-        }
-
-        if(
-            e.key==="1" &&
-            eligible.style.display==="block"
-        ){
-
-            e.preventDefault();
-
-            yesBtn.click();
-
-        }
 
     };
 
