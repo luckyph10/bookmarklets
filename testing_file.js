@@ -280,59 +280,28 @@ const getPlanType=i=>{
 
 };
 
-
 /* =========================================================
-   =========================================================
    COLUMN F + COLUMN K -> COLUMN Q
-   =========================================================
-   =========================================================
-
-   THIS FUNCTION IS THE IMPORTANT PART.
-
-   It receives the EXACT values that are going into:
-
-       COLUMN F
-       COLUMN K
-
-   and returns what goes into:
-
-       COLUMN Q
-
-   Therefore there is no longer a mismatch between the
-   source values and the copied Excel columns.
    ========================================================= */
 
-const getColumnQValue=(sourceF,sourceK)=>{
+const getColumnQValue=(columnFValue)=>{
 
-    const F=
-        normalizeValue(sourceF);
+    const f=normalizeValue(columnFValue);
+    const k=normalizeValue(columnKValue);
 
-    const K=
-        normalizeValue(sourceK);
-
-
-    console.log(
-        "Q RULE CHECK",
-        {
-            F:sourceF,
-            normalizedF:F,
-            K:sourceK,
-            normalizedK:K
-        }
-    );
-
+    console.log("Q RULE CHECK:",{
+        originalF:columnFValue,
+        normalizedF:f,
+        originalK:columnKValue,
+        normalizedK:k
+    });
 
     /* =====================================================
-       K = CLOSED
-       =====================================================
-
-       K has priority.
+       COLUMN K = CLOSED
+       K CLOSED ALWAYS HAS PRIORITY
        ===================================================== */
 
-    if(
-        K==="closed"||
-        K.includes("closed")
-    ){
+    if(k==="closed" || k.includes("closed")){
 
         return(
             "Completed. Dispute is Closed Due to Receiving Payment Determination."
@@ -342,11 +311,11 @@ const getColumnQValue=(sourceF,sourceK)=>{
 
 
     /* =====================================================
-       F = PLAN TYPE VALIDATED
+       COLUMN F = PLAN TYPE VALIDATED
        ===================================================== */
 
     if(
-        F.includes(
+        f.includes(
             "plan type validated post idr initiation"
         )
     ){
@@ -359,11 +328,11 @@ const getColumnQValue=(sourceF,sourceK)=>{
 
 
     /* =====================================================
-       F = PLAN TYPE OBJECTION SUBMITTED
+       COLUMN F = PLAN TYPE OBJECTION SUBMITTED
        ===================================================== */
 
     if(
-        F.includes(
+        f.includes(
             "plan type objection submitted"
         )
     ){
@@ -376,11 +345,29 @@ const getColumnQValue=(sourceF,sourceK)=>{
 
 
     /* =====================================================
-       F = ADDITIONAL INFO EMAIL
+       COLUMN F = TIMELINE ENFORCEMENT SUBMITTED TO IDRE
        ===================================================== */
 
     if(
-        F.includes(
+        f.includes(
+            "timeline enforcement submitted to idre"
+        )
+    ){
+
+        return(
+            "Already completed by Onshore"
+        );
+
+    }
+
+
+    /* =====================================================
+       COLUMN F = ADDITIONAL INFO PROVIDED TO IDRE
+       THROUGH EMAIL
+       ===================================================== */
+
+    if(
+        f.includes(
             "additional info provided to idre through email"
         )
     ){
@@ -393,11 +380,12 @@ const getColumnQValue=(sourceF,sourceK)=>{
 
 
     /* =====================================================
-       F = ADDITIONAL INFO PORTAL
+       COLUMN F = ADDITIONAL INFO PROVIDED TO IDRE
+       THROUGH PORTAL
        ===================================================== */
 
     if(
-        F.includes(
+        f.includes(
             "additional info provided to idre through portal"
         )
     ){
@@ -414,17 +402,16 @@ const getColumnQValue=(sourceF,sourceK)=>{
        ===================================================== */
 
     console.warn(
-        "NO F/K RULE MATCHED",
+        "NO F -> Q RULE MATCHED",
         {
-            F:sourceF,
-            K:sourceK
+            columnF:columnFValue,
+            columnK:columnKValue
         }
     );
 
     return"";
 
 };
-
 
 /* =========================================================
    IMPORTANT TEST
