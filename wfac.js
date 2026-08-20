@@ -91,6 +91,77 @@
     ];
 
     /* =========================================================
+       PHILIPPINE TIME / DATE
+       ========================================================= */
+
+    const PH_TIMEZONE = 'Asia/Manila';
+
+    /*
+     * Get TODAY'S date based on Philippine Time.
+     *
+     * IMPORTANT:
+     * This uses Asia/Manila and does NOT use the computer's
+     * local timezone.
+     *
+     * Example:
+     *
+     * Philippine date = August 20, 2026
+     * Result = 08/20/26
+     *
+     * There is NO +1 day.
+     */
+    function getTodayPHDate() {
+        const parts = new Intl.DateTimeFormat('en-US', {
+            timeZone: PH_TIMEZONE,
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit'
+        }).formatToParts(new Date());
+
+        const result = {};
+
+        parts.forEach(function (part) {
+            if (part.type !== 'literal') {
+                result[part.type] = part.value;
+            }
+        });
+
+        const mm = String(result.month).padStart(2, '0');
+        const dd = String(result.day).padStart(2, '0');
+        const yy = String(result.year).slice(-2);
+
+        return mm + '/' + dd + '/' + yy;
+    }
+
+    /*
+     * Get the current Philippine date/time for debugging.
+     *
+     * You can see this in the browser console.
+     */
+    function getCurrentPHDateTime() {
+        return new Intl.DateTimeFormat('en-US', {
+            timeZone: PH_TIMEZONE,
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            hour12: true
+        }).format(new Date());
+    }
+
+    console.log(
+        'Current Philippine Date/Time:',
+        getCurrentPHDateTime()
+    );
+
+    console.log(
+        'Automatic Comment Date:',
+        getTodayPHDate()
+    );
+
+    /* =========================================================
        REMOVE EXISTING POPUP
        ========================================================= */
 
@@ -248,6 +319,10 @@
 
     items.forEach(function (item) {
 
+        /* =====================================================
+           HEADER
+           ===================================================== */
+
         if (item.header) {
             const h = document.createElement('div');
 
@@ -267,6 +342,10 @@
 
             return;
         }
+
+        /* =====================================================
+           COMMENT BUTTON
+           ===================================================== */
 
         const btn = document.createElement('button');
 
@@ -355,42 +434,40 @@
             }
 
             /* =================================================
-               ADD COMMENT
+               GET TODAY'S PHILIPPINE DATE
                ================================================= */
 
-            const d = new Date();
-
             /*
-             * Keep the existing behavior:
-             * comment date = tomorrow.
+             * IMPORTANT:
+             *
+             * This gets TODAY in the Philippines.
+             *
+             * NO +1 DAY.
+             *
+             * If PH today is:
+             *
+             * 08/20/26
+             *
+             * the comment date will be:
+             *
+             * 08/20/26
              */
+            const commentDate = getTodayPHDate();
 
-            d.setDate(
-                d.getDate() + 1
-            );
-
-            const mm = String(
-                d.getMonth() + 1
-            ).padStart(2, '0');
-
-            const dd = String(
-                d.getDate()
-            ).padStart(2, '0');
-
-            const yy = String(
-                d.getFullYear()
-            ).slice(-2);
+            /* =================================================
+               CREATE FINAL COMMENT
+               ================================================= */
 
             const note =
                 finalComment +
                 ' - ' +
-                mm +
-                '/' +
-                dd +
-                '/' +
-                yy +
+                commentDate +
                 ' - ' +
                 initials;
+
+            /* =================================================
+               INSERT COMMENT
+               ================================================= */
 
             el.value =
                 note +
@@ -400,17 +477,29 @@
                         : ''
                 );
 
+            /* =================================================
+               TRIGGER INPUT EVENT
+               ================================================= */
+
             el.dispatchEvent(
                 new Event('input', {
                     bubbles: true
                 })
             );
 
+            /* =================================================
+               TRIGGER CHANGE EVENT
+               ================================================= */
+
             el.dispatchEvent(
                 new Event('change', {
                     bubbles: true
                 })
             );
+
+            /* =================================================
+               CLOSE POPUP
+               ================================================= */
 
             popup.remove();
         };
@@ -442,6 +531,10 @@
     };
 
     popup.appendChild(close);
+
+    /* =========================================================
+       ADD POPUP TO PAGE
+       ========================================================= */
 
     document.body.appendChild(popup);
 
