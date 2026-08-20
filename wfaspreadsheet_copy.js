@@ -362,7 +362,7 @@ const getColumnQValue=(actualF,actualK)=>{
         );
 
         return(
-            "VOB verified, Plan Type Validated Post IDR Initiation – Eligible (Federal NSA)"
+            "VOB verified, Plan Type Validated Post IDR Initiation – Eligible (Federal NSA)."
         );
 
     }
@@ -404,7 +404,7 @@ const getColumnQValue=(actualF,actualK)=>{
         );
 
         return(
-            "Already completed by Onshore"
+            "Already completed by Onshore."
         );
 
     }
