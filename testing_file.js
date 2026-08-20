@@ -69,26 +69,45 @@ const getPlanType=i=>planTypes[i]||planTypes[0]||"";
 const copyText=function(text){
 
     try{
+
         if(
             navigator.clipboard &&
             typeof navigator.clipboard.writeText==="function"
         ){
-            const result=navigator.clipboard.writeText(text);
 
-            if(result && typeof result.catch==="function"){
+            const result=
+                navigator.clipboard.writeText(text);
+
+            if(
+                result &&
+                typeof result.catch==="function"
+            ){
+
                 result.catch(e=>{
-                    console.warn("Clipboard API rejected:",e);
+                    console.warn(
+                        "Clipboard API rejected:",
+                        e
+                    );
                 });
+
             }
 
             return true;
         }
+
     }catch(e){
-        console.warn("Clipboard API failed:",e);
+
+        console.warn(
+            "Clipboard API failed:",
+            e
+        );
+
     }
 
     try{
-        const textarea=document.createElement("textarea");
+
+        const textarea=
+            document.createElement("textarea");
 
         textarea.value=text;
         textarea.readOnly=true;
@@ -105,52 +124,90 @@ const copyText=function(text){
 
         textarea.focus();
         textarea.select();
-        textarea.setSelectionRange(0,text.length);
+        textarea.setSelectionRange(
+            0,
+            text.length
+        );
 
-        const copied=document.execCommand("copy");
+        const copied=
+            document.execCommand("copy");
 
         textarea.remove();
 
         return copied;
 
     }catch(e){
-        console.error("Clipboard fallback failed:",e);
+
+        console.error(
+            "Clipboard fallback failed:",
+            e
+        );
+
         return false;
+
     }
+
 };
 
 /* =========================================================
-   SHOW SUCCESS MESSAGE
+   SHOW COPY MESSAGE
    ========================================================= */
 
-const showCopyMessage=(message,success=true)=>{
+const showCopyMessage=(
+    message,
+    success=true
+)=>{
 
-    const old=document.getElementById("dispute-copy-toast");
+    const old=
+        document.getElementById(
+            "dispute-copy-toast"
+        );
+
     if(old)old.remove();
 
-    const toast=document.createElement("div");
-    toast.id="dispute-copy-toast";
+    const toast=
+        document.createElement("div");
+
+    toast.id=
+        "dispute-copy-toast";
 
     toast.innerHTML=`
         <div id="dct-message"></div>
-        <button id="dct-copy">COPY AGAIN</button>
+        <button id="dct-copy">
+            COPY AGAIN
+        </button>
     `;
 
     toast.style.cssText=
         "position:fixed;top:80px;left:50%;transform:translateX(-50%);padding:14px 16px;border-radius:14px;background:rgba(0,0,0,.86);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);color:#fff;font:600 14px Arial,sans-serif;z-index:2147483647;box-shadow:0 8px 32px rgba(0,0,0,.4);min-width:360px;text-align:center;box-sizing:border-box";
 
-    const messageEl=toast.querySelector("#dct-message");
-    const copyAgainBtn=toast.querySelector("#dct-copy");
+    const messageEl=
+        toast.querySelector(
+            "#dct-message"
+        );
 
-    messageEl.textContent=message;
+    const copyAgainBtn=
+        toast.querySelector(
+            "#dct-copy"
+        );
+
+    messageEl.textContent=
+        message;
 
     copyAgainBtn.style.cssText=
         "margin-top:10px;height:36px;padding:0 16px;border:1px solid rgba(255,255,255,.25);border-radius:9px;background:rgba(35,150,70,.9);color:#fff;font:700 13px Arial,sans-serif;cursor:pointer";
 
     copyAgainBtn.onclick=()=>{
-        const ok=copyText(messageEl.dataset.clipboard||"");
 
-        copyAgainBtn.textContent=ok?"COPIED ✓":"COPY FAILED";
+        const ok=
+            copyText(
+                messageEl.dataset.clipboard||""
+            );
+
+        copyAgainBtn.textContent=
+            ok
+            ?"COPIED ✓"
+            :"COPY FAILED";
 
         copyAgainBtn.style.background=
             ok
@@ -158,27 +215,45 @@ const showCopyMessage=(message,success=true)=>{
             :"rgba(190,35,35,.9)";
 
         if(ok){
+
             setTimeout(()=>{
-                copyAgainBtn.textContent="COPY AGAIN";
-                copyAgainBtn.style.background="rgba(35,150,70,.9)";
+
+                copyAgainBtn.textContent=
+                    "COPY AGAIN";
+
+                copyAgainBtn.style.background=
+                    "rgba(35,150,70,.9)";
+
             },1500);
+
         }
+
     };
 
     document.body.appendChild(toast);
 
     setTimeout(()=>{
+
         if(toast.parentNode){
-            toast.style.transition="opacity .3s";
+
+            toast.style.transition=
+                "opacity .3s";
+
             toast.style.opacity="0";
 
             setTimeout(()=>{
-                if(toast.parentNode)toast.remove();
+
+                if(toast.parentNode)
+                    toast.remove();
+
             },300);
+
         }
+
     },5000);
 
     return toast;
+
 };
 
 /* =========================================================
@@ -187,20 +262,35 @@ const showCopyMessage=(message,success=true)=>{
 
 const popup=()=>new Promise(resolve=>{
 
-    const old=document.getElementById("dispute-popup-overlay");
+    const old=
+        document.getElementById(
+            "dispute-popup-overlay"
+        );
+
     if(old)old.remove();
 
-    const overlay=document.createElement("div");
-    overlay.id="dispute-popup-overlay";
+    const overlay=
+        document.createElement("div");
+
+    overlay.id=
+        "dispute-popup-overlay";
 
     overlay.innerHTML=`
+
         <div id="dispute-popup">
 
-            <button id="dp-close" title="Close">×</button>
+            <button
+                id="dp-close"
+                title="Close"
+            >
+                ×
+            </button>
 
             <div id="dp-title">
                 Dispute Information
             </div>
+
+            <!-- USER NAME -->
 
             <div id="dp-label-name">
                 Dispute User Name
@@ -228,6 +318,8 @@ const popup=()=>new Promise(resolve=>{
                 </button>
 
             </div>
+
+            <!-- STATE + DUPLICATE COMMENTS -->
 
             <div id="dp-label-state">
                 State + Duplicate Comments
@@ -271,14 +363,28 @@ const popup=()=>new Promise(resolve=>{
 
             </div>
 
+            <!-- SHORTCUT INFORMATION -->
+
             <div id="dp-shortcuts">
-                <span>2 = N/A</span>
-                <span>3 = Duplicate Dispute Reviewed</span>
+
+                <span>
+                    Ctrl + 2 = N/A
+                </span>
+
+                <span>
+                    Ctrl + 3 = Duplicate Dispute Reviewed
+                </span>
+
             </div>
 
             <div id="dp-status"></div>
 
-            <div id="dp-eligible" style="display:none">
+            <!-- ELIGIBILITY -->
+
+            <div
+                id="dp-eligible"
+                style="display:none"
+            >
 
                 <div id="dp-eligible-title">
                     Eligible updated today?
@@ -296,7 +402,12 @@ const popup=()=>new Promise(resolve=>{
 
                 </div>
 
-                <div id="dp-yes-extra" style="display:none">
+                <!-- YES EXTRA -->
+
+                <div
+                    id="dp-yes-extra"
+                    style="display:none"
+                >
 
                     <div id="dp-label-email">
                         PLANTYPE_IDRE_EMAIL
@@ -341,85 +452,157 @@ const popup=()=>new Promise(resolve=>{
             </div>
 
         </div>
+
     `;
 
-    const style=document.createElement("style");
-    style.id="dispute-popup-style";
+    /* =====================================================
+       CSS
+       ===================================================== */
+
+    const style=
+        document.createElement("style");
+
+    style.id=
+        "dispute-popup-style";
 
     style.textContent=`
 
         #dispute-popup-overlay{
+
             position:fixed;
             top:0;
             left:0;
             width:100%;
             height:100%;
             z-index:2147483647;
-            pointer-events:none
+            pointer-events:none;
+
         }
 
         #dispute-popup{
+
             pointer-events:auto;
+
             position:absolute;
+
             top:20px;
+
             left:50%;
-            transform:translateX(-50%);
+
+            transform:
+                translateX(-50%);
+
             width:620px;
-            max-width:calc(100vw - 30px);
+
+            max-width:
+                calc(100vw - 30px);
+
             padding:24px;
+
             border-radius:18px;
-            background:rgba(0,0,0,.76);
-            border:1px solid rgba(255,255,255,.18);
-            box-shadow:0 15px 45px rgba(0,0,0,.45);
-            backdrop-filter:blur(14px);
-            -webkit-backdrop-filter:blur(14px);
-            font-family:Arial,sans-serif;
+
+            background:
+                rgba(0,0,0,.76);
+
+            border:
+                1px solid
+                rgba(255,255,255,.18);
+
+            box-shadow:
+                0 15px 45px
+                rgba(0,0,0,.45);
+
+            backdrop-filter:
+                blur(14px);
+
+            -webkit-backdrop-filter:
+                blur(14px);
+
+            font-family:
+                Arial,sans-serif;
+
             color:#fff;
-            box-sizing:border-box
+
+            box-sizing:
+                border-box;
+
         }
 
         #dp-title{
+
             font-size:20px;
+
             font-weight:700;
+
             margin-bottom:20px;
-            padding-right:35px
+
+            padding-right:35px;
+
         }
 
         #dp-close{
+
             position:absolute;
+
             top:8px;
+
             right:10px;
+
             width:34px;
+
             height:34px;
+
             border:0;
+
             border-radius:50%;
+
             background:transparent;
+
             color:#fff;
+
             font-size:27px;
+
             line-height:30px;
-            cursor:pointer
+
+            cursor:pointer;
+
         }
 
         #dp-close:hover{
-            background:rgba(255,255,255,.14)
+
+            background:
+                rgba(255,255,255,.14);
+
         }
 
         #dp-label-name,
         #dp-label-state,
         #dp-label-email,
         #dp-label-verified{
+
             font-size:13px;
+
             font-weight:600;
-            color:rgba(255,255,255,.9);
-            margin:10px 0 7px
+
+            color:
+                rgba(255,255,255,.9);
+
+            margin:
+                10px 0 7px;
+
         }
 
         #dp-name-row,
         #dp-state-row{
+
             display:flex;
+
             gap:8px;
+
             width:100%;
-            align-items:center
+
+            align-items:center;
+
         }
 
         #dp-name,
@@ -427,58 +610,98 @@ const popup=()=>new Promise(resolve=>{
         #dp-email,
         #dp-verified,
         #dp-duplicate-comments{
+
             height:42px;
+
             box-sizing:border-box;
-            border:1px solid rgba(255,255,255,.25);
+
+            border:
+                1px solid
+                rgba(255,255,255,.25);
+
             border-radius:10px;
-            background:rgba(255,255,255,.09);
+
+            background:
+                rgba(255,255,255,.09);
+
             color:#fff;
+
             outline:none;
-            padding:0 12px;
-            font-size:14px
+
+            padding:
+                0 12px;
+
+            font-size:14px;
+
         }
 
         #dp-name{
+
             flex:1;
-            min-width:0
+
+            min-width:0;
+
         }
 
         #dp-state{
+
             flex:1;
-            min-width:0
+
+            min-width:0;
+
         }
 
         #dp-duplicate-comments{
+
             width:220px;
+
             flex-shrink:0;
-            cursor:pointer
+
+            cursor:pointer;
+
         }
 
         #dp-email,
         #dp-verified{
-            width:100%
+
+            width:100%;
+
         }
 
         #dp-verified{
-            cursor:pointer
+
+            cursor:pointer;
+
         }
 
         #dp-verified option,
         #dp-duplicate-comments option{
+
             background:#222;
-            color:#fff
+
+            color:#fff;
+
         }
 
         #dp-name:read-only{
-            background:rgba(255,255,255,.045);
-            color:rgba(255,255,255,.72);
-            cursor:default
+
+            background:
+                rgba(255,255,255,.045);
+
+            color:
+                rgba(255,255,255,.72);
+
+            cursor:default;
+
         }
 
         #dp-name::placeholder,
         #dp-state::placeholder,
         #dp-email::placeholder{
-            color:rgba(255,255,255,.5)
+
+            color:
+                rgba(255,255,255,.5);
+
         }
 
         #dp-name:focus,
@@ -486,174 +709,305 @@ const popup=()=>new Promise(resolve=>{
         #dp-email:focus,
         #dp-verified:focus,
         #dp-duplicate-comments:focus{
-            border-color:rgba(255,255,255,.65);
-            box-shadow:0 0 0 3px rgba(255,255,255,.08)
+
+            border-color:
+                rgba(255,255,255,.65);
+
+            box-shadow:
+                0 0 0 3px
+                rgba(255,255,255,.08);
+
         }
 
         #dp-edit,
         #dp-save,
         #dp-go{
+
             height:42px;
-            padding:0 15px;
-            border:1px solid rgba(255,255,255,.25);
+
+            padding:
+                0 15px;
+
+            border:
+                1px solid
+                rgba(255,255,255,.25);
+
             border-radius:10px;
-            background:rgba(255,255,255,.14);
+
+            background:
+                rgba(255,255,255,.14);
+
             color:#fff;
+
             font-weight:700;
+
             font-size:14px;
+
             cursor:pointer;
-            white-space:nowrap
+
+            white-space:nowrap;
+
         }
 
         #dp-edit:hover,
-        #dp-save:hover,
-        #dp-go:hover{
-            background:rgba(255,255,255,.24)
+        #dp-save:hover{
+
+            background:
+                rgba(255,255,255,.24);
+
         }
 
         #dp-go{
-            background:rgba(35,150,70,.9);
-            border-color:rgba(35,150,70,.65)
+
+            background:
+                rgba(35,150,70,.9);
+
+            border-color:
+                rgba(35,150,70,.65);
+
         }
 
         #dp-go:hover{
-            background:rgba(45,175,80,.98)
-        }
 
-        #dp-go:disabled{
-            background:rgba(35,150,70,.45);
-            border-color:rgba(35,150,70,.35);
-            color:rgba(255,255,255,.65);
-            cursor:not-allowed
+            background:
+                rgba(45,175,80,.98);
+
         }
 
         #dp-save{
-            display:none
+
+            display:none;
+
         }
 
         #dp-saved{
+
             display:none;
+
             height:42px;
-            padding:0 12px;
+
+            padding:
+                0 12px;
+
             border-radius:10px;
-            background:rgba(35,140,65,.8);
+
+            background:
+                rgba(35,140,65,.8);
+
             color:#fff;
+
             font-weight:700;
+
             font-size:13px;
+
             align-items:center;
+
             justify-content:center;
-            white-space:nowrap
+
+            white-space:nowrap;
+
         }
 
         #dp-shortcuts{
+
             margin-top:8px;
+
             display:flex;
-            gap:14px;
+
+            gap:8px;
+
             flex-wrap:wrap;
+
             font-size:11px;
-            color:rgba(255,255,255,.5)
+
+            color:
+                rgba(255,255,255,.5);
+
         }
 
         #dp-shortcuts span{
-            background:rgba(255,255,255,.06);
-            padding:4px 7px;
-            border-radius:5px
+
+            background:
+                rgba(255,255,255,.06);
+
+            padding:
+                4px 7px;
+
+            border-radius:5px;
+
         }
 
         #dp-status{
+
             margin-top:9px;
+
             font-size:12px;
-            color:rgba(255,255,255,.65);
-            min-height:16px
+
+            color:
+                rgba(255,255,255,.65);
+
+            min-height:16px;
+
         }
 
         #dp-eligible{
+
             margin-top:16px;
+
             padding-top:14px;
-            border-top:1px solid rgba(255,255,255,.14)
+
+            border-top:
+                1px solid
+                rgba(255,255,255,.14);
+
         }
 
         #dp-eligible-title{
+
             font-size:13px;
+
             font-weight:600;
-            color:rgba(255,255,255,.9);
-            margin-bottom:9px
+
+            color:
+                rgba(255,255,255,.9);
+
+            margin-bottom:9px;
+
         }
 
         #dp-eligible-buttons{
+
             display:flex;
-            gap:8px
+
+            gap:8px;
+
         }
 
         #dp-no,
         #dp-yes{
+
             flex:1;
+
             height:42px;
+
             border-radius:10px;
-            border:1px solid rgba(255,255,255,.2);
+
+            border:
+                1px solid
+                rgba(255,255,255,.2);
+
             color:#fff;
+
             font-size:14px;
+
             font-weight:700;
-            cursor:pointer
+
+            cursor:pointer;
+
         }
 
         #dp-no{
-            background:rgba(190,35,35,.88)
+
+            background:
+                rgba(190,35,35,.88);
+
         }
 
         #dp-no:hover{
-            background:rgba(220,45,45,.95)
+
+            background:
+                rgba(220,45,45,.95);
+
         }
 
         #dp-yes{
-            background:rgba(30,95,190,.9)
+
+            background:
+                rgba(30,95,190,.9);
+
         }
 
         #dp-yes:hover{
-            background:rgba(40,115,220,.98)
+
+            background:
+                rgba(40,115,220,.98);
+
         }
 
         #dp-yes-extra{
+
             margin-top:14px;
+
             padding-top:14px;
-            border-top:1px solid rgba(255,255,255,.14)
+
+            border-top:
+                1px solid
+                rgba(255,255,255,.14);
+
         }
 
         #dp-continue{
+
             width:100%;
+
             height:42px;
+
             margin-top:10px;
+
             border-radius:10px;
-            border:1px solid rgba(35,140,65,.45);
-            background:rgba(35,150,70,.9);
+
+            border:
+                1px solid
+                rgba(35,140,65,.45);
+
+            background:
+                rgba(35,150,70,.9);
+
             color:#fff;
+
             font-size:14px;
+
             font-weight:700;
-            cursor:pointer
+
+            cursor:pointer;
+
         }
 
         #dp-continue:hover{
-            background:rgba(45,175,80,.98)
+
+            background:
+                rgba(45,175,80,.98);
+
         }
 
         @media(max-width:650px){
 
             #dp-state-row{
-                flex-wrap:wrap
+
+                flex-wrap:wrap;
+
             }
 
             #dp-state{
+
                 width:100%;
-                flex:none
+
+                flex:none;
+
             }
 
             #dp-duplicate-comments{
+
                 flex:1;
-                width:auto
+
+                width:auto;
+
             }
 
             #dp-go{
-                width:auto
+
+                width:auto;
+
             }
 
         }
@@ -663,67 +1017,112 @@ const popup=()=>new Promise(resolve=>{
     document.head.appendChild(style);
     document.body.appendChild(overlay);
 
+    /* =====================================================
+       ELEMENTS
+       ===================================================== */
+
     const nameInput=
-        document.getElementById("dp-name");
+        document.getElementById(
+            "dp-name"
+        );
 
     const stateInput=
-        document.getElementById("dp-state");
+        document.getElementById(
+            "dp-state"
+        );
 
     const duplicateCommentsInput=
-        document.getElementById("dp-duplicate-comments");
+        document.getElementById(
+            "dp-duplicate-comments"
+        );
 
     const editBtn=
-        document.getElementById("dp-edit");
+        document.getElementById(
+            "dp-edit"
+        );
 
     const saveBtn=
-        document.getElementById("dp-save");
+        document.getElementById(
+            "dp-save"
+        );
 
     const savedLabel=
-        document.getElementById("dp-saved");
+        document.getElementById(
+            "dp-saved"
+        );
 
     const goBtn=
-        document.getElementById("dp-go");
+        document.getElementById(
+            "dp-go"
+        );
 
     const closeBtn=
-        document.getElementById("dp-close");
+        document.getElementById(
+            "dp-close"
+        );
 
     const status=
-        document.getElementById("dp-status");
+        document.getElementById(
+            "dp-status"
+        );
 
     const eligible=
-        document.getElementById("dp-eligible");
+        document.getElementById(
+            "dp-eligible"
+        );
 
     const noBtn=
-        document.getElementById("dp-no");
+        document.getElementById(
+            "dp-no"
+        );
 
     const yesBtn=
-        document.getElementById("dp-yes");
+        document.getElementById(
+            "dp-yes"
+        );
 
     const yesExtra=
-        document.getElementById("dp-yes-extra");
+        document.getElementById(
+            "dp-yes-extra"
+        );
 
     const emailInput=
-        document.getElementById("dp-email");
+        document.getElementById(
+            "dp-email"
+        );
 
     const verifiedInput=
-        document.getElementById("dp-verified");
+        document.getElementById(
+            "dp-verified"
+        );
 
     const continueBtn=
-        document.getElementById("dp-continue");
+        document.getElementById(
+            "dp-continue"
+        );
 
-    let currentName=getName();
+    /* =====================================================
+       USERNAME STATE
+       ===================================================== */
 
-    nameInput.value=currentName;
+    let currentName=
+        getName();
+
+    nameInput.value=
+        currentName;
 
     if(currentName){
 
         nameInput.readOnly=true;
 
-        editBtn.style.display="inline-block";
+        editBtn.style.display=
+            "inline-block";
 
-        saveBtn.style.display="none";
+        saveBtn.style.display=
+            "none";
 
-        savedLabel.style.display="inline-flex";
+        savedLabel.style.display=
+            "inline-flex";
 
         status.textContent=
             "Saved username: "+currentName;
@@ -732,11 +1131,14 @@ const popup=()=>new Promise(resolve=>{
 
         nameInput.readOnly=false;
 
-        editBtn.style.display="none";
+        editBtn.style.display=
+            "none";
 
-        saveBtn.style.display="inline-block";
+        saveBtn.style.display=
+            "inline-block";
 
-        savedLabel.style.display="none";
+        savedLabel.style.display=
+            "none";
 
         status.textContent=
             "Please enter and save your Dispute User Name.";
@@ -757,13 +1159,17 @@ const popup=()=>new Promise(resolve=>{
 
         nameInput.select();
 
-        editBtn.style.display="none";
+        editBtn.style.display=
+            "none";
 
-        saveBtn.style.display="inline-block";
+        saveBtn.style.display=
+            "inline-block";
 
-        savedLabel.style.display="none";
+        savedLabel.style.display=
+            "none";
 
-        saveBtn.textContent="Save";
+        saveBtn.textContent=
+            "Save";
 
         status.textContent=
             "Editing username...";
@@ -787,6 +1193,7 @@ const popup=()=>new Promise(resolve=>{
             nameInput.focus();
 
             return;
+
         }
 
         if(!saveName(n)){
@@ -795,19 +1202,24 @@ const popup=()=>new Promise(resolve=>{
                 "Could not save the username.";
 
             return;
+
         }
 
         currentName=n;
 
-        nameInput.value=currentName;
+        nameInput.value=
+            currentName;
 
         nameInput.readOnly=true;
 
-        editBtn.style.display="inline-block";
+        editBtn.style.display=
+            "inline-block";
 
-        saveBtn.style.display="none";
+        saveBtn.style.display=
+            "none";
 
-        savedLabel.style.display="inline-flex";
+        savedLabel.style.display=
+            "inline-flex";
 
         status.textContent=
             "Username saved.";
@@ -830,6 +1242,7 @@ const popup=()=>new Promise(resolve=>{
             nameInput.focus();
 
             return false;
+
         }
 
         const state=
@@ -843,15 +1256,12 @@ const popup=()=>new Promise(resolve=>{
             stateInput.focus();
 
             return false;
+
         }
 
         const duplicateComments=
             duplicateCommentsInput.value;
 
-        /*
-          Required:
-          Must be either N/A or Duplicate Dispute Reviewed.
-        */
         if(
             !duplicateComments ||
             duplicateCommentsInput.selectedIndex===0
@@ -863,13 +1273,15 @@ const popup=()=>new Promise(resolve=>{
             duplicateCommentsInput.focus();
 
             return false;
+
         }
 
         return true;
+
     };
 
     /* =====================================================
-       PROCESS GO
+       GO
        ===================================================== */
 
     const processStateAndDuplicate=()=>{
@@ -931,30 +1343,56 @@ const popup=()=>new Promise(resolve=>{
        BUILD NO OUTPUT
        ===================================================== */
 
-    const buildNoOutput=(stateValue,duplicateComments)=>{
+    const buildNoOutput=(
+        stateValue,
+        duplicateComments
+    )=>{
 
         const makeNoRow=(id,i)=>[
+
             "-",
+
             getPlanType(i),
+
             duplicateComments,
+
             disputeNumber,
+
             id,
+
             disputeStatus,
+
             "-",
+
             "-",
+
             "-",
+
             "-",
+
             columnJValue,
+
             "N/A",
+
             "N/A",
+
             stateValue,
+
             "-",
+
             "No"
+
         ].join("\t");
 
         return sameId
+
             ?makeNoRow(ids[0],0)
-            :ids.map((id,i)=>makeNoRow(id,i)).join("\n");
+
+            :ids
+                .map((id,i)=>
+                    makeNoRow(id,i)
+                )
+                .join("\n");
 
     };
 
@@ -971,27 +1409,50 @@ const popup=()=>new Promise(resolve=>{
     )=>{
 
         const makeYesRow=(id,i)=>[
+
             plantypeIdreEmail,
+
             getPlanType(i),
+
             duplicateComments,
+
             disputeNumber,
+
             id,
+
             disputeStatus,
+
             disputeUserName,
+
             verificationStatus,
+
             "-",
+
             "-",
+
             columnJValue,
+
             "N/A",
+
             "N/A",
+
             stateValue,
+
             "N/A",
+
             "Yes"
+
         ].join("\t");
 
         return sameId
+
             ?makeYesRow(ids[0],0)
-            :ids.map((id,i)=>makeYesRow(id,i)).join("\n");
+
+            :ids
+                .map((id,i)=>
+                    makeYesRow(id,i)
+                )
+                .join("\n");
 
     };
 
@@ -1006,7 +1467,9 @@ const popup=()=>new Promise(resolve=>{
         }
 
         const stateValue=
-            stateInput.value.trim().toUpperCase();
+            stateInput.value
+                .trim()
+                .toUpperCase();
 
         const duplicateComments=
             duplicateCommentsInput.value;
@@ -1024,25 +1487,27 @@ const popup=()=>new Promise(resolve=>{
         style.remove();
 
         const rowCount=
-            sameId?1:ids.length;
+            sameId
+            ?1
+            :ids.length;
 
         const toast=
             showCopyMessage(
+
                 copied
+
                 ?`✅ Copied ${rowCount} row${rowCount!==1?"s":""} | NO | State: ${stateValue} | Duplicate Comments: ${duplicateComments}`
+
                 :"❌ Automatic copy was blocked. Click COPY AGAIN below.",
+
                 copied
+
             );
 
-        const toastCopy=
-            toast.querySelector("#dct-copy");
-
-        if(toastCopy){
-
-            toast.querySelector("#dct-message")
-                .dataset.clipboard=output;
-
-        }
+        toast
+            .querySelector("#dct-message")
+            .dataset.clipboard=
+                output;
 
         resolve(null);
 
@@ -1082,12 +1547,16 @@ const popup=()=>new Promise(resolve=>{
 
     verifiedInput.onchange=()=>{
 
-        if(verifiedInput.value==="Yes"){
+        if(
+            verifiedInput.value==="Yes"
+        ){
 
             status.textContent=
                 "Verified: Yes";
 
-        }else if(verifiedInput.value==="No"){
+        }else if(
+            verifiedInput.value==="No"
+        ){
 
             status.textContent=
                 "Verified: No";
@@ -1117,6 +1586,7 @@ const popup=()=>new Promise(resolve=>{
             emailInput.focus();
 
             return;
+
         }
 
         const verificationStatus=
@@ -1130,21 +1600,30 @@ const popup=()=>new Promise(resolve=>{
             verifiedInput.focus();
 
             return;
+
         }
 
         const stateValue=
-            stateInput.value.trim().toUpperCase();
+            stateInput.value
+                .trim()
+                .toUpperCase();
 
         const duplicateComments=
             duplicateCommentsInput.value;
 
         const output=
             buildYesOutput(
+
                 stateValue,
+
                 duplicateComments,
+
                 currentName,
+
                 email,
+
                 verificationStatus
+
             );
 
         const copied=
@@ -1154,25 +1633,27 @@ const popup=()=>new Promise(resolve=>{
         style.remove();
 
         const rowCount=
-            sameId?1:ids.length;
+            sameId
+            ?1
+            :ids.length;
 
         const toast=
             showCopyMessage(
+
                 copied
+
                 ?`✅ Copied ${rowCount} row${rowCount!==1?"s":""} | YES | State: ${stateValue} | Duplicate Comments: ${duplicateComments} | Email: ${email} | Verified: ${verificationStatus} | User: ${currentName}`
+
                 :"❌ Automatic copy was blocked. Click COPY AGAIN below.",
+
                 copied
+
             );
 
-        const toastCopy=
-            toast.querySelector("#dct-copy");
-
-        if(toastCopy){
-
-            toast.querySelector("#dct-message")
-                .dataset.clipboard=output;
-
-        }
+        toast
+            .querySelector("#dct-message")
+            .dataset.clipboard=
+                output;
 
         resolve(null);
 
@@ -1180,126 +1661,137 @@ const popup=()=>new Promise(resolve=>{
 
     /* =====================================================
        KEYBOARD SHORTCUTS
-       
-       0 = NO
-       1 = YES
-       2 = N/A
-       3 = Duplicate Dispute Reviewed
-       
-       2 and 3 only activate when the user is NOT typing
-       in an input/select/textarea.
+
+       Ctrl + 2 = N/A
+       Ctrl + 3 = Duplicate Dispute Reviewed
+
+       IMPORTANT:
+       These shortcuts work EVEN when the user is typing
+       inside the State, Name, Email, or other input fields.
        ===================================================== */
 
-    overlay.addEventListener("keydown",e=>{
+    overlay.addEventListener(
+        "keydown",
+        e=>{
 
-        const target=e.target;
+            /* ESC = CLOSE */
 
-        const isTypingField=
-            target.tagName==="INPUT" ||
-            target.tagName==="TEXTAREA" ||
-            target.tagName==="SELECT";
+            if(e.key==="Escape"){
 
-        /*
-          ESC = Close
-        */
+                e.preventDefault();
 
-        if(e.key==="Escape"){
+                overlay.remove();
+                style.remove();
 
-            e.preventDefault();
+                resolve(null);
 
-            overlay.remove();
-            style.remove();
+                return;
 
-            resolve(null);
+            }
 
-            return;
+            /* =================================================
+               CTRL + 2
+               SELECT N/A
+               ================================================= */
+
+            if(
+                e.ctrlKey &&
+                e.key==="2"
+            ){
+
+                e.preventDefault();
+                e.stopPropagation();
+
+                duplicateCommentsInput.value=
+                    "N/A";
+
+                duplicateCommentsInput.dispatchEvent(
+                    new Event(
+                        "change",
+                        {
+                            bubbles:true
+                        }
+                    )
+                );
+
+                status.textContent=
+                    "Duplicate Dispute Comments: N/A";
+
+                return;
+
+            }
+
+            /* =================================================
+               CTRL + 3
+               SELECT DUPLICATE DISPUTE REVIEWED
+               ================================================= */
+
+            if(
+                e.ctrlKey &&
+                e.key==="3"
+            ){
+
+                e.preventDefault();
+                e.stopPropagation();
+
+                duplicateCommentsInput.value=
+                    "Duplicate Dispute Reviewed";
+
+                duplicateCommentsInput.dispatchEvent(
+                    new Event(
+                        "change",
+                        {
+                            bubbles:true
+                        }
+                    )
+                );
+
+                status.textContent=
+                    "Duplicate Dispute Comments: Duplicate Dispute Reviewed";
+
+                return;
+
+            }
+
+            /* =================================================
+               0 = NO
+               ================================================= */
+
+            if(
+                e.key==="0" &&
+                eligible.style.display==="block"
+            ){
+
+                e.preventDefault();
+
+                noBtn.click();
+
+                return;
+
+            }
+
+            /* =================================================
+               1 = YES
+               ================================================= */
+
+            if(
+                e.key==="1" &&
+                eligible.style.display==="block"
+            ){
+
+                e.preventDefault();
+
+                yesBtn.click();
+
+                return;
+
+            }
+
         }
-
-        /*
-          2 = N/A
-        */
-
-        if(
-            e.key==="2" &&
-            !isTypingField
-        ){
-
-            e.preventDefault();
-
-            duplicateCommentsInput.value="N/A";
-
-            duplicateCommentsInput.dispatchEvent(
-                new Event("change",{bubbles:true})
-            );
-
-            status.textContent=
-                "Duplicate Dispute Comments: N/A";
-
-            return;
-        }
-
-        /*
-          3 = Duplicate Dispute Reviewed
-        */
-
-        if(
-            e.key==="3" &&
-            !isTypingField
-        ){
-
-            e.preventDefault();
-
-            duplicateCommentsInput.value=
-                "Duplicate Dispute Reviewed";
-
-            duplicateCommentsInput.dispatchEvent(
-                new Event("change",{bubbles:true})
-            );
-
-            status.textContent=
-                "Duplicate Dispute Comments: Duplicate Dispute Reviewed";
-
-            return;
-        }
-
-        /*
-          0 = NO
-        */
-
-        if(
-            e.key==="0" &&
-            eligible.style.display==="block" &&
-            !isTypingField
-        ){
-
-            e.preventDefault();
-
-            noBtn.click();
-
-            return;
-        }
-
-        /*
-          1 = YES
-        */
-
-        if(
-            e.key==="1" &&
-            eligible.style.display==="block" &&
-            !isTypingField
-        ){
-
-            e.preventDefault();
-
-            yesBtn.click();
-
-            return;
-        }
-
-    });
+    );
 
     /* =====================================================
-       CLOSE BUTTON
+       CLOSE
        ===================================================== */
 
     closeBtn.onclick=()=>{
@@ -1315,6 +1807,10 @@ const popup=()=>new Promise(resolve=>{
     stateInput.focus();
 
 });
+
+/* =========================================================
+   START POPUP
+   ========================================================= */
 
 await popup();
 
