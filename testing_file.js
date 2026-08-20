@@ -18,8 +18,6 @@ const saveName=n=>{
 
 /* =========================================================
    GET PAGE DATA BEFORE POPUP
-   This lets the final NO / Continue click perform the copy
-   while it is still a real user interaction.
    ========================================================= */
 
 const disputeNumber=
@@ -70,10 +68,6 @@ const getPlanType=i=>planTypes[i]||planTypes[0]||"";
 
 const copyText=function(text){
 
-    /*
-      First try the modern clipboard API.
-      This can work when the browser allows it.
-    */
     try{
         if(
             navigator.clipboard &&
@@ -81,10 +75,6 @@ const copyText=function(text){
         ){
             const result=navigator.clipboard.writeText(text);
 
-            /*
-              Do not wait for the promise here.
-              The fallback below is also executed immediately.
-            */
             if(result && typeof result.catch==="function"){
                 result.catch(e=>{
                     console.warn("Clipboard API rejected:",e);
@@ -97,11 +87,6 @@ const copyText=function(text){
         console.warn("Clipboard API failed:",e);
     }
 
-    /*
-      Reliable fallback:
-      textarea + execCommand("copy")
-      This is executed directly from the button click.
-    */
     try{
         const textarea=document.createElement("textarea");
 
@@ -135,10 +120,10 @@ const copyText=function(text){
 };
 
 /* =========================================================
-   SHOW SUCCESS MESSAGE
+   SHOW COPY MESSAGE
    ========================================================= */
 
-const showCopyMessage=(message,success=true)=>{
+const showCopyMessage=(message,success=true,clipboardText="")=>{
 
     const old=document.getElementById("dispute-copy-toast");
     if(old)old.remove();
@@ -154,42 +139,64 @@ const showCopyMessage=(message,success=true)=>{
     toast.style.cssText=
         "position:fixed;top:80px;left:50%;transform:translateX(-50%);padding:14px 16px;border-radius:14px;background:rgba(0,0,0,.86);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);color:#fff;font:600 14px Arial,sans-serif;z-index:2147483647;box-shadow:0 8px 32px rgba(0,0,0,.4);min-width:360px;text-align:center;box-sizing:border-box";
 
-    const messageEl=toast.querySelector("#dct-message");
-    const copyAgainBtn=toast.querySelector("#dct-copy");
+    const messageEl=
+        toast.querySelector("#dct-message");
+
+    const copyAgainBtn=
+        toast.querySelector("#dct-copy");
 
     messageEl.textContent=message;
+    messageEl.dataset.clipboard=clipboardText;
 
     copyAgainBtn.style.cssText=
         "margin-top:10px;height:36px;padding:0 16px;border:1px solid rgba(255,255,255,.25);border-radius:9px;background:rgba(35,150,70,.9);color:#fff;font:700 13px Arial,sans-serif;cursor:pointer";
 
     copyAgainBtn.onclick=()=>{
-        const ok=copyText(messageEl.dataset.clipboard||"");
 
-        copyAgainBtn.textContent=ok?"COPIED ✓":"COPY FAILED";
+        const text=
+            messageEl.dataset.clipboard||"";
+
+        const ok=copyText(text);
+
+        copyAgainBtn.textContent=
+            ok?"COPIED ✓":"COPY FAILED";
+
         copyAgainBtn.style.background=
             ok
             ?"rgba(35,150,70,.9)"
             :"rgba(190,35,35,.9)";
 
         if(ok){
+
             setTimeout(()=>{
                 copyAgainBtn.textContent="COPY AGAIN";
-                copyAgainBtn.style.background="rgba(35,150,70,.9)";
+                copyAgainBtn.style.background=
+                    "rgba(35,150,70,.9)";
             },1500);
+
         }
     };
 
     document.body.appendChild(toast);
 
     setTimeout(()=>{
+
         if(toast.parentNode){
-            toast.style.transition="opacity .3s";
+
+            toast.style.transition=
+                "opacity .3s";
+
             toast.style.opacity="0";
 
             setTimeout(()=>{
-                if(toast.parentNode)toast.remove();
+
+                if(toast.parentNode){
+                    toast.remove();
+                }
+
             },300);
         }
+
     },5000);
 
     return toast;
@@ -202,22 +209,34 @@ const showCopyMessage=(message,success=true)=>{
 
 const popup=()=>new Promise(resolve=>{
 
-    const old=document.getElementById("dispute-popup-overlay");
+    const old=
+        document.getElementById("dispute-popup-overlay");
+
     if(old)old.remove();
 
-    const overlay=document.createElement("div");
-    overlay.id="dispute-popup-overlay";
+    const overlay=
+        document.createElement("div");
+
+    overlay.id=
+        "dispute-popup-overlay";
 
     overlay.innerHTML=`
         <div id="dispute-popup">
 
-            <button id="dp-close" title="Close">×</button>
+            <button id="dp-close" title="Close">
+                ×
+            </button>
 
-            <div id="dp-title">Dispute Information</div>
+            <div id="dp-title">
+                Dispute Information
+            </div>
 
-            <div id="dp-label-name">Dispute User Name</div>
+            <div id="dp-label-name">
+                Dispute User Name
+            </div>
 
             <div id="dp-name-row">
+
                 <input
                     id="dp-name"
                     type="text"
@@ -225,14 +244,24 @@ const popup=()=>new Promise(resolve=>{
                     autocomplete="off"
                 >
 
-                <button id="dp-edit">Edit</button>
+                <button id="dp-edit">
+                    Edit
+                </button>
 
-                <span id="dp-saved">Saved ✓</span>
+                <span id="dp-saved">
+                    Saved ✓
+                </span>
 
-                <button id="dp-save">Save</button>
+                <button id="dp-save">
+                    Save
+                </button>
+
             </div>
 
-            <div id="dp-label-state">State + Duplicate Comments</div>
+
+            <div id="dp-label-state">
+                State + Duplicate Comments
+            </div>
 
             <div id="dp-state-row">
 
@@ -244,33 +273,58 @@ const popup=()=>new Promise(resolve=>{
                 >
 
                 <select id="dp-duplicate-comments">
-                    <option value="">Duplicate Comments</option>
+
+                    <option value="">
+                        Duplicate Comments
+                    </option>
+
                     <option value="Duplicate Dispute Reviewed">
                         Duplicate Dispute Reviewed
                     </option>
+
                     <option value="N/A">
                         N/A
                     </option>
+
                 </select>
 
-                <button id="dp-go">Go</button>
+                <button id="dp-go">
+                    Go
+                </button>
 
             </div>
 
+
             <div id="dp-status"></div>
 
-            <div id="dp-eligible" style="display:none">
+
+            <div
+                id="dp-eligible"
+                style="display:none"
+            >
 
                 <div id="dp-eligible-title">
                     Eligible updated today?
                 </div>
 
+
                 <div id="dp-eligible-buttons">
-                    <button id="dp-no">NO</button>
-                    <button id="dp-yes">YES</button>
+
+                    <button id="dp-no">
+                        NO
+                    </button>
+
+                    <button id="dp-yes">
+                        YES
+                    </button>
+
                 </div>
 
-                <div id="dp-yes-extra" style="display:none">
+
+                <div
+                    id="dp-yes-extra"
+                    style="display:none"
+                >
 
                     <div id="dp-label-email">
                         PLANTYPE_IDRE_EMAIL
@@ -283,11 +337,13 @@ const popup=()=>new Promise(resolve=>{
                         autocomplete="off"
                     >
 
+
                     <div id="dp-label-verified">
                         Verified?
                     </div>
 
                     <select id="dp-verified">
+
                         <option value="">
                             Select Yes or No
                         </option>
@@ -299,7 +355,58 @@ const popup=()=>new Promise(resolve=>{
                         <option value="No">
                             No
                         </option>
+
                     </select>
+
+
+                    <!-- NEW: Arbit Case Note -->
+
+                    <div id="dp-label-arbit-case-note">
+                        Arbit Case Note
+                    </div>
+
+                    <input
+                        id="dp-arbit-case-note"
+                        type="text"
+                        placeholder="Enter Arbit Case Note"
+                        autocomplete="off"
+                    >
+
+
+                    <!-- NEW: Plan Type Evidence -->
+
+                    <div id="dp-label-plan-type-evidence">
+                        Plan Type Evidence
+                    </div>
+
+                    <select id="dp-plan-type-evidence">
+
+                        <option value="">
+                            Select Plan Type Evidence
+                        </option>
+
+                        <option value="Yes - VOB">
+                            Yes - VOB
+                        </option>
+
+                        <option value="Yes - VOB Team">
+                            Yes - VOB Team
+                        </option>
+
+                        <option value="Yes - Insurance Card">
+                            Yes - Insurance Card
+                        </option>
+
+                        <option value="Yes - State Authority">
+                            Yes - State Authority
+                        </option>
+
+                        <option value="Yes - EOB">
+                            Yes - EOB
+                        </option>
+
+                    </select>
+
 
                     <button id="dp-continue">
                         Continue
@@ -312,8 +419,12 @@ const popup=()=>new Promise(resolve=>{
         </div>
     `;
 
-    const style=document.createElement("style");
-    style.id="dispute-popup-style";
+
+    const style=
+        document.createElement("style");
+
+    style.id=
+        "dispute-popup-style";
 
     style.textContent=`
 
@@ -376,7 +487,9 @@ const popup=()=>new Promise(resolve=>{
         #dp-label-name,
         #dp-label-state,
         #dp-label-email,
-        #dp-label-verified{
+        #dp-label-verified,
+        #dp-label-arbit-case-note,
+        #dp-label-plan-type-evidence{
             font-size:13px;
             font-weight:600;
             color:rgba(255,255,255,.9);
@@ -395,7 +508,10 @@ const popup=()=>new Promise(resolve=>{
         #dp-state,
         #dp-email,
         #dp-verified,
-        #dp-duplicate-comments{
+        #dp-duplicate-comments,
+        #dp-arbit-case-note,
+        #dp-plan-type-evidence{
+
             height:42px;
             box-sizing:border-box;
             border:1px solid rgba(255,255,255,.25);
@@ -405,6 +521,7 @@ const popup=()=>new Promise(resolve=>{
             outline:none;
             padding:0 12px;
             font-size:14px
+
         }
 
         #dp-name{
@@ -424,15 +541,20 @@ const popup=()=>new Promise(resolve=>{
         }
 
         #dp-email,
-        #dp-verified{
+        #dp-verified,
+        #dp-arbit-case-note,
+        #dp-plan-type-evidence{
             width:100%
         }
 
-        #dp-verified{
+        #dp-verified,
+        #dp-plan-type-evidence,
+        #dp-duplicate-comments{
             cursor:pointer
         }
 
         #dp-verified option,
+        #dp-plan-type-evidence option,
         #dp-duplicate-comments option{
             background:#222;
             color:#fff
@@ -446,7 +568,8 @@ const popup=()=>new Promise(resolve=>{
 
         #dp-name::placeholder,
         #dp-state::placeholder,
-        #dp-email::placeholder{
+        #dp-email::placeholder,
+        #dp-arbit-case-note::placeholder{
             color:rgba(255,255,255,.5)
         }
 
@@ -454,14 +577,19 @@ const popup=()=>new Promise(resolve=>{
         #dp-state:focus,
         #dp-email:focus,
         #dp-verified:focus,
-        #dp-duplicate-comments:focus{
+        #dp-duplicate-comments:focus,
+        #dp-arbit-case-note:focus,
+        #dp-plan-type-evidence:focus{
+
             border-color:rgba(255,255,255,.65);
             box-shadow:0 0 0 3px rgba(255,255,255,.08)
+
         }
 
         #dp-edit,
         #dp-save,
         #dp-go{
+
             height:42px;
             padding:0 15px;
             border:1px solid rgba(255,255,255,.25);
@@ -472,6 +600,7 @@ const popup=()=>new Promise(resolve=>{
             font-size:14px;
             cursor:pointer;
             white-space:nowrap
+
         }
 
         #dp-edit:hover,
@@ -490,10 +619,12 @@ const popup=()=>new Promise(resolve=>{
         }
 
         #dp-go:disabled{
+
             background:rgba(35,150,70,.45);
             border-color:rgba(35,150,70,.35);
             color:rgba(255,255,255,.65);
             cursor:not-allowed
+
         }
 
         #dp-save{
@@ -501,6 +632,7 @@ const popup=()=>new Promise(resolve=>{
         }
 
         #dp-saved{
+
             display:none;
             height:42px;
             padding:0 12px;
@@ -512,35 +644,45 @@ const popup=()=>new Promise(resolve=>{
             align-items:center;
             justify-content:center;
             white-space:nowrap
+
         }
 
         #dp-status{
+
             margin-top:9px;
             font-size:12px;
             color:rgba(255,255,255,.65);
             min-height:16px
+
         }
 
         #dp-eligible{
+
             margin-top:16px;
             padding-top:14px;
             border-top:1px solid rgba(255,255,255,.14)
+
         }
 
         #dp-eligible-title{
+
             font-size:13px;
             font-weight:600;
             color:rgba(255,255,255,.9);
             margin-bottom:9px
+
         }
 
         #dp-eligible-buttons{
+
             display:flex;
             gap:8px
+
         }
 
         #dp-no,
         #dp-yes{
+
             flex:1;
             height:42px;
             border-radius:10px;
@@ -549,6 +691,7 @@ const popup=()=>new Promise(resolve=>{
             font-size:14px;
             font-weight:700;
             cursor:pointer
+
         }
 
         #dp-no{
@@ -568,12 +711,15 @@ const popup=()=>new Promise(resolve=>{
         }
 
         #dp-yes-extra{
+
             margin-top:14px;
             padding-top:14px;
             border-top:1px solid rgba(255,255,255,.14)
+
         }
 
         #dp-continue{
+
             width:100%;
             height:42px;
             margin-top:10px;
@@ -584,6 +730,7 @@ const popup=()=>new Promise(resolve=>{
             font-size:14px;
             font-weight:700;
             cursor:pointer
+
         }
 
         #dp-continue:hover{
@@ -591,8 +738,6 @@ const popup=()=>new Promise(resolve=>{
         }
 
         @media(max-width:650px){
-
-            #dp-popup{}
 
             #dp-state-row{
                 flex-wrap:wrap
@@ -616,8 +761,10 @@ const popup=()=>new Promise(resolve=>{
 
     `;
 
+
     document.head.appendChild(style);
     document.body.appendChild(overlay);
+
 
     const nameInput=
         document.getElementById("dp-name");
@@ -626,7 +773,9 @@ const popup=()=>new Promise(resolve=>{
         document.getElementById("dp-state");
 
     const duplicateCommentsInput=
-        document.getElementById("dp-duplicate-comments");
+        document.getElementById(
+            "dp-duplicate-comments"
+        );
 
     const editBtn=
         document.getElementById("dp-edit");
@@ -664,22 +813,39 @@ const popup=()=>new Promise(resolve=>{
     const verifiedInput=
         document.getElementById("dp-verified");
 
+    const arbitCaseNoteInput=
+        document.getElementById(
+            "dp-arbit-case-note"
+        );
+
+    const planTypeEvidenceInput=
+        document.getElementById(
+            "dp-plan-type-evidence"
+        );
+
     const continueBtn=
         document.getElementById("dp-continue");
 
+
     let currentName=getName();
 
-    nameInput.value=currentName;
+
+    nameInput.value=
+        currentName;
+
 
     if(currentName){
 
         nameInput.readOnly=true;
 
-        editBtn.style.display="inline-block";
+        editBtn.style.display=
+            "inline-block";
 
-        saveBtn.style.display="none";
+        saveBtn.style.display=
+            "none";
 
-        savedLabel.style.display="inline-flex";
+        savedLabel.style.display=
+            "inline-flex";
 
         status.textContent=
             "Saved username: "+currentName;
@@ -688,11 +854,14 @@ const popup=()=>new Promise(resolve=>{
 
         nameInput.readOnly=false;
 
-        editBtn.style.display="none";
+        editBtn.style.display=
+            "none";
 
-        saveBtn.style.display="inline-block";
+        saveBtn.style.display=
+            "inline-block";
 
-        savedLabel.style.display="none";
+        savedLabel.style.display=
+            "none";
 
         status.textContent=
             "Please enter and save your Dispute User Name.";
@@ -700,6 +869,7 @@ const popup=()=>new Promise(resolve=>{
         nameInput.focus();
 
     }
+
 
     editBtn.onclick=()=>{
 
@@ -709,18 +879,23 @@ const popup=()=>new Promise(resolve=>{
 
         nameInput.select();
 
-        editBtn.style.display="none";
+        editBtn.style.display=
+            "none";
 
-        saveBtn.style.display="inline-block";
+        saveBtn.style.display=
+            "inline-block";
 
-        savedLabel.style.display="none";
+        savedLabel.style.display=
+            "none";
 
-        saveBtn.textContent="Save";
+        saveBtn.textContent=
+            "Save";
 
         status.textContent=
             "Editing username...";
 
     };
+
 
     saveBtn.onclick=()=>{
 
@@ -747,15 +922,19 @@ const popup=()=>new Promise(resolve=>{
 
         currentName=n;
 
-        nameInput.value=currentName;
+        nameInput.value=
+            currentName;
 
         nameInput.readOnly=true;
 
-        editBtn.style.display="inline-block";
+        editBtn.style.display=
+            "inline-block";
 
-        saveBtn.style.display="none";
+        saveBtn.style.display=
+            "none";
 
-        savedLabel.style.display="inline-flex";
+        savedLabel.style.display=
+            "inline-flex";
 
         status.textContent=
             "Username saved.";
@@ -764,11 +943,13 @@ const popup=()=>new Promise(resolve=>{
 
     };
 
+
     /*
-      Go applies to BOTH:
+      GO applies to BOTH:
       State
       Duplicate Comments
     */
+
     const processStateAndDuplicate=()=>{
 
         if(!currentName){
@@ -819,6 +1000,12 @@ const popup=()=>new Promise(resolve=>{
         verifiedInput.value=
             "";
 
+        arbitCaseNoteInput.value=
+            "";
+
+        planTypeEvidenceInput.value=
+            "";
+
         goBtn.disabled=
             true;
 
@@ -829,8 +1016,10 @@ const popup=()=>new Promise(resolve=>{
 
     };
 
+
     goBtn.onclick=
         processStateAndDuplicate;
+
 
     stateInput.onkeydown=e=>{
 
@@ -844,6 +1033,7 @@ const popup=()=>new Promise(resolve=>{
 
     };
 
+
     duplicateCommentsInput.onkeydown=e=>{
 
         if(e.key==="Enter"){
@@ -856,46 +1046,96 @@ const popup=()=>new Promise(resolve=>{
 
     };
 
+
     /*
-      Build A:P exactly.
+      Build NO output.
+
+      A = -
+      B = Plan Type
+      C = Duplicate Comments
+      D = Dispute Number
+      E = ID
+      F = Dispute Status
+      G = -
+      H = -
+      I = -
+      J = -
+      K = Existing Column J Value
+      L = N/A
+      M = N/A
+      N = State
+      O = -
+      P = No
     */
 
-    const buildNoOutput=(stateValue,duplicateComments)=>{
+    const buildNoOutput=
+        (stateValue,duplicateComments)=>{
 
-        const makeNoRow=(id,i)=>[
-            "-",
-            getPlanType(i),
-            duplicateComments,
-            disputeNumber,
-            id,
-            disputeStatus,
-            "-",
-            "-",
-            "-",
-            "-",
-            columnJValue,
-            "N/A",
-            "N/A",
-            stateValue,
-            "-",
-            "No"
-        ].join("\t");
+            const makeNoRow=(id,i)=>[
 
-        return sameId
-            ?makeNoRow(ids[0],0)
-            :ids.map((id,i)=>makeNoRow(id,i)).join("\n");
+                "-",
+                getPlanType(i),
+                duplicateComments,
+                disputeNumber,
+                id,
+                disputeStatus,
+                "-",
+                "-",
+                "-",
+                "-",
+                columnJValue,
+                "N/A",
+                "N/A",
+                stateValue,
+                "-",
+                "No"
 
-    };
+            ].join("\t");
+
+
+            return sameId
+                ?makeNoRow(ids[0],0)
+                :ids.map(
+                    (id,i)=>
+                        makeNoRow(id,i)
+                ).join("\n");
+
+        };
+
+
+    /*
+      Build YES output.
+
+      A = PLANTYPE_IDRE_EMAIL
+      B = Plan Type
+      C = Duplicate Comments
+      D = Dispute Number
+      E = ID
+      F = Dispute Status
+      G = Dispute User Name
+      H = Verified
+      I = Arbit Case Note
+      J = Plan Type Evidence
+      K = Existing Column J Value
+      L = N/A
+      M = N/A
+      N = State
+      O = N/A
+      P = Yes
+    */
 
     const buildYesOutput=(
         stateValue,
         duplicateComments,
         disputeUserName,
         plantypeIdreEmail,
-        verificationStatus
+        verificationStatus,
+        arbitCaseNote,
+        planTypeEvidence
     )=>{
 
         const makeYesRow=(id,i)=>[
+
             plantypeIdreEmail,
             getPlanType(i),
             duplicateComments,
@@ -904,31 +1144,41 @@ const popup=()=>new Promise(resolve=>{
             disputeStatus,
             disputeUserName,
             verificationStatus,
-            "-",
-            "-",
+            arbitCaseNote,
+            planTypeEvidence,
             columnJValue,
             "N/A",
             "N/A",
             stateValue,
             "N/A",
             "Yes"
+
         ].join("\t");
+
 
         return sameId
             ?makeYesRow(ids[0],0)
-            :ids.map((id,i)=>makeYesRow(id,i)).join("\n");
+            :ids.map(
+                (id,i)=>
+                    makeYesRow(id,i)
+            ).join("\n");
 
     };
 
+
     /*
-      Finish NO.
-      IMPORTANT:
-      copyText() happens directly inside NO button click.
+      NO BUTTON
+
+      Copy occurs directly from the NO button click
+      so clipboard permission is retained.
     */
+
     noBtn.onclick=()=>{
 
         const stateValue=
-            stateInput.value.trim().toUpperCase();
+            stateInput.value
+                .trim()
+                .toUpperCase();
 
         const duplicateComments=
             duplicateCommentsInput.value;
@@ -953,46 +1203,49 @@ const popup=()=>new Promise(resolve=>{
             return;
         }
 
+
         const output=
             buildNoOutput(
                 stateValue,
                 duplicateComments
             );
 
+
         const copied=
             copyText(output);
+
 
         overlay.remove();
         style.remove();
 
+
         const rowCount=
             sameId?1:ids.length;
 
-        const toast=
-            showCopyMessage(
-                copied
-                ?`✅ Copied ${rowCount} row${rowCount!==1?"s":""} | NO | State: ${stateValue} | Duplicate Comments: ${duplicateComments}`
-                :"❌ Automatic copy was blocked. Click COPY AGAIN below.",
-                copied
-            );
 
-        const toastCopy=
-            toast.querySelector("#dct-copy");
+        showCopyMessage(
 
-        if(toastCopy){
+            copied
 
-            /*
-              Save the actual spreadsheet text on the toast
-              so COPY AGAIN always has the exact same output.
-            */
-            toast.querySelector("#dct-message")
-                .dataset.clipboard=output;
+            ?`✅ Copied ${rowCount} row${rowCount!==1?"s":""} | NO | State: ${stateValue} | Duplicate Comments: ${duplicateComments}`
 
-        }
+            :"❌ Automatic copy was blocked. Click COPY AGAIN below.",
+
+            copied,
+
+            output
+
+        );
+
 
         resolve(null);
 
     };
+
+
+    /*
+      YES BUTTON
+    */
 
     yesBtn.onclick=()=>{
 
@@ -1000,11 +1253,16 @@ const popup=()=>new Promise(resolve=>{
             "block";
 
         status.textContent=
-            "Enter PLANTYPE_IDRE_EMAIL and select Verified: Yes or No.";
+            "Enter PLANTYPE_IDRE_EMAIL, select Verified, enter Arbit Case Note, and select Plan Type Evidence.";
 
         emailInput.focus();
 
     };
+
+
+    /*
+      ENTER KEY FOR EMAIL
+    */
 
     emailInput.onkeydown=e=>{
 
@@ -1018,6 +1276,59 @@ const popup=()=>new Promise(resolve=>{
 
     };
 
+
+    /*
+      ENTER KEY FOR ARBIT CASE NOTE
+      Also allows Enter to Continue.
+    */
+
+    arbitCaseNoteInput.onkeydown=e=>{
+
+        if(e.key==="Enter"){
+
+            e.preventDefault();
+
+            continueBtn.click();
+
+        }
+
+    };
+
+
+    /*
+      ENTER KEY FOR PLAN TYPE EVIDENCE
+    */
+
+    planTypeEvidenceInput.onkeydown=e=>{
+
+        if(e.key==="Enter"){
+
+            e.preventDefault();
+
+            continueBtn.click();
+
+        }
+
+    };
+
+
+    /*
+      ENTER KEY FOR VERIFIED
+    */
+
+    verifiedInput.onkeydown=e=>{
+
+        if(e.key==="Enter"){
+
+            e.preventDefault();
+
+            continueBtn.click();
+
+        }
+
+    };
+
+
     verifiedInput.onchange=()=>{
 
         if(verifiedInput.value==="Yes"){
@@ -1025,7 +1336,9 @@ const popup=()=>new Promise(resolve=>{
             status.textContent=
                 "Verified: Yes";
 
-        }else if(verifiedInput.value==="No"){
+        }else if(
+            verifiedInput.value==="No"
+        ){
 
             status.textContent=
                 "Verified: No";
@@ -1034,15 +1347,42 @@ const popup=()=>new Promise(resolve=>{
 
     };
 
+
     /*
-      Finish YES.
-      IMPORTANT:
-      copyText() happens directly inside Continue button click.
+      PLAN TYPE EVIDENCE CHANGE
     */
+
+    planTypeEvidenceInput.onchange=()=>{
+
+        if(planTypeEvidenceInput.value){
+
+            status.textContent=
+                "Plan Type Evidence: "+
+                planTypeEvidenceInput.value;
+
+        }
+
+    };
+
+
+    /*
+      CONTINUE
+
+      Saves ALL YES fields:
+
+      PLANTYPE_IDRE_EMAIL
+      Verified
+      Arbit Case Note
+      Plan Type Evidence
+
+      And copies directly from Continue.
+    */
+
     continueBtn.onclick=()=>{
 
         const email=
             emailInput.value.trim();
+
 
         if(!email){
 
@@ -1054,8 +1394,10 @@ const popup=()=>new Promise(resolve=>{
             return;
         }
 
+
         const verificationStatus=
             verifiedInput.value;
+
 
         if(!verificationStatus){
 
@@ -1067,11 +1409,46 @@ const popup=()=>new Promise(resolve=>{
             return;
         }
 
+
+        const arbitCaseNote=
+            arbitCaseNoteInput.value.trim();
+
+
+        if(!arbitCaseNote){
+
+            status.textContent=
+                "Enter Arbit Case Note.";
+
+            arbitCaseNoteInput.focus();
+
+            return;
+        }
+
+
+        const planTypeEvidence=
+            planTypeEvidenceInput.value;
+
+
+        if(!planTypeEvidence){
+
+            status.textContent=
+                "Select Plan Type Evidence.";
+
+            planTypeEvidenceInput.focus();
+
+            return;
+        }
+
+
         const stateValue=
-            stateInput.value.trim().toUpperCase();
+            stateInput.value
+                .trim()
+                .toUpperCase();
+
 
         const duplicateComments=
             duplicateCommentsInput.value;
+
 
         if(!stateValue){
 
@@ -1083,6 +1460,7 @@ const popup=()=>new Promise(resolve=>{
             return;
         }
 
+
         if(!duplicateComments){
 
             status.textContent=
@@ -1093,45 +1471,62 @@ const popup=()=>new Promise(resolve=>{
             return;
         }
 
+
         const output=
             buildYesOutput(
+
                 stateValue,
+
                 duplicateComments,
+
                 currentName,
+
                 email,
-                verificationStatus
+
+                verificationStatus,
+
+                arbitCaseNote,
+
+                planTypeEvidence
+
             );
+
+
+        /*
+          COPY DIRECTLY FROM CONTINUE BUTTON CLICK
+        */
 
         const copied=
             copyText(output);
 
+
         overlay.remove();
         style.remove();
+
 
         const rowCount=
             sameId?1:ids.length;
 
-        const toast=
-            showCopyMessage(
-                copied
-                ?`✅ Copied ${rowCount} row${rowCount!==1?"s":""} | YES | State: ${stateValue} | Duplicate Comments: ${duplicateComments} | Email: ${email} | Verified: ${verificationStatus} | User: ${currentName}`
-                :"❌ Automatic copy was blocked. Click COPY AGAIN below.",
-                copied
-            );
 
-        const toastCopy=
-            toast.querySelector("#dct-copy");
+        showCopyMessage(
 
-        if(toastCopy){
+            copied
 
-            toast.querySelector("#dct-message")
-                .dataset.clipboard=output;
+            ?`✅ Copied ${rowCount} row${rowCount!==1?"s":""} | YES | State: ${stateValue} | Duplicate Comments: ${duplicateComments} | Email: ${email} | Verified: ${verificationStatus} | Arbit Case Note: ${arbitCaseNote} | Evidence: ${planTypeEvidence}`
 
-        }
+            :"❌ Automatic copy was blocked. Click COPY AGAIN below.",
+
+            copied,
+
+            output
+
+        );
+
 
         resolve(null);
 
     };
+
 
     closeBtn.onclick=()=>{
 
@@ -1142,6 +1537,7 @@ const popup=()=>new Promise(resolve=>{
         resolve(null);
 
     };
+
 
     overlay.onkeydown=e=>{
 
@@ -1155,6 +1551,7 @@ const popup=()=>new Promise(resolve=>{
 
         }
 
+
         if(
             e.key==="0" &&
             eligible.style.display==="block"
@@ -1165,6 +1562,7 @@ const popup=()=>new Promise(resolve=>{
             noBtn.click();
 
         }
+
 
         if(
             e.key==="1" &&
@@ -1179,15 +1577,12 @@ const popup=()=>new Promise(resolve=>{
 
     };
 
+
     stateInput.focus();
 
 });
 
 
-/*
-   Popup now performs the clipboard operation itself
-   from the actual button click.
-*/
 await popup();
 
 })();
