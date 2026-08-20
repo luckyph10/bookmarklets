@@ -300,8 +300,8 @@ const getColumnQValue=(columnFValue)=>{
        ===================================================== */
 
     if(
-        k==="closed"||
-        k.includes("closed")
+        k==="Closed"||
+        k.includes("Closed")
     ){
 
         return(
@@ -316,15 +316,16 @@ const getColumnQValue=(columnFValue)=>{
        ===================================================== */
 
     if(
-        f==="plan type validated post idr initiation, vob verified, no change to nsa jurisdiction"
+        f==="Plan Type Validated Post IDR Initiation, VOB verified, no change to NSA jurisdiction
+"
         ||
         f.includes(
-            "plan type validated post idr initiation"
+            "Plan type validated post idr initiation"
         )
     ){
 
         return(
-            "Plan Type Validated Post IDR Initiation"
+            "VOB verified, Plan Type Validated Post IDR Initiation – Eligible (Federal NSA)"
         );
 
     }
@@ -335,10 +336,10 @@ const getColumnQValue=(columnFValue)=>{
        ===================================================== */
 
     if(
-        f==="plan type objection submitted"
+        f==="Plan Type Objection Submitted"
         ||
         f.includes(
-            "plan type objection submitted"
+            "Plan Type Objection Submitted"
         )
     ){
 
@@ -354,10 +355,10 @@ const getColumnQValue=(columnFValue)=>{
        ===================================================== */
 
     if(
-        f==="additional info provided to idre through email"
+        f==="Additional Info provided to IDRE through email"
         ||
         f.includes(
-            "additional info provided to idre through email"
+            "Additional Info provided to IDRE through email"
         )
     ){
 
@@ -373,10 +374,10 @@ const getColumnQValue=(columnFValue)=>{
        ===================================================== */
 
     if(
-        f==="additional info provided to idre through portal"
+        f==="Additional Info provided to IDRE through portal"
         ||
         f.includes(
-            "additional info provided to idre through portal"
+            "Additional Info provided to IDRE through portal"
         )
     ){
 
