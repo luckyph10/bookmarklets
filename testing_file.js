@@ -426,7 +426,7 @@ const getColumnQValue=(actualF,actualK)=>{
         );
 
         return(
-            "Additional Info provided to IDRE through email"
+            "VOB verified, evidence uploaded, Additional info requested, Arbit updated."
         );
 
     }
@@ -448,7 +448,7 @@ const getColumnQValue=(actualF,actualK)=>{
         );
 
         return(
-            "Additional Info provided to IDRE through email"
+            "VOB verified, evidence uploaded, Additional info requested, Arbit updated."
         );
 
     }
