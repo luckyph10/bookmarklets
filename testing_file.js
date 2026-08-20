@@ -1,3 +1,4 @@
+```javascript
 (async()=>{
 
 const KEY="disputeUserName";
@@ -45,6 +46,21 @@ const columnJValue=
         "#ngForm > fieldset > div > div:nth-child(1) > div:nth-child(2) > ng-select > div > div > div.ng-value > span.ng-value-label"
     )?.textContent?.trim()||"";
 
+/* =========================================================
+   GET COLUMN K VALUE
+   ========================================================= */
+
+const columnKValue=
+    document.querySelector(
+        "#ngForm > fieldset > div > div:nth-child(1) > div:nth-child(4) > ng-select > div > div > div.ng-value > span.ng-value-label"
+    )?.textContent?.trim()
+    ||
+    "";
+
+/* =========================================================
+   GET IDS
+   ========================================================= */
+
 const ids=[
     ...document.querySelectorAll(
         "#table-body tr td:nth-child(2)"
@@ -52,6 +68,10 @@ const ids=[
 ]
 .map(td=>td.textContent.trim())
 .filter(Boolean);
+
+/* =========================================================
+   GET PLAN TYPES
+   ========================================================= */
 
 const planTypes=[
     ...document.querySelectorAll(
@@ -86,6 +106,93 @@ const getPlanType=
     i=>planTypes[i]||
         planTypes[0]||
         "";
+
+/* =========================================================
+   COLUMN F -> COLUMN Q LOGIC
+   ========================================================= */
+
+/*
+ * Normalize text so matching is not affected by:
+ * - uppercase/lowercase
+ * - extra spaces
+ */
+
+const normalizeValue=value=>
+    String(value||"")
+        .replace(/\s+/g," ")
+        .trim()
+        .toLowerCase();
+
+/*
+ * Column K Closed takes PRIORITY over Column F.
+ */
+
+const getColumnQValue=(columnFValue)=>{
+
+    const k=
+        normalizeValue(columnKValue);
+
+    const f=
+        normalizeValue(columnFValue);
+
+    /* =====================================================
+       COLUMN K = CLOSED
+       ===================================================== */
+
+    if(k==="closed"){
+
+        return(
+            "Completed. Dispute is Closed Due to Receiving Payment Determination."
+        );
+    }
+
+    /* =====================================================
+       COLUMN F VALUES
+       ===================================================== */
+
+    if(
+        f==="plan type validated post idr initiation, vob verified, no change to nsa jurisdiction"
+    ){
+
+        return(
+            "Plan Type Validated Post IDR Initiation"
+        );
+    }
+
+    if(
+        f==="plan type objection submitted"
+    ){
+
+        return(
+            "Already completed by Onshore"
+        );
+    }
+
+    if(
+        f==="additional info provided to idre through email"
+    ){
+
+        return(
+            "Additional Info provided to IDRE through email"
+        );
+    }
+
+    if(
+        f==="additional info provided to idre through portal"
+    ){
+
+        return(
+            "Additional Info provided to IDRE through email"
+        );
+    }
+
+    /*
+     * If Column F does not match one of the requested values,
+     * leave Column Q blank.
+     */
+
+    return"";
+};
 
 /* =========================================================
    CLIPBOARD
@@ -286,13 +393,6 @@ const popup=()=>new Promise(resolve=>{
 
     if(old)old.remove();
 
-    const oldStyle=
-        document.getElementById(
-            "dispute-popup-style"
-        );
-
-    if(oldStyle)oldStyle.remove();
-
     const overlay=
         document.createElement("div");
 
@@ -381,9 +481,11 @@ const popup=()=>new Promise(resolve=>{
 
                 </select>
 
-            </div>
+                <button id="dp-go">
+                    Go
+                </button>
 
-    
+            </div>
 
             <div id="dp-status"></div>
 
@@ -696,40 +798,9 @@ const popup=()=>new Promise(resolve=>{
                 rgba(255,255,255,.08);
         }
 
-        /* =================================================
-           INVALID / REQUIRED FIELD
-           ================================================= */
-
-        #dp-state.dp-invalid,
-        #dp-duplicate-comments.dp-invalid,
-        #dp-name.dp-invalid,
-        #dp-email.dp-invalid,
-        #dp-verified.dp-invalid{
-
-            border:
-                2px solid #ff2222 !important;
-
-            box-shadow:
-                0 0 0 3px
-                rgba(255,0,0,.18) !important;
-
-            background:
-                rgba(120,0,0,.28) !important;
-        }
-
-        #dp-state.dp-valid,
-        #dp-duplicate-comments.dp-valid,
-        #dp-name.dp-valid,
-        #dp-email.dp-valid,
-        #dp-verified.dp-valid{
-
-            border:
-                1px solid
-                rgba(35,180,75,.85);
-        }
-
         #dp-edit,
-        #dp-save{
+        #dp-save,
+        #dp-go{
 
             height:42px;
 
@@ -763,6 +834,21 @@ const popup=()=>new Promise(resolve=>{
                 rgba(255,255,255,.24);
         }
 
+        #dp-go{
+
+            background:
+                rgba(35,150,70,.9);
+
+            border-color:
+                rgba(35,150,70,.65);
+        }
+
+        #dp-go:hover{
+
+            background:
+                rgba(45,175,80,.98);
+        }
+
         #dp-save{
 
             display:none;
@@ -793,33 +879,6 @@ const popup=()=>new Promise(resolve=>{
             justify-content:center;
 
             white-space:nowrap;
-        }
-
-        #dp-shortcuts{
-
-            margin-top:8px;
-
-            display:flex;
-
-            gap:8px;
-
-            flex-wrap:wrap;
-
-            font-size:11px;
-
-            color:
-                rgba(255,255,255,.5);
-        }
-
-        #dp-shortcuts span{
-
-            background:
-                rgba(255,255,255,.06);
-
-            padding:
-                4px 7px;
-
-            border-radius:5px;
         }
 
         #dp-status{
@@ -1012,6 +1071,11 @@ const popup=()=>new Promise(resolve=>{
             "dp-saved"
         );
 
+    const goBtn=
+        document.getElementById(
+            "dp-go"
+        );
+
     const closeBtn=
         document.getElementById(
             "dp-close"
@@ -1056,50 +1120,6 @@ const popup=()=>new Promise(resolve=>{
         document.getElementById(
             "dp-continue"
         );
-
-    /* =====================================================
-       INVALID FIELD HELPERS
-       ===================================================== */
-
-    const markInvalid=(
-        element,
-        message
-    )=>{
-
-        element.classList.remove(
-            "dp-valid"
-        );
-
-        element.classList.add(
-            "dp-invalid"
-        );
-
-        if(message){
-
-            status.textContent=
-                message;
-        }
-
-    };
-
-    const markValid=element=>{
-
-        element.classList.remove(
-            "dp-invalid"
-        );
-
-        element.classList.add(
-            "dp-valid"
-        );
-    };
-
-    const clearInvalid=element=>{
-
-        element.classList.remove(
-            "dp-invalid"
-        );
-
-    };
 
     /* =====================================================
        USERNAME
@@ -1183,17 +1203,13 @@ const popup=()=>new Promise(resolve=>{
 
         if(!n){
 
-            markInvalid(
-                nameInput,
-                "Enter a Dispute User Name first."
-            );
+            status.textContent=
+                "Enter a Dispute User Name first.";
 
             nameInput.focus();
 
             return;
         }
-
-        markValid(nameInput);
 
         if(!saveName(n)){
 
@@ -1226,88 +1242,32 @@ const popup=()=>new Promise(resolve=>{
     };
 
     /* =====================================================
-       CLEAR RED STATE WHEN USER TYPES
-       ===================================================== */
-
-    stateInput.addEventListener(
-        "input",
-        ()=>{
-
-            if(
-                stateInput.value.trim()
-            ){
-
-                clearInvalid(
-                    stateInput
-                );
-
-            }
-
-        }
-    );
-
-    /* =====================================================
-       CLEAR RED DUPLICATE WHEN SELECTED
-       ===================================================== */
-
-    duplicateCommentsInput.addEventListener(
-        "change",
-        ()=>{
-
-            if(
-                duplicateCommentsInput.value
-            ){
-
-                markValid(
-                    duplicateCommentsInput
-                );
-
-                status.textContent=
-                    "Duplicate Dispute Comments: "+
-                    duplicateCommentsInput.value;
-            }
-
-        }
-    );
-
-    /* =====================================================
        VALIDATION
        ===================================================== */
 
     const validateStateAndDuplicate=()=>{
 
-        let valid=true;
-
         if(!currentName){
 
-            markInvalid(
-                nameInput,
-                "Please save your Dispute User Name first."
-            );
+            status.textContent=
+                "Please save your Dispute User Name first.";
 
             nameInput.focus();
 
             return false;
         }
 
-        clearInvalid(nameInput);
-
         const state=
             stateInput.value.trim();
 
         if(!state){
 
-            markInvalid(
-                stateInput,
-                "State is required."
-            );
+            status.textContent=
+                "Enter a State.";
 
             stateInput.focus();
 
-            valid=false;
-        }else{
-
-            markValid(stateInput);
+            return false;
         }
 
         const duplicateComments=
@@ -1318,35 +1278,24 @@ const popup=()=>new Promise(resolve=>{
             duplicateCommentsInput.selectedIndex===0
         ){
 
-            markInvalid(
-                duplicateCommentsInput,
-                "Duplicate Dispute Comments is required."
-            );
+            status.textContent=
+                "Please select Duplicate Dispute Comments before continuing.";
 
-            if(valid){
-                duplicateCommentsInput.focus();
-            }
+            duplicateCommentsInput.focus();
 
-            valid=false;
-
-        }else{
-
-            markValid(
-                duplicateCommentsInput
-            );
+            return false;
         }
 
-        return valid;
+        return true;
     };
 
     /* =====================================================
-       PROCESS STATE + DUPLICATE
+       GO
        ===================================================== */
 
     const processStateAndDuplicate=()=>{
 
         if(!validateStateAndDuplicate()){
-
             return;
         }
 
@@ -1369,25 +1318,18 @@ const popup=()=>new Promise(resolve=>{
         noBtn.focus();
     };
 
-    /* =====================================================
-       ENTER ON STATE
-       ===================================================== */
+    goBtn.onclick=
+        processStateAndDuplicate;
 
-    stateInput.addEventListener(
-        "keydown",
-        e=>{
+    stateInput.onkeydown=e=>{
 
-            if(e.key==="Enter"){
+        if(e.key==="Enter"){
 
-                e.preventDefault();
-                e.stopPropagation();
+            e.preventDefault();
 
-                processStateAndDuplicate();
-            }
-
-        },
-        true
-    );
+            processStateAndDuplicate();
+        }
+    };
 
     /* =====================================================
        OUTPUT - NO
@@ -1398,26 +1340,49 @@ const popup=()=>new Promise(resolve=>{
         duplicateComments
     )=>{
 
-        const makeNoRow=(id,i)=>[
+        const makeNoRow=(id,i)=>{
 
-            "-",
-            getPlanType(i),
-            duplicateComments,
-            disputeNumber,
-            id,
-            disputeStatus,
-            "-",
-            "-",
-            "-",
-            "-",
-            columnJValue,
-            "N/A",
-            "N/A",
-            stateValue,
-            "-",
-            "No"
+            /*
+             * COLUMN F
+             *
+             * In your output, getPlanType(i) is Column F.
+             */
+            const columnFValue=
+                getPlanType(i);
 
-        ].join("\t");
+            /*
+             * COLUMN Q
+             *
+             * Determine Q from Column F,
+             * unless Column K is Closed.
+             */
+            const columnQValue=
+                getColumnQValue(
+                    columnFValue
+                );
+
+            return [
+
+                "-",                       // A
+                columnFValue,              // B / existing Plan Type
+                duplicateComments,         // C
+                disputeNumber,             // D
+                id,                        // E
+                disputeStatus,             // F
+                "-",                      // G
+                "-",                      // H
+                "-",                      // I
+                "-",                      // J
+                columnJValue,              // K
+                "N/A",                    // L
+                "N/A",                    // M
+                stateValue,               // N
+                "-",                      // O
+                "No",                     // P
+                columnQValue              // Q
+
+            ].join("\t");
+        };
 
         return sameId
 
@@ -1442,26 +1407,48 @@ const popup=()=>new Promise(resolve=>{
         verificationStatus
     )=>{
 
-        const makeYesRow=(id,i)=>[
+        const makeYesRow=(id,i)=>{
 
-            plantypeIdreEmail,
-            getPlanType(i),
-            duplicateComments,
-            disputeNumber,
-            id,
-            disputeStatus,
-            disputeUserName,
-            verificationStatus,
-            "-",
-            "-",
-            columnJValue,
-            "N/A",
-            "N/A",
-            stateValue,
-            "N/A",
-            "Yes"
+            /*
+             * COLUMN F
+             *
+             * Get the Plan Type for this row.
+             */
+            const columnFValue=
+                getPlanType(i);
 
-        ].join("\t");
+            /*
+             * COLUMN Q
+             *
+             * Closed in Column K has priority.
+             */
+            const columnQValue=
+                getColumnQValue(
+                    columnFValue
+                );
+
+            return [
+
+                plantypeIdreEmail,        // A
+                columnFValue,             // B / existing Plan Type
+                duplicateComments,        // C
+                disputeNumber,            // D
+                id,                       // E
+                disputeStatus,            // F
+                disputeUserName,          // G
+                verificationStatus,       // H
+                "-",                      // I
+                "-",                      // J
+                columnJValue,             // K
+                "N/A",                    // L
+                "N/A",                    // M
+                stateValue,               // N
+                "N/A",                    // O
+                "Yes",                    // P
+                columnQValue              // Q
+
+            ].join("\t");
+        };
 
         return sameId
 
@@ -1548,50 +1535,22 @@ const popup=()=>new Promise(resolve=>{
         emailInput.focus();
     };
 
-    /* =====================================================
-       EMAIL ENTER
-       ===================================================== */
+    emailInput.onkeydown=e=>{
 
-    emailInput.addEventListener(
-        "keydown",
-        e=>{
+        if(e.key==="Enter"){
 
-            if(e.key==="Enter"){
+            e.preventDefault();
 
-                e.preventDefault();
-                e.stopPropagation();
-
-                continueBtn.click();
-            }
-
-        },
-        true
-    );
-
-    /* =====================================================
-       VERIFIED
-       ===================================================== */
+            continueBtn.click();
+        }
+    };
 
     verifiedInput.onchange=()=>{
 
-        if(verifiedInput.value){
-
-            markValid(
-                verifiedInput
-            );
-
-            status.textContent=
-                "Verified: "+
-                verifiedInput.value;
-
-        }else{
-
-            clearInvalid(
-                verifiedInput
-            );
-
-        }
-
+        status.textContent=
+            verifiedInput.value
+            ?"Verified: "+verifiedInput.value
+            :"";
     };
 
     /* =====================================================
@@ -1609,34 +1568,26 @@ const popup=()=>new Promise(resolve=>{
 
         if(!email){
 
-            markInvalid(
-                emailInput,
-                "PLANTYPE_IDRE_EMAIL is required."
-            );
+            status.textContent=
+                "Enter PLANTYPE_IDRE_EMAIL.";
 
             emailInput.focus();
 
             return;
         }
 
-        markValid(emailInput);
-
         const verificationStatus=
             verifiedInput.value;
 
         if(!verificationStatus){
 
-            markInvalid(
-                verifiedInput,
-                "Verified selection is required."
-            );
+            status.textContent=
+                "Select Yes or No for Verified.";
 
             verifiedInput.focus();
 
             return;
         }
-
-        markValid(verifiedInput);
 
         const stateValue=
             stateInput.value
@@ -1692,24 +1643,19 @@ const popup=()=>new Promise(resolve=>{
     };
 
     /* =====================================================
-       GLOBAL KEYBOARD SHORTCUTS
-       
+       KEYBOARD SHORTCUTS
+
        2 = N/A
        3 = Duplicate Dispute Reviewed
-
-       capture=true is IMPORTANT.
-
-       This allows 2 and 3 to work even when the cursor
-       is inside the State / Name / Email fields.
        ===================================================== */
 
     overlay.addEventListener(
         "keydown",
         e=>{
 
-            /* =============================================
-               2 = N/A
-               ============================================= */
+            /*
+             * Ignore modifier combinations.
+             */
 
             if(
                 !e.ctrlKey &&
@@ -1721,14 +1667,9 @@ const popup=()=>new Promise(resolve=>{
 
                 e.preventDefault();
                 e.stopPropagation();
-                e.stopImmediatePropagation();
 
                 duplicateCommentsInput.value=
                     "N/A";
-
-                markValid(
-                    duplicateCommentsInput
-                );
 
                 duplicateCommentsInput.dispatchEvent(
                     new Event(
@@ -1745,10 +1686,6 @@ const popup=()=>new Promise(resolve=>{
                 return;
             }
 
-            /* =============================================
-               3 = Duplicate Dispute Reviewed
-               ============================================= */
-
             if(
                 !e.ctrlKey &&
                 !e.altKey &&
@@ -1759,14 +1696,9 @@ const popup=()=>new Promise(resolve=>{
 
                 e.preventDefault();
                 e.stopPropagation();
-                e.stopImmediatePropagation();
 
                 duplicateCommentsInput.value=
                     "Duplicate Dispute Reviewed";
-
-                markValid(
-                    duplicateCommentsInput
-                );
 
                 duplicateCommentsInput.dispatchEvent(
                     new Event(
@@ -1783,14 +1715,11 @@ const popup=()=>new Promise(resolve=>{
                 return;
             }
 
-            /* =============================================
-               ESC = CLOSE
-               ============================================= */
+            /* ESC */
 
             if(e.key==="Escape"){
 
                 e.preventDefault();
-                e.stopPropagation();
 
                 overlay.remove();
                 style.remove();
@@ -1800,9 +1729,7 @@ const popup=()=>new Promise(resolve=>{
                 return;
             }
 
-            /* =============================================
-               0 = NO
-               ============================================= */
+            /* 0 = NO */
 
             if(
                 e.key==="0" &&
@@ -1816,9 +1743,7 @@ const popup=()=>new Promise(resolve=>{
                 return;
             }
 
-            /* =============================================
-               1 = YES
-               ============================================= */
+            /* 1 = YES */
 
             if(
                 e.key==="1" &&
@@ -1860,3 +1785,4 @@ const popup=()=>new Promise(resolve=>{
 await popup();
 
 })();
+```
