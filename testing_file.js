@@ -376,18 +376,6 @@ const popup=()=>new Promise(resolve=>{
 
             </div>
 
-            <div id="dp-shortcuts">
-
-                <span>
-                    2 = N/A
-                </span>
-
-                <span>
-                    3 = Duplicate Dispute Reviewed
-                </span>
-
-            </div>
-
             <div id="dp-status"></div>
 
             <!-- ELIGIBILITY -->
