@@ -824,6 +824,10 @@ const popup=()=>new Promise(resolve=>{
                     style="display:none"
                 >
 
+                    <!-- ==================================
+                         PLANTYPE_IDRE_EMAIL
+                         ================================== -->
+
                     <div id="dp-label-email">
                         PLANTYPE_IDRE_EMAIL
                     </div>
@@ -837,6 +841,10 @@ const popup=()=>new Promise(resolve=>{
                     >
 
 
+                    <!-- ==================================
+                         ARBIT CASE NOTES
+                         ================================== -->
+
                     <div id="dp-label-notes">
                         Arbit Case Notes
                     </div>
@@ -849,6 +857,52 @@ const popup=()=>new Promise(resolve=>{
                         autocomplete="off"
                     >
 
+
+                    <!-- ==================================
+                         PLAN TYPE EVIDENCE
+                         ================================== -->
+
+                    <div id="dp-label-evidence">
+                        Plan Type Evidence?
+                    </div>
+
+
+                    <select id="dp-plan-type-evidence">
+
+                        <option
+                            value=""
+                            selected
+                            disabled
+                        >
+                            Select Plan Type Evidence
+                        </option>
+
+                        <option value="Yes - VOB">
+                            Yes - VOB
+                        </option>
+
+                        <option value="Yes - VOB Team">
+                            Yes - VOB Team
+                        </option>
+
+                        <option value="Yes - Insurance Card">
+                            Yes - Insurance Card
+                        </option>
+
+                        <option value="Yes - State Authority">
+                            Yes - State Authority
+                        </option>
+
+                        <option value="Yes - EOB">
+                            Yes - EOB
+                        </option>
+
+                    </select>
+
+
+                    <!-- ==================================
+                         VERIFIED
+                         ================================== -->
 
                     <div id="dp-label-verified">
                         Verified?
@@ -871,6 +925,10 @@ const popup=()=>new Promise(resolve=>{
 
                     </select>
 
+
+                    <!-- ==================================
+                         CONTINUE
+                         ================================== -->
 
                     <button
                         id="dp-continue"
@@ -1000,6 +1058,7 @@ const popup=()=>new Promise(resolve=>{
         #dp-label-state,
         #dp-label-email,
         #dp-label-notes,
+        #dp-label-evidence,
         #dp-label-verified{
 
             font-size:13px;
@@ -1033,6 +1092,7 @@ const popup=()=>new Promise(resolve=>{
         #dp-state,
         #dp-email,
         #dp-arbit-notes,
+        #dp-plan-type-evidence,
         #dp-verified,
         #dp-duplicate-comments{
 
@@ -1084,6 +1144,7 @@ const popup=()=>new Promise(resolve=>{
 
         #dp-email,
         #dp-arbit-notes,
+        #dp-plan-type-evidence,
         #dp-verified{
 
             width:100%;
@@ -1091,6 +1152,7 @@ const popup=()=>new Promise(resolve=>{
         }
 
 
+        #dp-plan-type-evidence,
         #dp-verified{
 
             cursor:pointer;
@@ -1098,6 +1160,7 @@ const popup=()=>new Promise(resolve=>{
         }
 
 
+        #dp-plan-type-evidence option,
         #dp-verified option,
         #dp-duplicate-comments option{
 
@@ -1133,6 +1196,7 @@ const popup=()=>new Promise(resolve=>{
         #dp-state:focus,
         #dp-email:focus,
         #dp-arbit-notes:focus,
+        #dp-plan-type-evidence:focus,
         #dp-verified:focus,
         #dp-duplicate-comments:focus{
 
@@ -1493,6 +1557,11 @@ const popup=()=>new Promise(resolve=>{
     const arbitNotesInput=
         document.getElementById("dp-arbit-notes");
 
+    const planTypeEvidenceInput=
+        document.getElementById(
+            "dp-plan-type-evidence"
+        );
+
     const verifiedInput=
         document.getElementById("dp-verified");
 
@@ -1504,12 +1573,13 @@ const popup=()=>new Promise(resolve=>{
        UPDATE CONTINUE BUTTON
        =====================================================
 
-       Continue is enabled ONLY when all three YES fields
+       Continue is enabled ONLY when all four YES fields
        have been completed:
 
        1. PLANTYPE_IDRE_EMAIL
        2. Arbit Case Notes
-       3. Verified?
+       3. Plan Type Evidence?
+       4. Verified?
        ===================================================== */
 
     const updateContinueButton=()=>{
@@ -1520,6 +1590,9 @@ const popup=()=>new Promise(resolve=>{
         const notesFilled=
             arbitNotesInput.value.trim()!=="";
 
+        const evidenceFilled=
+            planTypeEvidenceInput.value!=="";
+
         const verifiedFilled=
             verifiedInput.value!=="";
 
@@ -1527,6 +1600,7 @@ const popup=()=>new Promise(resolve=>{
         const allFilled=
             emailFilled &&
             notesFilled &&
+            evidenceFilled &&
             verifiedFilled;
 
 
@@ -1560,6 +1634,11 @@ const popup=()=>new Promise(resolve=>{
 
     arbitNotesInput.addEventListener(
         "input",
+        updateContinueButton
+    );
+
+    planTypeEvidenceInput.addEventListener(
+        "change",
         updateContinueButton
     );
 
@@ -1770,6 +1849,7 @@ const popup=()=>new Promise(resolve=>{
 
         emailInput.value="";
         arbitNotesInput.value="";
+        planTypeEvidenceInput.value="";
         verifiedInput.value="";
 
         updateContinueButton();
@@ -1807,10 +1887,9 @@ const popup=()=>new Promise(resolve=>{
 
        A B C D E F G H I J K L M N O P Q
 
+       I = Arbit Case Notes
+       J = Plan Type Evidence
        Q = row[16]
-
-       IMPORTANT:
-       Arbit Case Notes = Column I = row[8]
        ===================================================== */
 
     const buildRow=(
@@ -1822,7 +1901,8 @@ const popup=()=>new Promise(resolve=>{
         disputeUserName="",
         email="",
         verificationStatus="",
-        arbitCaseNotes=""
+        arbitCaseNotes="",
+        planTypeEvidence=""
     )=>{
 
 
@@ -1885,7 +1965,9 @@ const popup=()=>new Promise(resolve=>{
                 ?arbitCaseNotes
                 :"-",                        // I
 
-            "-",                             // J
+            isYes
+                ?planTypeEvidence
+                :"-",                        // J
 
             actualK,                          // K
 
@@ -1901,7 +1983,7 @@ const popup=()=>new Promise(resolve=>{
 
             isYes
                 ?"Yes"
-                :"No",                       // P
+                :"No",                        // P
 
             actualQ                           // Q
 
@@ -1950,7 +2032,11 @@ const popup=()=>new Promise(resolve=>{
             row[8]
         );
 
-        console.log("J:",row[9]);
+        console.log(
+            "J - PLAN TYPE EVIDENCE:",
+            row[9]
+        );
+
         console.log("K:",row[10]);
         console.log("L:",row[11]);
         console.log("M:",row[12]);
@@ -1985,7 +2071,8 @@ const popup=()=>new Promise(resolve=>{
         disputeUserName="",
         email="",
         verificationStatus="",
-        arbitCaseNotes=""
+        arbitCaseNotes="",
+        planTypeEvidence=""
     )=>{
 
         const rows=
@@ -2000,7 +2087,8 @@ const popup=()=>new Promise(resolve=>{
                     disputeUserName,
                     email,
                     verificationStatus,
-                    arbitCaseNotes
+                    arbitCaseNotes,
+                    planTypeEvidence
                 )
             ]
             :ids.map((id,i)=>
@@ -2013,7 +2101,8 @@ const popup=()=>new Promise(resolve=>{
                     disputeUserName,
                     email,
                     verificationStatus,
-                    arbitCaseNotes
+                    arbitCaseNotes,
+                    planTypeEvidence
                 )
             );
 
@@ -2121,6 +2210,7 @@ const popup=()=>new Promise(resolve=>{
 
         emailInput.value="";
         arbitNotesInput.value="";
+        planTypeEvidenceInput.value="";
         verifiedInput.value="";
 
 
@@ -2128,7 +2218,7 @@ const popup=()=>new Promise(resolve=>{
 
 
         status.textContent=
-            "Enter PLANTYPE_IDRE_EMAIL, Arbit Case Notes, and select Verified.";
+            "Enter PLANTYPE_IDRE_EMAIL, Arbit Case Notes, select Plan Type Evidence, and select Verified.";
 
 
         emailInput.focus();
@@ -2164,6 +2254,10 @@ const popup=()=>new Promise(resolve=>{
             arbitNotesInput.value.trim();
 
 
+        const planTypeEvidence=
+            planTypeEvidenceInput.value;
+
+
         const verificationStatus=
             verifiedInput.value;
 
@@ -2192,6 +2286,20 @@ const popup=()=>new Promise(resolve=>{
                 "Enter Arbit Case Notes.";
 
             arbitNotesInput.focus();
+
+            updateContinueButton();
+
+            return;
+
+        }
+
+
+        if(!planTypeEvidence){
+
+            status.textContent=
+                "Select Plan Type Evidence.";
+
+            planTypeEvidenceInput.focus();
 
             updateContinueButton();
 
@@ -2232,7 +2340,8 @@ const popup=()=>new Promise(resolve=>{
                 currentName,
                 email,
                 verificationStatus,
-                arbitCaseNotes
+                arbitCaseNotes,
+                planTypeEvidence
             );
 
 
@@ -2253,7 +2362,7 @@ const popup=()=>new Promise(resolve=>{
         showCopyMessage(
 
             copied
-            ?`✅ COPIED ${rowCount} ROW${rowCount!==1?"S":""} — COLUMN I + Q FILLED`
+            ?`✅ COPIED ${rowCount} ROW${rowCount!==1?"S":""} — COLUMNS I, J + Q FILLED`
             :`❌ COPY FAILED — CLICK COPY AGAIN`,
 
             output
