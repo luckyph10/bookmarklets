@@ -2,6 +2,10 @@
 
 const KEY="disputeUserName";
 
+/* =========================================================
+   USER NAME
+   ========================================================= */
+
 const getName=()=>{
     try{
         return(localStorage.getItem(KEY)||"").trim();
@@ -21,13 +25,24 @@ const saveName=n=>{
 };
 
 /* =========================================================
+   NORMALIZE VALUES
+   ========================================================= */
+
+const normalizeValue=value=>
+    String(value||"")
+        .replace(/\u00A0/g," ")
+        .replace(/\s+/g," ")
+        .trim()
+        .toLowerCase();
+
+/* =========================================================
    GET PAGE DATA
    ========================================================= */
 
 const disputeNumber=
     document.querySelector(
         "#ngForm fieldset > div:nth-child(1) > div:nth-child(1) > div:nth-child(1) > input"
-    )?.value?.trim();
+    )?.value?.trim()||"";
 
 const disputeStatus=
     document.querySelector(
@@ -40,36 +55,193 @@ const disputeStatus=
     ||
     "";
 
+/* =========================================================
+   GET COLUMN J
+   ========================================================= */
+
 const columnJValue=
     document.querySelector(
         "#ngForm > fieldset > div > div:nth-child(1) > div:nth-child(2) > ng-select > div > div > div.ng-value > span.ng-value-label"
-    )?.textContent?.trim()||"";
-
-/* =========================================================
-   GET COLUMN K VALUE
-   ========================================================= */
-
-const columnKValue=
-    document.querySelector(
-        "#ngForm > fieldset > div > div:nth-child(1) > div:nth-child(4) > ng-select > div > div > div.ng-value > span.ng-value-label"
     )?.textContent?.trim()
     ||
     "";
 
 /* =========================================================
+   GET COLUMN K
+   =========================================================
+
+   This is the page-level Column K.
+
+   We try several selectors because ng-select
+   structures can vary.
+   ========================================================= */
+
+const getNgSelectText=selector=>{
+
+    const el=document.querySelector(selector);
+
+    if(!el){
+        return"";
+    }
+
+    return(
+        el.querySelector(".ng-value-label")?.textContent?.trim()
+        ||
+        el.querySelector(".ng-value")?.textContent?.trim()
+        ||
+        el.textContent?.trim()
+        ||
+        ""
+    );
+};
+
+let columnKValue=
+    getNgSelectText(
+        "#ngForm > fieldset > div > div:nth-child(1) > div:nth-child(4) > ng-select"
+    );
+
+/*
+ * Fallback: search for an element whose current selected
+ * value is Closed.
+ */
+
+if(!columnKValue){
+
+    const possibleKElements=[
+        ...document.querySelectorAll(
+            "#ngForm ng-select"
+        )
+    ];
+
+    for(const el of possibleKElements){
+
+        const txt=
+            (
+                el.querySelector(".ng-value-label")?.textContent
+                ||
+                el.textContent
+                ||
+                ""
+            ).trim();
+
+        if(
+            normalizeValue(txt)==="closed"
+        ){
+
+            columnKValue=txt;
+            break;
+        }
+    }
+}
+
+/* =========================================================
+   GET TABLE ROWS
+   ========================================================= */
+
+const tableRows=[
+    ...document.querySelectorAll(
+        "#table-body tr"
+    )
+];
+
+/* =========================================================
    GET IDS
    ========================================================= */
 
-const ids=[
-    ...document.querySelectorAll(
-        "#table-body tr td:nth-child(2)"
+const ids=tableRows
+    .map(row=>
+        row
+            .querySelector("td:nth-child(2)")
+            ?.textContent
+            ?.trim()
+            ||
+            ""
     )
-]
-.map(td=>td.textContent.trim())
-.filter(Boolean);
+    .filter(Boolean);
+
+/* =========================================================
+   GET COLUMN F FROM ACTUAL TABLE
+   =========================================================
+
+   IMPORTANT:
+
+   Column F = 6th table cell.
+
+   td:nth-child(6)
+   ========================================================= */
+
+const columnFValues=tableRows.map(row=>{
+
+    const cell=
+        row.querySelector(
+            "td:nth-child(6)"
+        );
+
+    if(!cell){
+        return"";
+    }
+
+    /*
+     * Try normal text first.
+     */
+    let value=
+        (
+            cell.innerText||
+            cell.textContent||
+            ""
+        )
+        .replace(/\u00A0/g," ")
+        .replace(/\s+/g," ")
+        .trim();
+
+    /*
+     * If Column F contains an input/ng-select,
+     * try those too.
+     */
+
+    if(!value){
+
+        const input=
+            cell.querySelector(
+                "input, textarea"
+            );
+
+        if(input){
+            value=
+                (
+                    input.value||
+                    input.textContent||
+                    ""
+                ).trim();
+        }
+    }
+
+    if(!value){
+
+        const selected=
+            cell.querySelector(
+                ".ng-value-label"
+            );
+
+        if(selected){
+            value=
+                selected.textContent
+                    .replace(/\u00A0/g," ")
+                    .replace(/\s+/g," ")
+                    .trim();
+        }
+    }
+
+    return value;
+
+});
 
 /* =========================================================
    GET PLAN TYPES
+   =========================================================
+
+   Keep this because the rest of your existing output
+   uses the planType_ fields.
    ========================================================= */
 
 const planTypes=[
@@ -83,7 +255,10 @@ const planTypes=[
         el.textContent||
         el.value||
         ""
-    ).trim()
+    )
+    .replace(/\u00A0/g," ")
+    .replace(/\s+/g," ")
+    .trim()
 )
 .filter(Boolean);
 
@@ -92,41 +267,65 @@ if(
     !disputeStatus||
     !ids.length
 ){
+
     console.error(
         "Missing Dispute Number, Dispute Status, or IDs."
     );
+
+    console.log({
+        disputeNumber,
+        disputeStatus,
+        ids
+    });
+
     return;
 }
+
+/* =========================================================
+   SAME ID
+   ========================================================= */
 
 const sameId=
     ids.every(id=>id===ids[0]);
 
+/* =========================================================
+   PLAN TYPE
+   ========================================================= */
+
 const getPlanType=
-    i=>planTypes[i]||
+    i=>
+        planTypes[i]||
         planTypes[0]||
         "";
 
 /* =========================================================
-   COLUMN F -> COLUMN Q LOGIC
+   COLUMN F
+   =========================================================
+
+   FIRST use actual table Column F.
+
+   If Column F cannot be found, fall back to plan type.
    ========================================================= */
 
-/*
- * Normalize text so matching is not affected by:
- * - uppercase/lowercase
- * - extra spaces
- */
+const getColumnF=
+    i=>{
 
-const normalizeValue=value=>
-    String(value||"")
-        .replace(/\s+/g," ")
-        .trim()
-        .toLowerCase();
+        const tableF=
+            columnFValues[i]||
+            "";
 
-/*
- * Column K Closed takes PRIORITY over Column F.
- */
+        if(tableF){
+            return tableF;
+        }
 
-const getColumnQValue=(columnFValue)=>{
+        return getPlanType(i);
+    };
+
+/* =========================================================
+   COLUMN Q LOGIC
+   ========================================================= */
+
+const getColumnQValue=columnFValue=>{
 
     const k=
         normalizeValue(columnKValue);
@@ -135,10 +334,14 @@ const getColumnQValue=(columnFValue)=>{
         normalizeValue(columnFValue);
 
     /* =====================================================
-       COLUMN K = CLOSED
+       K = CLOSED HAS PRIORITY
        ===================================================== */
 
-    if(k==="closed"){
+    if(
+        k==="closed"
+        ||
+        k.includes("closed")
+    ){
 
         return(
             "Completed. Dispute is Closed Due to Receiving Payment Determination."
@@ -146,11 +349,12 @@ const getColumnQValue=(columnFValue)=>{
     }
 
     /* =====================================================
-       COLUMN F VALUES
+       F = PLAN TYPE VALIDATED
        ===================================================== */
 
     if(
-        f==="plan type validated post idr initiation, vob verified, no change to nsa jurisdiction"
+        f===
+        "plan type validated post idr initiation, vob verified, no change to nsa jurisdiction"
     ){
 
         return(
@@ -158,8 +362,13 @@ const getColumnQValue=(columnFValue)=>{
         );
     }
 
+    /* =====================================================
+       F = PLAN TYPE OBJECTION
+       ===================================================== */
+
     if(
-        f==="plan type objection submitted"
+        f===
+        "plan type objection submitted"
     ){
 
         return(
@@ -167,8 +376,13 @@ const getColumnQValue=(columnFValue)=>{
         );
     }
 
+    /* =====================================================
+       F = ADDITIONAL INFO EMAIL
+       ===================================================== */
+
     if(
-        f==="additional info provided to idre through email"
+        f===
+        "additional info provided to idre through email"
     ){
 
         return(
@@ -176,8 +390,13 @@ const getColumnQValue=(columnFValue)=>{
         );
     }
 
+    /* =====================================================
+       F = ADDITIONAL INFO PORTAL
+       ===================================================== */
+
     if(
-        f==="additional info provided to idre through portal"
+        f===
+        "additional info provided to idre through portal"
     ){
 
         return(
@@ -185,13 +404,42 @@ const getColumnQValue=(columnFValue)=>{
         );
     }
 
-    /*
-     * If Column F does not match one of the requested values,
-     * leave Column Q blank.
-     */
+    /* =====================================================
+       NO MATCH
+       ===================================================== */
 
     return"";
 };
+
+/* =========================================================
+   DEBUG COLUMN F / K / Q
+   ========================================================= */
+
+console.log(
+    "================ COLUMN F -> Q DEBUG ================"
+);
+
+console.log(
+    "COLUMN K:",
+    columnKValue
+);
+
+columnFValues.forEach((f,i)=>{
+
+    console.log(
+        `ROW ${i+1}`,
+        {
+            ID:ids[i],
+            ColumnF:f,
+            ColumnQ:getColumnQValue(f)
+        }
+    );
+
+});
+
+console.log(
+    "======================================================"
+);
 
 /* =========================================================
    CLIPBOARD
@@ -374,7 +622,7 @@ const showCopyMessage=(
 
         }
 
-    },5000);
+    },7000);
 
     return toast;
 };
@@ -413,8 +661,6 @@ const popup=()=>new Promise(resolve=>{
                 Dispute Information
             </div>
 
-            <!-- DISPUTE USER -->
-
             <div id="dp-label-name">
                 Dispute User Name
             </div>
@@ -441,8 +687,6 @@ const popup=()=>new Promise(resolve=>{
                 </button>
 
             </div>
-
-            <!-- STATE -->
 
             <div id="dp-label-state">
                 State + Duplicate Comments
@@ -488,8 +732,6 @@ const popup=()=>new Promise(resolve=>{
 
             <div id="dp-status"></div>
 
-            <!-- ELIGIBILITY -->
-
             <div
                 id="dp-eligible"
                 style="display:none"
@@ -510,8 +752,6 @@ const popup=()=>new Promise(resolve=>{
                     </button>
 
                 </div>
-
-                <!-- YES EXTRA -->
 
                 <div
                     id="dp-yes-extra"
@@ -576,129 +816,74 @@ const popup=()=>new Promise(resolve=>{
     style.textContent=`
 
         #dispute-popup-overlay{
-
             position:fixed;
             inset:0;
-
             width:100%;
             height:100%;
-
             z-index:2147483647;
-
             pointer-events:none;
         }
 
         #dispute-popup{
-
             pointer-events:auto;
-
             position:absolute;
-
             top:20px;
             left:50%;
-
-            transform:
-                translateX(-50%);
-
+            transform:translateX(-50%);
             width:620px;
-
-            max-width:
-                calc(100vw - 30px);
-
+            max-width:calc(100vw - 30px);
             padding:24px;
-
             border-radius:18px;
-
-            background:
-                rgba(0,0,0,.78);
-
-            border:
-                1px solid
-                rgba(255,255,255,.18);
-
-            box-shadow:
-                0 15px 45px
-                rgba(0,0,0,.45);
-
-            backdrop-filter:
-                blur(14px);
-
-            -webkit-backdrop-filter:
-                blur(14px);
-
-            font-family:
-                Arial,sans-serif;
-
+            background:rgba(0,0,0,.78);
+            border:1px solid rgba(255,255,255,.18);
+            box-shadow:0 15px 45px rgba(0,0,0,.45);
+            backdrop-filter:blur(14px);
+            -webkit-backdrop-filter:blur(14px);
+            font-family:Arial,sans-serif;
             color:#fff;
-
-            box-sizing:
-                border-box;
+            box-sizing:border-box;
         }
 
         #dp-title{
-
             font-size:20px;
             font-weight:700;
-
             margin-bottom:20px;
-
             padding-right:35px;
         }
 
         #dp-close{
-
             position:absolute;
-
             top:8px;
             right:10px;
-
             width:34px;
             height:34px;
-
             border:0;
-
             border-radius:50%;
-
             background:transparent;
-
             color:#fff;
-
             font-size:27px;
-
             cursor:pointer;
         }
 
         #dp-close:hover{
-
-            background:
-                rgba(255,255,255,.14);
+            background:rgba(255,255,255,.14);
         }
 
         #dp-label-name,
         #dp-label-state,
         #dp-label-email,
         #dp-label-verified{
-
             font-size:13px;
-
             font-weight:600;
-
-            color:
-                rgba(255,255,255,.9);
-
-            margin:
-                10px 0 7px;
+            color:rgba(255,255,255,.9);
+            margin:10px 0 7px;
         }
 
         #dp-name-row,
         #dp-state-row{
-
             display:flex;
-
             gap:8px;
-
             width:100%;
-
             align-items:center;
         }
 
@@ -707,80 +892,53 @@ const popup=()=>new Promise(resolve=>{
         #dp-email,
         #dp-verified,
         #dp-duplicate-comments{
-
             height:42px;
-
             box-sizing:border-box;
-
-            border:
-                1px solid
-                rgba(255,255,255,.25);
-
+            border:1px solid rgba(255,255,255,.25);
             border-radius:10px;
-
-            background:
-                rgba(255,255,255,.09);
-
+            background:rgba(255,255,255,.09);
             color:#fff;
-
             outline:none;
-
-            padding:
-                0 12px;
-
+            padding:0 12px;
             font-size:14px;
         }
 
         #dp-name,
         #dp-state{
-
             flex:1;
-
             min-width:0;
         }
 
         #dp-duplicate-comments{
-
             width:220px;
-
             flex-shrink:0;
-
             cursor:pointer;
         }
 
         #dp-email,
         #dp-verified{
-
             width:100%;
         }
 
         #dp-verified{
-
             cursor:pointer;
         }
 
         #dp-verified option,
         #dp-duplicate-comments option{
-
             background:#222;
             color:#fff;
         }
 
         #dp-name:read-only{
-
-            background:
-                rgba(255,255,255,.045);
-
-            color:
-                rgba(255,255,255,.72);
+            background:rgba(255,255,255,.045);
+            color:rgba(255,255,255,.72);
         }
 
         #dp-name::placeholder,
         #dp-state::placeholder,
         #dp-email::placeholder{
-
-            color:
-                rgba(255,255,255,.5);
+            color:rgba(255,255,255,.5);
         }
 
         #dp-name:focus,
@@ -788,244 +946,145 @@ const popup=()=>new Promise(resolve=>{
         #dp-email:focus,
         #dp-verified:focus,
         #dp-duplicate-comments:focus{
-
-            border-color:
-                rgba(255,255,255,.65);
-
-            box-shadow:
-                0 0 0 3px
-                rgba(255,255,255,.08);
+            border-color:rgba(255,255,255,.65);
+            box-shadow:0 0 0 3px rgba(255,255,255,.08);
         }
 
         #dp-edit,
         #dp-save,
         #dp-go{
-
             height:42px;
-
-            padding:
-                0 15px;
-
-            border:
-                1px solid
-                rgba(255,255,255,.25);
-
+            padding:0 15px;
+            border:1px solid rgba(255,255,255,.25);
             border-radius:10px;
-
-            background:
-                rgba(255,255,255,.14);
-
+            background:rgba(255,255,255,.14);
             color:#fff;
-
             font-weight:700;
-
             font-size:14px;
-
             cursor:pointer;
-
             white-space:nowrap;
         }
 
         #dp-edit:hover,
         #dp-save:hover{
-
-            background:
-                rgba(255,255,255,.24);
+            background:rgba(255,255,255,.24);
         }
 
         #dp-go{
-
-            background:
-                rgba(35,150,70,.9);
-
-            border-color:
-                rgba(35,150,70,.65);
+            background:rgba(35,150,70,.9);
+            border-color:rgba(35,150,70,.65);
         }
 
         #dp-go:hover{
-
-            background:
-                rgba(45,175,80,.98);
+            background:rgba(45,175,80,.98);
         }
 
         #dp-save{
-
             display:none;
         }
 
         #dp-saved{
-
             display:none;
-
             height:42px;
-
-            padding:
-                0 12px;
-
+            padding:0 12px;
             border-radius:10px;
-
-            background:
-                rgba(35,140,65,.8);
-
+            background:rgba(35,140,65,.8);
             color:#fff;
-
             font-weight:700;
-
             font-size:13px;
-
             align-items:center;
-
             justify-content:center;
-
             white-space:nowrap;
         }
 
         #dp-status{
-
             margin-top:9px;
-
             font-size:12px;
-
-            color:
-                rgba(255,255,255,.65);
-
+            color:rgba(255,255,255,.65);
             min-height:16px;
         }
 
         #dp-eligible{
-
             margin-top:16px;
-
             padding-top:14px;
-
-            border-top:
-                1px solid
-                rgba(255,255,255,.14);
+            border-top:1px solid rgba(255,255,255,.14);
         }
 
         #dp-eligible-title{
-
             font-size:13px;
-
             font-weight:600;
-
             margin-bottom:9px;
         }
 
         #dp-eligible-buttons{
-
             display:flex;
-
             gap:8px;
         }
 
         #dp-no,
         #dp-yes{
-
             flex:1;
-
             height:42px;
-
             border-radius:10px;
-
-            border:
-                1px solid
-                rgba(255,255,255,.2);
-
+            border:1px solid rgba(255,255,255,.2);
             color:#fff;
-
             font-size:14px;
-
             font-weight:700;
-
             cursor:pointer;
         }
 
         #dp-no{
-
-            background:
-                rgba(190,35,35,.88);
+            background:rgba(190,35,35,.88);
         }
 
         #dp-no:hover{
-
-            background:
-                rgba(220,45,45,.95);
+            background:rgba(220,45,45,.95);
         }
 
         #dp-yes{
-
-            background:
-                rgba(30,95,190,.9);
+            background:rgba(30,95,190,.9);
         }
 
         #dp-yes:hover{
-
-            background:
-                rgba(40,115,220,.98);
+            background:rgba(40,115,220,.98);
         }
 
         #dp-yes-extra{
-
             margin-top:14px;
-
             padding-top:14px;
-
-            border-top:
-                1px solid
-                rgba(255,255,255,.14);
+            border-top:1px solid rgba(255,255,255,.14);
         }
 
         #dp-continue{
-
             width:100%;
-
             height:42px;
-
             margin-top:10px;
-
             border-radius:10px;
-
-            border:
-                1px solid
-                rgba(35,140,65,.45);
-
-            background:
-                rgba(35,150,70,.9);
-
+            border:1px solid rgba(35,140,65,.45);
+            background:rgba(35,150,70,.9);
             color:#fff;
-
             font-size:14px;
-
             font-weight:700;
-
             cursor:pointer;
         }
 
         #dp-continue:hover{
-
-            background:
-                rgba(45,175,80,.98);
+            background:rgba(45,175,80,.98);
         }
 
         @media(max-width:650px){
 
             #dp-state-row{
-
                 flex-wrap:wrap;
             }
 
             #dp-state{
-
                 width:100%;
-
                 flex:none;
             }
 
             #dp-duplicate-comments{
-
                 flex:1;
-
                 width:auto;
             }
 
@@ -1041,84 +1100,52 @@ const popup=()=>new Promise(resolve=>{
        ===================================================== */
 
     const nameInput=
-        document.getElementById(
-            "dp-name"
-        );
+        document.getElementById("dp-name");
 
     const stateInput=
-        document.getElementById(
-            "dp-state"
-        );
+        document.getElementById("dp-state");
 
     const duplicateCommentsInput=
-        document.getElementById(
-            "dp-duplicate-comments"
-        );
+        document.getElementById("dp-duplicate-comments");
 
     const editBtn=
-        document.getElementById(
-            "dp-edit"
-        );
+        document.getElementById("dp-edit");
 
     const saveBtn=
-        document.getElementById(
-            "dp-save"
-        );
+        document.getElementById("dp-save");
 
     const savedLabel=
-        document.getElementById(
-            "dp-saved"
-        );
+        document.getElementById("dp-saved");
 
     const goBtn=
-        document.getElementById(
-            "dp-go"
-        );
+        document.getElementById("dp-go");
 
     const closeBtn=
-        document.getElementById(
-            "dp-close"
-        );
+        document.getElementById("dp-close");
 
     const status=
-        document.getElementById(
-            "dp-status"
-        );
+        document.getElementById("dp-status");
 
     const eligible=
-        document.getElementById(
-            "dp-eligible"
-        );
+        document.getElementById("dp-eligible");
 
     const noBtn=
-        document.getElementById(
-            "dp-no"
-        );
+        document.getElementById("dp-no");
 
     const yesBtn=
-        document.getElementById(
-            "dp-yes"
-        );
+        document.getElementById("dp-yes");
 
     const yesExtra=
-        document.getElementById(
-            "dp-yes-extra"
-        );
+        document.getElementById("dp-yes-extra");
 
     const emailInput=
-        document.getElementById(
-            "dp-email"
-        );
+        document.getElementById("dp-email");
 
     const verifiedInput=
-        document.getElementById(
-            "dp-verified"
-        );
+        document.getElementById("dp-verified");
 
     const continueBtn=
-        document.getElementById(
-            "dp-continue"
-        );
+        document.getElementById("dp-continue");
 
     /* =====================================================
        USERNAME
@@ -1163,7 +1190,6 @@ const popup=()=>new Promise(resolve=>{
             "Please enter and save your Dispute User Name.";
 
         nameInput.focus();
-
     }
 
     /* =====================================================
@@ -1273,7 +1299,7 @@ const popup=()=>new Promise(resolve=>{
             duplicateCommentsInput.value;
 
         if(
-            !duplicateComments ||
+            !duplicateComments||
             duplicateCommentsInput.selectedIndex===0
         ){
 
@@ -1331,7 +1357,7 @@ const popup=()=>new Promise(resolve=>{
     };
 
     /* =====================================================
-       OUTPUT - NO
+       BUILD NO OUTPUT
        ===================================================== */
 
     const buildNoOutput=(
@@ -1342,36 +1368,31 @@ const popup=()=>new Promise(resolve=>{
         const makeNoRow=(id,i)=>{
 
             /*
-             * COLUMN F
-             *
-             * In your output, getPlanType(i) is Column F.
+             * ACTUAL PAGE COLUMN F
              */
             const columnFValue=
-                getPlanType(i);
+                getColumnF(i);
 
             /*
              * COLUMN Q
-             *
-             * Determine Q from Column F,
-             * unless Column K is Closed.
              */
             const columnQValue=
                 getColumnQValue(
                     columnFValue
                 );
 
-            return [
+            return[
 
                 "-",                       // A
-                columnFValue,              // B / existing Plan Type
+                getPlanType(i),            // B
                 duplicateComments,         // C
                 disputeNumber,             // D
-                id,                        // E
+                id,                         // E
                 disputeStatus,             // F
-                "-",                      // G
-                "-",                      // H
-                "-",                      // I
-                "-",                      // J
+                "-",                       // G
+                "-",                       // H
+                "-",                       // I
+                "-",                       // J
                 columnJValue,              // K
                 "N/A",                    // L
                 "N/A",                    // M
@@ -1384,9 +1405,7 @@ const popup=()=>new Promise(resolve=>{
         };
 
         return sameId
-
             ?makeNoRow(ids[0],0)
-
             :ids
                 .map((id,i)=>
                     makeNoRow(id,i)
@@ -1395,7 +1414,7 @@ const popup=()=>new Promise(resolve=>{
     };
 
     /* =====================================================
-       OUTPUT - YES
+       BUILD YES OUTPUT
        ===================================================== */
 
     const buildYesOutput=(
@@ -1409,36 +1428,32 @@ const popup=()=>new Promise(resolve=>{
         const makeYesRow=(id,i)=>{
 
             /*
-             * COLUMN F
-             *
-             * Get the Plan Type for this row.
+             * ACTUAL PAGE COLUMN F
              */
             const columnFValue=
-                getPlanType(i);
+                getColumnF(i);
 
             /*
              * COLUMN Q
-             *
-             * Closed in Column K has priority.
              */
             const columnQValue=
                 getColumnQValue(
                     columnFValue
                 );
 
-            return [
+            return[
 
-                plantypeIdreEmail,        // A
-                columnFValue,             // B / existing Plan Type
-                duplicateComments,        // C
-                disputeNumber,            // D
-                id,                       // E
-                disputeStatus,            // F
-                disputeUserName,          // G
-                verificationStatus,       // H
-                "-",                      // I
-                "-",                      // J
-                columnJValue,             // K
+                plantypeIdreEmail,         // A
+                getPlanType(i),            // B
+                duplicateComments,         // C
+                disputeNumber,             // D
+                id,                         // E
+                disputeStatus,             // F
+                disputeUserName,           // G
+                verificationStatus,        // H
+                "-",                       // I
+                "-",                       // J
+                columnJValue,              // K
                 "N/A",                    // L
                 "N/A",                    // M
                 stateValue,               // N
@@ -1450,9 +1465,7 @@ const popup=()=>new Promise(resolve=>{
         };
 
         return sameId
-
             ?makeYesRow(ids[0],0)
-
             :ids
                 .map((id,i)=>
                     makeYesRow(id,i)
@@ -1484,6 +1497,11 @@ const popup=()=>new Promise(resolve=>{
                 duplicateComments
             );
 
+        console.log(
+            "FINAL OUTPUT:",
+            output
+        );
+
         const copied=
             copyText(output);
 
@@ -1500,7 +1518,7 @@ const popup=()=>new Promise(resolve=>{
 
                 copied
 
-                ?`✅ Copied ${rowCount} row${rowCount!==1?"s":""} | NO | State: ${stateValue} | Duplicate Comments: ${duplicateComments}`
+                ?`✅ Copied ${rowCount} row${rowCount!==1?"s":""} | Q generated from Column F | K: ${columnKValue||"N/A"}`
 
                 :"❌ Automatic copy was blocked. Click COPY AGAIN below.",
 
@@ -1610,6 +1628,11 @@ const popup=()=>new Promise(resolve=>{
                 verificationStatus
             );
 
+        console.log(
+            "FINAL OUTPUT:",
+            output
+        );
+
         const copied=
             copyText(output);
 
@@ -1626,7 +1649,7 @@ const popup=()=>new Promise(resolve=>{
 
                 copied
 
-                ?`✅ Copied ${rowCount} row${rowCount!==1?"s":""} | YES | State: ${stateValue} | Duplicate Comments: ${duplicateComments} | Email: ${email} | Verified: ${verificationStatus} | User: ${currentName}`
+                ?`✅ Copied ${rowCount} row${rowCount!==1?"s":""} | Q generated from Column F | K: ${columnKValue||"N/A"}`
 
                 :"❌ Automatic copy was blocked. Click COPY AGAIN below.",
 
@@ -1643,18 +1666,11 @@ const popup=()=>new Promise(resolve=>{
 
     /* =====================================================
        KEYBOARD SHORTCUTS
-
-       2 = N/A
-       3 = Duplicate Dispute Reviewed
        ===================================================== */
 
     overlay.addEventListener(
         "keydown",
         e=>{
-
-            /*
-             * Ignore modifier combinations.
-             */
 
             if(
                 !e.ctrlKey &&
