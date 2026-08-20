@@ -106,15 +106,11 @@ const columnJValue=
 
 
 /* =========================================================
-   GET THE SOURCE K VALUE
+   GET PAGE K VALUE
    =========================================================
 
-   This is retained for debugging, but IMPORTANT:
-
-   The actual K in our copied row is columnJValue.
-
-   Therefore Q will use the actual K that gets put into
-   the copied row.
+   Kept for debugging only.
+   The ACTUAL Column K in the copied output is columnJValue.
    ========================================================= */
 
 const columnKPageElement=
@@ -280,28 +276,69 @@ const getPlanType=i=>{
 
 };
 
+
 /* =========================================================
    COLUMN F + COLUMN K -> COLUMN Q
+   =========================================================
+
+   IMPORTANT:
+
+   actualF = the value copied into Column F
+   actualK = the value copied into Column K
+
+   Q is calculated ONLY from these two values.
    ========================================================= */
 
-const getColumnQValue=(columnFValue)=>{
+const getColumnQValue=(actualF,actualK)=>{
 
-    const f=normalizeValue(columnFValue);
-    const k=normalizeValue(columnKValue);
+    const f=normalizeValue(actualF);
+    const k=normalizeValue(actualK);
 
-    console.log("Q RULE CHECK:",{
-        originalF:columnFValue,
-        normalizedF:f,
-        originalK:columnKValue,
-        normalizedK:k
-    });
+
+    console.log(
+        "========================================"
+    );
+
+    console.log(
+        "Q RULE CHECK"
+    );
+
+    console.log(
+        "F:",
+        actualF
+    );
+
+    console.log(
+        "Normalized F:",
+        f
+    );
+
+    console.log(
+        "K:",
+        actualK
+    );
+
+    console.log(
+        "Normalized K:",
+        k
+    );
+
 
     /* =====================================================
        COLUMN K = CLOSED
-       K CLOSED ALWAYS HAS PRIORITY
+       =====================================================
+
+       CLOSED ALWAYS HAS PRIORITY OVER COLUMN F.
        ===================================================== */
 
-    if(k==="closed" || k.includes("closed")){
+    if(
+        k==="closed"||
+        k.includes("closed")
+    ){
+
+        console.log(
+            "Q RULE MATCH: K = CLOSED"
+        );
 
         return(
             "Completed. Dispute is Closed Due to Receiving Payment Determination."
@@ -320,6 +357,10 @@ const getColumnQValue=(columnFValue)=>{
         )
     ){
 
+        console.log(
+            "Q RULE MATCH: PLAN TYPE VALIDATED"
+        );
+
         return(
             "VOB verified, Plan Type Validated Post IDR Initiation – Eligible (Federal NSA)"
         );
@@ -337,6 +378,10 @@ const getColumnQValue=(columnFValue)=>{
         )
     ){
 
+        console.log(
+            "Q RULE MATCH: PLAN TYPE OBJECTION SUBMITTED"
+        );
+
         return(
             "Already completed by Onshore"
         );
@@ -353,6 +398,10 @@ const getColumnQValue=(columnFValue)=>{
             "timeline enforcement submitted to idre"
         )
     ){
+
+        console.log(
+            "Q RULE MATCH: TIMELINE ENFORCEMENT SUBMITTED TO IDRE"
+        );
 
         return(
             "Already completed by Onshore"
@@ -372,6 +421,10 @@ const getColumnQValue=(columnFValue)=>{
         )
     ){
 
+        console.log(
+            "Q RULE MATCH: ADDITIONAL INFO EMAIL"
+        );
+
         return(
             "Additional Info provided to IDRE through email"
         );
@@ -390,6 +443,10 @@ const getColumnQValue=(columnFValue)=>{
         )
     ){
 
+        console.log(
+            "Q RULE MATCH: ADDITIONAL INFO PORTAL"
+        );
+
         return(
             "Additional Info provided to IDRE through email"
         );
@@ -404,8 +461,8 @@ const getColumnQValue=(columnFValue)=>{
     console.warn(
         "NO F -> Q RULE MATCHED",
         {
-            columnF:columnFValue,
-            columnK:columnKValue
+            columnF:actualF,
+            columnK:actualK
         }
     );
 
@@ -413,11 +470,9 @@ const getColumnQValue=(columnFValue)=>{
 
 };
 
-/* =========================================================
-   IMPORTANT TEST
-   =========================================================
 
-   Test using the ACTUAL F and K that will be copied.
+/* =========================================================
+   TEST THE ACTUAL F + K
    ========================================================= */
 
 console.log(
@@ -425,21 +480,21 @@ console.log(
 );
 
 console.log(
-    "Q TEST"
+    "INITIAL Q TEST"
 );
 
 console.log(
-    "F =",
+    "Actual copied F:",
     disputeStatus
 );
 
 console.log(
-    "K =",
+    "Actual copied K:",
     columnJValue
 );
 
 console.log(
-    "Q =",
+    "Calculated Q:",
     getColumnQValue(
         disputeStatus,
         columnJValue
@@ -836,6 +891,10 @@ const popup=()=>new Promise(resolve=>{
         document.createElement("style");
 
 
+    style.id=
+        "dispute-popup-style";
+
+
     style.textContent=`
 
         #dispute-popup-overlay{
@@ -1061,6 +1120,22 @@ const popup=()=>new Promise(resolve=>{
         }
 
 
+        #dp-name:focus,
+        #dp-state:focus,
+        #dp-email:focus,
+        #dp-verified:focus,
+        #dp-duplicate-comments:focus{
+
+            border-color:
+                rgba(255,255,255,.65);
+
+            box-shadow:
+                0 0 0 3px
+                rgba(255,255,255,.08);
+
+        }
+
+
         #dp-edit,
         #dp-save,
         #dp-go{
@@ -1092,10 +1167,30 @@ const popup=()=>new Promise(resolve=>{
         }
 
 
+        #dp-edit:hover,
+        #dp-save:hover{
+
+            background:
+                rgba(255,255,255,.24);
+
+        }
+
+
         #dp-go{
 
             background:
                 rgba(35,150,70,.9);
+
+            border-color:
+                rgba(35,150,70,.65);
+
+        }
+
+
+        #dp-go:hover{
+
+            background:
+                rgba(45,175,80,.98);
 
         }
 
@@ -1215,10 +1310,26 @@ const popup=()=>new Promise(resolve=>{
         }
 
 
+        #dp-no:hover{
+
+            background:
+                rgba(220,45,45,.95);
+
+        }
+
+
         #dp-yes{
 
             background:
                 rgba(30,95,190,.9);
+
+        }
+
+
+        #dp-yes:hover{
+
+            background:
+                rgba(40,115,220,.98);
 
         }
 
@@ -1260,6 +1371,39 @@ const popup=()=>new Promise(resolve=>{
             font-weight:700;
 
             cursor:pointer;
+
+        }
+
+
+        #dp-continue:hover{
+
+            background:
+                rgba(45,175,80,.98);
+
+        }
+
+
+        @media(max-width:650px){
+
+            #dp-state-row{
+
+                flex-wrap:wrap;
+
+            }
+
+            #dp-state{
+
+                width:100%;
+                flex:none;
+
+            }
+
+            #dp-duplicate-comments{
+
+                flex:1;
+                width:auto;
+
+            }
 
         }
 
@@ -1393,6 +1537,9 @@ const popup=()=>new Promise(resolve=>{
 
         savedLabel.style.display=
             "none";
+
+        status.textContent=
+            "Editing username...";
 
     };
 
@@ -1552,13 +1699,11 @@ const popup=()=>new Promise(resolve=>{
        BUILD ONE ROW
        =====================================================
 
-       THIS IS WHERE WE GUARANTEE Q.
-
-       The array has EXACTLY 17 values:
+       EXACTLY 17 COLUMNS:
 
        A B C D E F G H I J K L M N O P Q
 
-       Q is the LAST value.
+       Q = row[16]
        ===================================================== */
 
     const buildRow=(
@@ -1583,6 +1728,10 @@ const popup=()=>new Promise(resolve=>{
 
         /* ================================================
            ACTUAL COLUMN K
+           ================================================
+
+           IMPORTANT:
+           This is the value actually placed in Column K.
            ================================================ */
 
         const actualK=
@@ -1590,7 +1739,15 @@ const popup=()=>new Promise(resolve=>{
 
 
         /* ================================================
-           CALCULATE Q FROM ACTUAL F + ACTUAL K
+           CALCULATE Q
+           ================================================
+
+           FIXED:
+
+           getColumnQValue now receives BOTH F and K.
+
+           Q is therefore based on the exact values
+           being placed into columns F and K.
            ================================================ */
 
         const actualQ=
@@ -1612,9 +1769,9 @@ const popup=()=>new Promise(resolve=>{
 
             getPlanType(i),                  // B
 
-            duplicateComments,              // C
+            duplicateComments,               // C
 
-            disputeNumber,                  // D
+            disputeNumber,                   // D
 
             id,                              // E
 
@@ -1654,7 +1811,7 @@ const popup=()=>new Promise(resolve=>{
 
 
         /* ================================================
-           VERIFY 17 COLUMNS
+           VERIFY EXACTLY 17 COLUMNS
            ================================================ */
 
         if(row.length!==17){
@@ -1669,27 +1826,110 @@ const popup=()=>new Promise(resolve=>{
         }
 
 
+        /* ================================================
+           FINAL DEBUG
+           ================================================ */
+
         console.log(
-            "FINAL ROW",
-            {
-                A:row[0],
-                B:row[1],
-                C:row[2],
-                D:row[3],
-                E:row[4],
-                F:row[5],
-                G:row[6],
-                H:row[7],
-                I:row[8],
-                J:row[9],
-                K:row[10],
-                L:row[11],
-                M:row[12],
-                N:row[13],
-                O:row[14],
-                P:row[15],
-                Q:row[16]
-            }
+            "========================================"
+        );
+
+        console.log(
+            "FINAL ROW"
+        );
+
+        console.log(
+            "A:",
+            row[0]
+        );
+
+        console.log(
+            "B:",
+            row[1]
+        );
+
+        console.log(
+            "C:",
+            row[2]
+        );
+
+        console.log(
+            "D:",
+            row[3]
+        );
+
+        console.log(
+            "E:",
+            row[4]
+        );
+
+        console.log(
+            "F:",
+            row[5]
+        );
+
+        console.log(
+            "G:",
+            row[6]
+        );
+
+        console.log(
+            "H:",
+            row[7]
+        );
+
+        console.log(
+            "I:",
+            row[8]
+        );
+
+        console.log(
+            "J:",
+            row[9]
+        );
+
+        console.log(
+            "K:",
+            row[10]
+        );
+
+        console.log(
+            "L:",
+            row[11]
+        );
+
+        console.log(
+            "M:",
+            row[12]
+        );
+
+        console.log(
+            "N:",
+            row[13]
+        );
+
+        console.log(
+            "O:",
+            row[14]
+        );
+
+        console.log(
+            "P:",
+            row[15]
+        );
+
+        console.log(
+            "Q:",
+            row[16]
+        );
+
+        console.log(
+            "Q LENGTH:",
+            actualQ.length
+        );
+
+        console.log(
+            "========================================"
         );
 
 
@@ -1951,6 +2191,11 @@ const popup=()=>new Promise(resolve=>{
         "keydown",
         e=>{
 
+
+            /* =================================================
+               2 = N/A
+               ================================================= */
+
             if(
                 !e.ctrlKey &&
                 !e.altKey &&
@@ -1965,6 +2210,15 @@ const popup=()=>new Promise(resolve=>{
                 duplicateCommentsInput.value=
                     "N/A";
 
+                duplicateCommentsInput.dispatchEvent(
+                    new Event(
+                        "change",
+                        {
+                            bubbles:true
+                        }
+                    )
+                );
+
                 status.textContent=
                     "Duplicate Dispute Comments: N/A";
 
@@ -1972,6 +2226,10 @@ const popup=()=>new Promise(resolve=>{
 
             }
 
+
+            /* =================================================
+               3 = DUPLICATE REVIEWED
+               ================================================= */
 
             if(
                 !e.ctrlKey &&
@@ -1987,6 +2245,15 @@ const popup=()=>new Promise(resolve=>{
                 duplicateCommentsInput.value=
                     "Duplicate Dispute Reviewed";
 
+                duplicateCommentsInput.dispatchEvent(
+                    new Event(
+                        "change",
+                        {
+                            bubbles:true
+                        }
+                    )
+                );
+
                 status.textContent=
                     "Duplicate Dispute Comments: Duplicate Dispute Reviewed";
 
@@ -1994,6 +2261,10 @@ const popup=()=>new Promise(resolve=>{
 
             }
 
+
+            /* =================================================
+               ESC
+               ================================================= */
 
             if(e.key==="Escape"){
 
@@ -2009,6 +2280,10 @@ const popup=()=>new Promise(resolve=>{
             }
 
 
+            /* =================================================
+               0 = NO
+               ================================================= */
+
             if(
                 e.key==="0" &&
                 eligible.style.display==="block"
@@ -2022,6 +2297,10 @@ const popup=()=>new Promise(resolve=>{
 
             }
 
+
+            /* =================================================
+               1 = YES
+               ================================================= */
 
             if(
                 e.key==="1" &&
