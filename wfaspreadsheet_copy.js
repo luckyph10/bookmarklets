@@ -2069,14 +2069,10 @@ const popup=()=>new Promise(resolve=>{
             actualL,
 
             /* M */
-            isYes
-                ?"Yes"
-                :"-",
+            "N/A",
 
             /* N */
-            isYes
-                ?"N/A"
-                :"-",
+            "N/A",
 
             /* O */
             stateValue,
@@ -2129,8 +2125,8 @@ const popup=()=>new Promise(resolve=>{
         console.log("J - ARBIT CASE NOTE:",row[9]);
         console.log("K - PLAN TYPE EVIDENCE:",row[10]);
         console.log("L - DISPUTE STATUS:",row[11]);
-        console.log("M - EMAIL VOB:",row[12]);
-        console.log("N - EMAIL CLOSURES:",row[13]);
+        console.log("M - EMAIL VOB (ALWAYS N/A):",row[12]);
+        console.log("N - EMAIL CLOSURES (ALWAYS N/A):",row[13]);
         console.log("O - STATE:",row[14]);
         console.log("P - NON-BIFURCATED:",row[15]);
         console.log("Q - ELIGIBLE:",row[16]);
