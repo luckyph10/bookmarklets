@@ -2080,7 +2080,7 @@ const popup=()=>new Promise(resolve=>{
             /* P */
             isYes
                 ?nonBifurcated
-                :"N/A",
+                :"-",
 
             /* Q */
             isYes
@@ -2128,7 +2128,7 @@ const popup=()=>new Promise(resolve=>{
         console.log("M - EMAIL VOB (ALWAYS N/A):",row[12]);
         console.log("N - EMAIL CLOSURES (ALWAYS N/A):",row[13]);
         console.log("O - STATE:",row[14]);
-        console.log("P - NON-BIFURCATED (NO = N/A):",row[15]);
+        console.log("P - NON-BIFURCATED:",row[15]);
         console.log("Q - ELIGIBLE:",row[16]);
         console.log("R - NOTES:",row[17]);
 
