@@ -16,6 +16,27 @@
     /fully\s*insured\s*bluecard/i
   ];
 
+  // =========================
+  // OPEN NEW DROPDOWN FIRST
+  // =========================
+  const dropBtn = document.querySelector(
+    '#ngForm > fieldset > div:nth-child(24) > div.d-flex.mb-2 > button'
+  );
+
+  if (dropBtn) {
+    const collapse = document.querySelector(
+      '#ngForm > fieldset > div:nth-child(24) > div.collapse'
+    );
+
+    if (collapse && !collapse.classList.contains('show')) {
+      dropBtn.click();
+      await new Promise(r => setTimeout(r, 500));
+    }
+  }
+
+  // =========================
+  // VOB HISTORY
+  // =========================
   let vDate = '';
   let vNote = '';
   let vTime = 0;
@@ -29,8 +50,6 @@
       '#ngForm > fieldset > div:nth-child(5) > div:nth-child(1) > div:nth-child(2) > app-vob-history > div > div:nth-child(3) > div.collapse.mt-1.small'
     );
 
-    // Only open the VOB History dropdown if it is currently closed.
-    // If it is already open, do NOT click it again.
     if (panel && !panel.classList.contains('show')) {
       btn.click();
       await new Promise(r => setTimeout(r, 500));
@@ -48,14 +67,93 @@
 
     if (m) {
       vDate = `${parseInt(m[2], 10)}/${parseInt(m[3], 10)}/${m[1]}`;
-      vTime = new Date(
-        m[1],
-        m[2] - 1,
-        m[3]
-      ).getTime();
+      vTime = new Date(m[1], m[2] - 1, m[3]).getTime();
     }
   }
 
+  // =========================
+  // NEW SELECTOR
+  // =========================
+  let sDate = '';
+  let sNote = '';
+  let sTime = 0;
+
+  const newSelector =
+    '#ngForm > fieldset > div:nth-child(24) > div.collapse.show > div > div:nth-child(3)';
+
+  const newEl = document.querySelector(newSelector);
+
+  if (newEl) {
+    const txt = (newEl.innerText || '')
+      .replace(/\s+/g, ' ')
+      .trim();
+
+    let dm = txt.match(
+      /([A-Z][a-z]{2,8}\s+\d{1,2},\s+\d{4}\s+\d{1,2}:\d{2}\s*[AP]M)/i
+    );
+
+    if (dm) {
+      const d = new Date(dm[1]);
+
+      if (!isNaN(d.getTime())) {
+        sTime = d.getTime();
+        sDate = d.toLocaleDateString('en-US');
+      }
+    }
+
+    if (!sTime) {
+      dm = txt.match(
+        /(\d{1,2}\/\d{1,2}\/\d{4}\s+\d{1,2}:\d{2}\s*[AP]M)/i
+      );
+
+      if (dm) {
+        const d = new Date(dm[1]);
+
+        if (!isNaN(d.getTime())) {
+          sTime = d.getTime();
+          sDate = d.toLocaleDateString('en-US');
+        }
+      }
+    }
+
+    if (!sTime) {
+      dm = txt.match(
+        /(\d{4}-\d{2}-\d{2}\s+\d{1,2}:\d{2}\s*[AP]M)/i
+      );
+
+      if (dm) {
+        const d = new Date(dm[1]);
+
+        if (!isNaN(d.getTime())) {
+          sTime = d.getTime();
+          sDate = d.toLocaleDateString('en-US');
+        }
+      }
+    }
+
+    sNote = txt
+      .replace(
+        /([A-Z][a-z]{2,8}\s+\d{1,2},\s+\d{4}\s+\d{1,2}:\d{2}\s*[AP]M)/i,
+        ''
+      )
+      .replace(
+        /(\d{1,2}\/\d{1,2}\/\d{4}\s+\d{1,2}:\d{2}\s*[AP]M)/i,
+        ''
+      )
+      .replace(
+        /(\d{4}-\d{2}-\d{2}\s+\d{1,2}:\d{2}\s*[AP]M)/i,
+        ''
+      )
+      .trim();
+
+    if (!E.some(x => x.test(txt))) {
+      sNote = '';
+    }
+  }
+
+  // =========================
+  // CASE NOTE
+  // =========================
   let cDate = '';
   let cNote = '';
   let cTime = 0;
@@ -80,18 +178,53 @@
     }
   }
 
+  // =========================
+  // PICK BEST / NEWEST
+  // =========================
+  const candidates = [];
+
+  if (cTime > 0 && cNote) {
+    candidates.push({
+      time: cTime,
+      date: cDate,
+      note: cNote,
+      source: 'Case Note'
+    });
+  }
+
+  if (sTime > 0 && sNote) {
+    candidates.push({
+      time: sTime,
+      date: sDate,
+      note: sNote,
+      source: 'New Selector'
+    });
+  }
+
+  if (vTime > 0 && vNote) {
+    candidates.push({
+      time: vTime,
+      date: vDate,
+      note: vNote,
+      source: 'VOB History'
+    });
+  }
+
+  candidates.sort((a, b) => b.time - a.time);
+
   let out = '';
   let source = '';
 
-  if (cTime > vTime && cNote) {
-    out = `${cDate} - ${cNote}`;
-    source = 'Case Note';
-  } else if (vNote) {
-    out = `${vDate} - ${vNote}`;
-    source = 'VOB History';
+  if (candidates.length) {
+    const best = candidates[0];
+
+    out = `${best.date} - ${best.note}`;
+    source = best.source;
   }
 
-  // Create confirmation popup
+  // =========================
+  // NOTIFICATION
+  // =========================
   const p = document.createElement('div');
 
   p.textContent = out
@@ -110,7 +243,7 @@
     borderRadius: '6px',
     fontSize: '14px',
     fontWeight: '600',
-    fontFamily: 'Arial, sans-serif',
+    fontFamily: 'Arial,sans-serif',
     boxShadow: '0 3px 12px rgba(0,0,0,.3)',
     opacity: '0',
     transition: 'opacity .2s'
@@ -125,12 +258,9 @@
   setTimeout(() => {
     p.style.opacity = '0';
 
-    setTimeout(() => {
-      p.remove();
-    }, 200);
+    setTimeout(() => p.remove(), 200);
   }, 2000);
 
-  // Copy result
   if (out) {
     await navigator.clipboard.writeText(out);
   }
