@@ -132,8 +132,8 @@
                 if (mini.parentNode) {
                     mini.remove();
                 }
-            }, 500);
-        }, 2000);
+            }, 0);
+        }, 0);
     }
 
     // ================= SETTINGS PANEL =================
@@ -381,6 +381,6 @@
 
         setTimeout(function () {
             fill(noteSelector, disputeStatus);
-        }, 20);
+        }, 0);
     }
 })();
