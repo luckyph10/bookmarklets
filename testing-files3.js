@@ -34,37 +34,174 @@
 
 
     /* ============================================================
-       IDR BUTTONS
+       PROOF OF ID INITIATION
        ============================================================ */
 
     /*
-     * IMPORTANT:
+     * Searches for the actual application button containing
+     * Proof of ID Initiation.
      *
-     * Your original selector pointed specifically to:
-     *
-     * tr:nth-child(2)
-     *
-     * We remove nth-child(2) so ALL rows are checked.
+     * No Insurance Card.
+     * No EOB.
+     * No other file types.
      */
 
-    const idrButtonsSelector =
-        "#ngForm > fieldset > div:nth-child(22) > div.collapse.show > div.card.card-body > div > div > table > tbody > tr > td:nth-child(2) > button";
+    function findProofOfIdInitiationButtons() {
+
+        const allButtons = [
+
+            ...document.querySelectorAll(
+                "button"
+            ),
+
+            ...document.querySelectorAll(
+                '[role="button"]'
+            ),
+
+            ...document.querySelectorAll(
+                "a"
+            )
+
+        ];
 
 
-    /* ============================================================
-       FILES BUTTON
-       ============================================================ */
+        const matches = [];
 
-    const filesButtonSelector =
-        'button[title="Toggle the Files list"]';
+        const seen =
+            new Set();
 
 
-    /* ============================================================
-       NOTES BUTTON
-       ============================================================ */
+        allButtons.forEach(
+            function (button) {
 
-    const notesButtonSelector =
-        'button[title="Toggle Notes section"]';
+                if (
+                    seen.has(
+                        button
+                    )
+                ) {
+
+                    return;
+
+                }
+
+
+                const textParts = [
+
+                    button.innerText,
+
+                    button.textContent,
+
+                    button.title,
+
+                    button.getAttribute(
+                        "aria-label"
+                    ),
+
+                    button.getAttribute(
+                        "data-title"
+                    ),
+
+                    button.getAttribute(
+                        "data-name"
+                    ),
+
+                    button.getAttribute(
+                        "data-file-name"
+                    ),
+
+                    button.getAttribute(
+                        "filename"
+                    )
+
+                ].filter(Boolean);
+
+
+                const text =
+                    textParts
+                        .join(" ")
+                        .toLowerCase()
+                        .replace(
+                            /[_\-]+/g,
+                            " "
+                        )
+                        .replace(
+                            /\s+/g,
+                            " "
+                        )
+                        .trim();
+
+
+                /*
+                 * Exact Proof of ID Initiation matching.
+                 *
+                 * This intentionally does NOT search for EOB
+                 * or Insurance Card.
+                 */
+
+                const isProofOfId =
+
+                    text.includes(
+                        "proof of id initiation"
+                    ) ||
+
+                    text.includes(
+                        "proofidinitiation"
+                    ) ||
+
+                    text.includes(
+                        "proof id initiation"
+                    ) ||
+
+                    text.includes(
+                        "proof of id init"
+                    ) ||
+
+                    text.includes(
+                        "proof id init"
+                    ) ||
+
+                    text.includes(
+                        "proofofid"
+                    ) ||
+
+                    text ===
+                        "proof of id" ||
+
+                    text ===
+                        "proofid";
+
+
+                if (isProofOfId) {
+
+                    /*
+                     * Avoid accidentally selecting a very
+                     * large parent/container that contains
+                     * multiple files.
+                     */
+
+                    if (
+                        text.length <= 150
+                    ) {
+
+                        seen.add(
+                            button
+                        );
+
+                        matches.push(
+                            button
+                        );
+
+                    }
+
+                }
+
+            }
+        );
+
+
+        return matches;
+
+    }
 
 
     /* ============================================================
@@ -87,50 +224,24 @@
                 "aria-expanded"
             );
 
-        if (ariaExpanded === "false") {
+
+        if (
+            ariaExpanded ===
+            "false"
+        ) {
 
             vobSectionButton.click();
 
         }
 
-        else if (ariaExpanded === null) {
+        else if (
+            ariaExpanded ===
+            null
+        ) {
 
             vobSectionButton.click();
 
         }
-
-    }
-
-
-    /* ============================================================
-       FIND ALL IDR BUTTONS
-       ============================================================ */
-
-    function findIdrButtons() {
-
-        const buttons = [
-
-            ...document.querySelectorAll(
-                idrButtonsSelector
-            )
-
-        ];
-
-        /*
-         * Remove duplicates while preserving order.
-         */
-
-        return buttons.filter(
-            function (button, index, array) {
-
-                return (
-                    array.indexOf(
-                        button
-                    ) === index
-                );
-
-            }
-        );
 
     }
 
@@ -138,6 +249,10 @@
     /* ============================================================
        OPEN FILES
        ============================================================ */
+
+    const filesButtonSelector =
+        'button[title="Toggle the Files list"]';
+
 
     function openFilesSection() {
 
@@ -150,10 +265,12 @@
             return;
         }
 
+
         if (
             filesBtn.getAttribute(
                 "aria-expanded"
-            ) === "false"
+            ) ===
+            "false"
         ) {
 
             filesBtn.click();
@@ -167,6 +284,10 @@
        OPEN NOTES
        ============================================================ */
 
+    const notesButtonSelector =
+        'button[title="Toggle Notes section"]';
+
+
     function openNotesSection() {
 
         const notesBtn =
@@ -178,10 +299,12 @@
             return;
         }
 
+
         if (
             notesBtn.getAttribute(
                 "aria-expanded"
-            ) === "false"
+            ) ===
+            "false"
         ) {
 
             notesBtn.click();
@@ -198,29 +321,42 @@
     function findVobButtons() {
 
         return [
+
             ...document.querySelectorAll(
                 "button.btn-modal"
             )
-        ].filter(function (btn) {
 
-            const title =
-                (
-                    btn.title ||
-                    ""
-                ).toLowerCase();
+        ].filter(
+            function (btn) {
 
-            const text =
-                (
-                    btn.textContent ||
-                    ""
-                ).toLowerCase();
+                const title =
+                    (
+                        btn.title ||
+                        ""
+                    ).toLowerCase();
 
-            return (
-                title.includes("view vob") ||
-                text.includes("vob")
-            );
 
-        });
+                const text =
+                    (
+                        btn.textContent ||
+                        ""
+                    ).toLowerCase();
+
+
+                return (
+
+                    title.includes(
+                        "view vob"
+                    ) ||
+
+                    text.includes(
+                        "vob"
+                    )
+
+                );
+
+            }
+        );
 
     }
 
@@ -257,65 +393,6 @@
 
 
     /* ============================================================
-       GET IDR TITLE
-       ============================================================ */
-
-    function getIdrTitle(
-        button,
-        index
-    ) {
-
-        if (!button) {
-
-            return (
-                "IDR " +
-                (index + 1)
-            );
-
-        }
-
-        const title =
-            button.title ||
-            button.getAttribute(
-                "aria-label"
-            ) ||
-            button.getAttribute(
-                "data-title"
-            ) ||
-            button.getAttribute(
-                "data-name"
-            ) ||
-            button.textContent ||
-            "";
-
-
-        const cleanTitle =
-            String(title)
-                .replace(
-                    /\s+/g,
-                    " "
-                )
-                .trim();
-
-
-        if (
-            !cleanTitle
-        ) {
-
-            return (
-                "IDR " +
-                (index + 1)
-            );
-
-        }
-
-
-        return cleanTitle;
-
-    }
-
-
-    /* ============================================================
        MAIN LOGIC
        ============================================================ */
 
@@ -329,6 +406,7 @@
             document.querySelector(
                 "#DOB"
             );
+
 
         if (!dob) {
 
@@ -378,14 +456,18 @@
 
 
         if (
+
             today.getMonth() <
                 dobDate.getMonth() ||
+
             (
                 today.getMonth() ===
                     dobDate.getMonth() &&
+
                 today.getDate() <
                     dobDate.getDate()
             )
+
         ) {
 
             age--;
@@ -406,16 +488,21 @@
                 document.querySelectorAll(
                     "select"
                 )
-            ).find(function (s) {
+            ).find(
+                function (s) {
 
-                return (
-                    s.parentElement &&
-                    s.parentElement.innerText.indexOf(
-                        "Plan Type"
-                    ) > -1
-                );
+                    return (
 
-            });
+                        s.parentElement &&
+
+                        s.parentElement.innerText.indexOf(
+                            "Plan Type"
+                        ) > -1
+
+                    );
+
+                }
+            );
 
 
         if (plan) {
@@ -445,8 +532,13 @@
         if (stateElement) {
 
             state =
-                stateElement.selectedOptions[0]?.text ||
+
+                stateElement
+                    .selectedOptions[0]
+                    ?.text ||
+
                 stateElement.value ||
+
                 "Unknown";
 
 
@@ -501,10 +593,12 @@
                 ) {
 
                     return (
+
                         stateLower ===
                         bifurcatedState
                             .toLowerCase()
                             .trim()
+
                     );
 
                 }
@@ -606,8 +700,13 @@
         ) {
 
             ineligibilityReasonsText =
-                ineligibilityReasonsElement.value ||
-                ineligibilityReasonsElement.textContent ||
+
+                ineligibilityReasonsElement
+                    .value ||
+
+                ineligibilityReasonsElement
+                    .textContent ||
+
                 "";
 
 
@@ -689,10 +788,13 @@
            ======================================================== */
 
         if (
+
             planType ===
                 "Self Funded" ||
+
             planType ===
                 "Self Funded (Opt Out)"
+
         ) {
 
             selfFundedKeywords.forEach(
@@ -823,9 +925,11 @@
                 function (keyword) {
 
                     return (
+
                         planTypeLower.indexOf(
                             keyword
                         ) > -1
+
                     );
 
                 }
@@ -874,11 +978,11 @@
 
 
         /* ========================================================
-           FIND ALL IDR BUTTONS
+           FIND PROOF OF ID INITIATION
            ======================================================== */
 
-        var idrs =
-            findIdrButtons();
+        var proofOfIdButtons =
+            findProofOfIdInitiationButtons();
 
 
         /* ========================================================
@@ -940,27 +1044,29 @@
 
 
         /* ========================================================
-           IDR HTML
+           PROOF OF ID INITIATION HTML
            ======================================================== */
 
-        var idrHtml =
+        var proofHtml =
             "";
 
 
-        if (idrs.length) {
+        if (
+            proofOfIdButtons.length
+        ) {
 
-            idrHtml +=
+            proofHtml +=
 
                 '<div style="margin-top:16px;padding-top:12px;border-top:1px solid #374151;">' +
 
                 '<div style="font-size:20px;font-weight:bold;display:flex;align-items:center;gap:8px;">' +
 
-                "IDR" +
+                "Proof of ID Initiation" +
 
                 '<span style="font-size:12px;color:#9ca3af;font-weight:normal;">' +
 
                 "(" +
-                idrs.length +
+                proofOfIdButtons.length +
                 " found)" +
 
                 "</span>" +
@@ -970,22 +1076,41 @@
                 '<div style="margin-top:8px;">';
 
 
-            idrs.forEach(
+            proofOfIdButtons.forEach(
                 function (
-                    idr,
+                    button,
                     i
                 ) {
 
-                    var idrTitle =
-                        getIdrTitle(
-                            idr,
-                            i
-                        );
+                    var buttonTitle =
+
+                        button.title ||
+
+                        button.getAttribute(
+                            "aria-label"
+                        ) ||
+
+                        button.getAttribute(
+                            "data-title"
+                        ) ||
+
+                        button.textContent ||
+
+                        "Proof of ID Initiation";
 
 
-                    idrHtml +=
+                    buttonTitle =
+                        buttonTitle
+                            .replace(
+                                /\s+/g,
+                                " "
+                            )
+                            .trim();
 
-                        '<button class="mainIdrBtn" data-idr-index="' +
+
+                    proofHtml +=
+
+                        '<button class="mainProofIdBtn" data-proof-index="' +
                         i +
                         '" style="' +
 
@@ -1004,13 +1129,13 @@
 
                         '">' +
 
-                        "🪪 IDR " +
+                        "🪪 Proof of ID " +
                         (i + 1) +
 
                         '<span style="float:right;color:#ede9fe;font-size:11px;max-width:45%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' +
 
                         escapeHtml(
-                            idrTitle
+                            buttonTitle
                         ) +
 
                         "</span>" +
@@ -1021,24 +1146,24 @@
             );
 
 
-            idrHtml +=
+            proofHtml +=
                 "</div></div>";
 
         } else {
 
-            idrHtml =
+            proofHtml =
 
                 '<div style="margin-top:16px;padding-top:12px;border-top:1px solid #374151;">' +
 
                 '<div style="font-size:18px;font-weight:bold;">' +
 
-                "IDR" +
+                "Proof of ID Initiation" +
 
                 "</div>" +
 
                 '<div style="margin-top:6px;font-size:13px;color:#ff6b6b;">' +
 
-                "No IDR files found." +
+                "No Proof of ID Initiation files found." +
 
                 "</div>" +
 
@@ -1097,6 +1222,7 @@
                         '<button class="mainVobBtn" data-vob-index="' +
                         i +
                         '" style="' +
+
                         "display:block;" +
                         "width:100%;" +
                         "padding:9px 10px;" +
@@ -1109,6 +1235,7 @@
                         "font-weight:600;" +
                         "font-size:13px;" +
                         "text-align:left;" +
+
                         '">' +
 
                         "📄 VOB " +
@@ -1326,14 +1453,14 @@
 
 
             /* ====================================================
-               IDR ABOVE VOB
+               PROOF OF ID INITIATION ABOVE VOB
                ==================================================== */
 
-            idrHtml +
+            proofHtml +
 
 
             /* ====================================================
-               VOB SECTION
+               VOB
                ==================================================== */
 
             vobHtml;
@@ -1371,12 +1498,12 @@
 
 
         /* ========================================================
-           IDR BUTTON EVENTS
+           PROOF OF ID BUTTON EVENTS
            ======================================================== */
 
         popup
             .querySelectorAll(
-                ".mainIdrBtn"
+                ".mainProofIdBtn"
             )
             .forEach(
                 function (btn) {
@@ -1387,17 +1514,19 @@
                             var index =
                                 parseInt(
                                     btn.getAttribute(
-                                        "data-idr-index"
+                                        "data-proof-index"
                                     ),
                                     10
                                 );
 
 
-                            var idr =
-                                idrs[index];
+                            var proofButton =
+                                proofOfIdButtons[
+                                    index
+                                ];
 
 
-                            if (!idr) {
+                            if (!proofButton) {
                                 return;
                             }
 
@@ -1410,16 +1539,16 @@
 
 
                             /*
-                             * DO NOT SCROLL.
+                             * Click the REAL application
+                             * Proof of ID button.
                              *
-                             * Click the actual application
-                             * IDR button.
+                             * No scrolling.
                              */
 
                             setTimeout(
                                 function () {
 
-                                    idr.click();
+                                    proofButton.click();
 
                                 },
                                 100
@@ -1460,16 +1589,8 @@
 
                             if (v) {
 
-                                /*
-                                 * Remove popup first.
-                                 */
-
                                 popup.remove();
 
-
-                                /*
-                                 * DO NOT SCROLL.
-                                 */
 
                                 setTimeout(
                                     function () {
@@ -1563,10 +1684,6 @@
         historyButton
     ) {
 
-        /*
-         * No scrolling.
-         */
-
         historyButton.click();
 
     }
@@ -1580,10 +1697,6 @@
         !caseNotesIsOpen &&
         caseNotesButton
     ) {
-
-        /*
-         * No scrolling.
-         */
 
         caseNotesButton.click();
 
@@ -1621,7 +1734,7 @@
             runLogic();
 
         },
-        500
+        700
     );
 
 })();
