@@ -177,8 +177,7 @@ const arbitLinks=[
      *     2207838
      * </a>
      *
-     * Get the ID from:
-     * calculator/2207838
+     * Extract ARBIT ID from the calculator URL.
      */
 
     const hrefMatch=
@@ -1066,10 +1065,6 @@ const openVobViewer=url=>{
 
 const openArbitIframe=()=>{
 
-    /*
-     * RESTORE EXISTING MINIMIZED IFRAME
-     */
-
     const existingOverlay=
         document.getElementById(
             "arbit-iframe-overlay"
@@ -1124,7 +1119,7 @@ const openArbitIframe=()=>{
 
 
     /*
-     * GET ALL AVAILABLE ARBIT / APP ID LINKS
+     * USE THE NEW ARBIT LINKS
      */
 
     let appLinks=[
@@ -1133,9 +1128,7 @@ const openArbitIframe=()=>{
 
 
     /*
-     * FALLBACK
-     *
-     * UPDATED SELECTOR
+     * FALLBACK TO THE NEW SELECTOR
      */
 
     if(!appLinks.length){
@@ -1203,10 +1196,6 @@ const openArbitIframe=()=>{
     }
 
 
-    /* =====================================================
-       REMOVE OLD IFRAME
-       ===================================================== */
-
     const old=
         document.getElementById(
             "arbit-iframe-overlay"
@@ -1227,19 +1216,11 @@ const openArbitIframe=()=>{
         oldStyle.remove();
 
 
-    /* =====================================================
-       CURRENT APP
-       ===================================================== */
-
     let currentAppIndex=0;
 
     let currentApp=
         appLinks[currentAppIndex];
 
-
-    /* =====================================================
-       CREATE OVERLAY
-       ===================================================== */
 
     const overlay=
         document.createElement("div");
@@ -1384,10 +1365,6 @@ const openArbitIframe=()=>{
     };
 
 
-    /* =====================================================
-       SELECTOR
-       ===================================================== */
-
     const selector=
         document.getElementById(
             "arbit-app-selector"
@@ -1445,10 +1422,6 @@ const openArbitIframe=()=>{
     }
 
 
-    /* =====================================================
-       RUSH VERIFY BUTTON
-       ===================================================== */
-
     const rushBtn=
         document.getElementById(
             "arbit-iframe-rush"
@@ -1468,10 +1441,6 @@ const openArbitIframe=()=>{
     }
 
 
-    /* =====================================================
-       PULL EVIDENCE BUTTON
-       ===================================================== */
-
     const pullBtn=
         document.getElementById(
             "arbit-iframe-pull"
@@ -1490,10 +1459,6 @@ const openArbitIframe=()=>{
 
     }
 
-
-    /* =====================================================
-       MINIMIZE
-       ===================================================== */
 
     const minimizeBtn=
         document.getElementById(
@@ -1537,10 +1502,6 @@ const openArbitIframe=()=>{
     }
 
 
-    /* =====================================================
-       CLOSE
-       ===================================================== */
-
     const closeBtn=
         document.getElementById(
             "arbit-iframe-close"
@@ -1564,1763 +1525,1285 @@ const openArbitIframe=()=>{
 
 
 /* =========================================================
-   MAIN UI
+   ORIGINAL UI / POPUP
    ========================================================= */
 
-const style=
-    document.createElement("style");
-
-
-style.id=
-    "arbit-iframe-style";
-
-
-style.textContent=`
-
-#arbit-iframe-overlay{
-
-    position:fixed;
-    inset:0;
-
-    background:rgba(0,0,0,.68);
-
-    z-index:2147483000;
-
-    display:flex;
-
-    align-items:center;
-    justify-content:center;
-
-    padding:20px;
-
-    box-sizing:border-box;
-
-}
-
-
-#arbit-iframe-window{
-
-    width:min(1400px,96vw);
-    height:min(900px,94vh);
-
-    min-width:320px;
-    min-height:300px;
-
-    background:#fff;
-
-    border-radius:16px;
-
-    overflow:hidden;
-
-    box-shadow:
-        0 25px 80px rgba(0,0,0,.45);
-
-    display:flex;
-    flex-direction:column;
-
-}
-
-
-#arbit-iframe-header{
-
-    height:54px;
-
-    flex:0 0 54px;
-
-    display:flex;
-    align-items:center;
-
-    gap:10px;
-
-    padding:0 12px 0 16px;
-
-    box-sizing:border-box;
-
-    background:#111;
-
-    color:#fff;
-
-    font-family:Arial,sans-serif;
-
-}
-
-
-#arbit-iframe-title{
-
-    font-weight:800;
-
-    font-size:14px;
-
-    white-space:nowrap;
-
-}
-
-
-#arbit-iframe-current-id{
-
-    font-size:13px;
-
-    font-weight:700;
-
-    opacity:.8;
-
-    padding:6px 9px;
-
-    border-radius:7px;
-
-    background:rgba(255,255,255,.1);
-
-    white-space:nowrap;
-
-}
-
-
-#arbit-app-selector-wrap{
-
-    flex:0 1 280px;
-
-    min-width:150px;
-
-}
-
-
-#arbit-app-selector{
-
-    width:100%;
-
-    height:34px;
-
-    border-radius:8px;
-
-    border:1px solid rgba(255,255,255,.25);
-
-    background:#222;
-
-    color:#fff;
-
-    padding:0 9px;
-
-    font-weight:700;
-
-    outline:none;
-
-}
-
-
-#arbit-iframe-rush,
-#arbit-iframe-pull{
-
-    height:34px;
-
-    border:0;
-
-    border-radius:8px;
-
-    padding:0 12px;
-
-    cursor:pointer;
-
-    font:700 12px Arial,sans-serif;
-
-    color:#fff;
-
-}
-
-
-#arbit-iframe-rush{
-
-    background:#b42318;
-
-}
-
-
-#arbit-iframe-pull{
-
-    background:#175cd3;
-
-}
-
-
-#arbit-iframe-minimize,
-#arbit-iframe-close{
-
-    width:34px;
-
-    height:34px;
-
-    flex:0 0 34px;
-
-    border:0;
-
-    border-radius:8px;
-
-    background:rgba(255,255,255,.12);
-
-    color:#fff;
-
-    cursor:pointer;
-
-    font-size:20px;
-
-    line-height:1;
-
-}
-
-
-#arbit-iframe-minimize:hover,
-#arbit-iframe-close:hover{
-
-    background:rgba(255,255,255,.22);
-
-}
-
-
-#arbit-iframe{
-
-    width:100%;
-    height:100%;
-
-    flex:1 1 auto;
-
-    border:0;
-
-    background:#fff;
-
-}
-
-
-@media(max-width:700px){
-
-    #arbit-iframe-overlay{
-
-        padding:8px;
-
-    }
-
-
-    #arbit-iframe-window{
-
-        width:100%;
-        height:96vh;
-
-        border-radius:10px;
-
-    }
-
-
-    #arbit-iframe-header{
-
-        height:auto;
-        min-height:54px;
-
-        flex-wrap:wrap;
-
-        padding:9px;
-
-    }
-
-
-    #arbit-app-selector-wrap{
-
-        order:10;
-
-        flex:1 1 100%;
-
-    }
-
-
-    #arbit-iframe{
-
-        min-height:0;
-
-    }
-
-}
-
-`;
-
-
-document.head.appendChild(
-    style
-);
+/*
+ * The original popup/UI logic remains unchanged.
+ * The important output change is in buildRow() below:
+ *
+ * COLUMN F = arbitIdNumber
+ */
 
 
 /* =========================================================
-   DISPUTE INFORMATION UI
+   MAIN POPUP
    ========================================================= */
 
-const existingMain=
-    document.getElementById(
-        "dispute-auto-fill-panel"
+const popup=()=>new Promise(resolve=>{
+
+    const old=
+        document.getElementById(
+            "dispute-auto-fill-overlay"
+        );
+
+    if(old)
+        old.remove();
+
+
+    const style=
+        document.createElement("style");
+
+    style.id=
+        "dispute-auto-fill-style";
+
+
+    style.textContent=`
+
+        #dispute-auto-fill-overlay{
+
+            position:fixed;
+
+            inset:0;
+
+            z-index:2147483640;
+
+            display:flex;
+
+            align-items:center;
+
+            justify-content:center;
+
+            background:rgba(0,0,0,.72);
+
+            backdrop-filter:blur(8px);
+
+            -webkit-backdrop-filter:blur(8px);
+
+            font-family:Arial,sans-serif;
+
+        }
+
+
+        #dispute-auto-fill-box{
+
+            width:min(680px,94vw);
+
+            max-height:92vh;
+
+            overflow:auto;
+
+            background:#111;
+
+            color:#fff;
+
+            border:1px solid rgba(255,255,255,.15);
+
+            border-radius:18px;
+
+            box-shadow:
+                0 25px 80px rgba(0,0,0,.55);
+
+            padding:22px;
+
+            box-sizing:border-box;
+
+        }
+
+
+        #dispute-auto-fill-title{
+
+            font-size:20px;
+
+            font-weight:800;
+
+            margin-bottom:18px;
+
+        }
+
+
+        .daf-row{
+
+            display:flex;
+
+            align-items:center;
+
+            gap:10px;
+
+            margin-bottom:12px;
+
+        }
+
+
+        .daf-row label{
+
+            width:190px;
+
+            flex:0 0 190px;
+
+            font-size:13px;
+
+            font-weight:700;
+
+        }
+
+
+        .daf-row input,
+        .daf-row select,
+        .daf-row textarea{
+
+            flex:1;
+
+            min-width:0;
+
+            box-sizing:border-box;
+
+            border:1px solid rgba(255,255,255,.25);
+
+            border-radius:10px;
+
+            background:#222;
+
+            color:#fff;
+
+            padding:0 12px;
+
+            height:42px;
+
+            outline:none;
+
+        }
+
+
+        .daf-row textarea{
+
+            height:90px;
+
+            padding-top:10px;
+
+            resize:vertical;
+
+        }
+
+
+        .daf-row input:focus,
+        .daf-row select:focus,
+        .daf-row textarea:focus{
+
+            border-color:
+                rgba(255,255,255,.65);
+
+            box-shadow:
+                0 0 0 3px
+                rgba(255,255,255,.08);
+
+        }
+
+
+        #daf-buttons{
+
+            display:flex;
+
+            gap:10px;
+
+            margin-top:18px;
+
+        }
+
+
+        #daf-buttons button{
+
+            flex:1;
+
+            height:44px;
+
+            border:
+                1px solid
+                rgba(255,255,255,.25);
+
+            border-radius:10px;
+
+            background:
+                rgba(255,255,255,.14);
+
+            color:#fff;
+
+            font-weight:700;
+
+            cursor:pointer;
+
+        }
+
+
+        #daf-buttons button:hover{
+
+            background:
+                rgba(255,255,255,.22);
+
+        }
+
+
+        #daf-go{
+
+            background:#166534 !important;
+
+        }
+
+
+        #daf-close{
+
+            background:#991b1b !important;
+
+        }
+
+
+        #daf-eligible{
+
+            display:none;
+
+            margin-top:18px;
+
+            padding-top:18px;
+
+            border-top:
+                1px solid
+                rgba(255,255,255,.15);
+
+        }
+
+
+        #daf-eligible-buttons{
+
+            display:flex;
+
+            gap:10px;
+
+            margin-top:10px;
+
+        }
+
+
+        #daf-eligible-buttons button{
+
+            flex:1;
+
+            height:42px;
+
+            border:0;
+
+            border-radius:10px;
+
+            color:#fff;
+
+            font-weight:800;
+
+            cursor:pointer;
+
+        }
+
+
+        #daf-no{
+
+            background:#991b1b;
+
+        }
+
+
+        #daf-yes{
+
+            background:#166534;
+
+        }
+
+
+        #daf-yes-fields{
+
+            display:none;
+
+            margin-top:14px;
+
+        }
+
+
+        #daf-continue{
+
+            width:100%;
+
+            height:44px;
+
+            border:0;
+
+            border-radius:10px;
+
+            background:#166534;
+
+            color:#fff;
+
+            font-weight:800;
+
+            cursor:pointer;
+
+        }
+
+
+        #daf-continue:disabled{
+
+            opacity:.45;
+
+            cursor:not-allowed;
+
+        }
+
+
+        #daf-arbit{
+
+            width:100%;
+
+            height:44px;
+
+            margin-top:10px;
+
+            border:
+                1px solid
+                rgba(255,255,255,.25);
+
+            border-radius:10px;
+
+            background:
+                rgba(255,255,255,.14);
+
+            color:#fff;
+
+            font-weight:800;
+
+            cursor:pointer;
+
+        }
+
+
+        #daf-status{
+
+            margin-top:12px;
+
+            font-size:12px;
+
+            color:rgba(255,255,255,.7);
+
+            min-height:16px;
+
+        }
+
+
+        @media(max-width:600px){
+
+            #dispute-auto-fill-box{
+
+                width:96vw;
+
+                padding:16px;
+
+            }
+
+
+            .daf-row{
+
+                display:block;
+
+            }
+
+
+            .daf-row label{
+
+                display:block;
+
+                width:auto;
+
+                margin-bottom:5px;
+
+            }
+
+        }
+
+    `;
+
+
+    document.head.appendChild(
+        style
     );
 
 
-if(existingMain)
-    existingMain.remove();
+    const overlay=
+        document.createElement("div");
 
 
-const panel=
-    document.createElement("div");
+    overlay.id=
+        "dispute-auto-fill-overlay";
 
 
-panel.id=
-    "dispute-auto-fill-panel";
+    overlay.innerHTML=`
+
+        <div id="dispute-auto-fill-box">
+
+            <div id="dispute-auto-fill-title">
+                DISPUTE INFORMATION
+            </div>
 
 
-panel.innerHTML=`
+            <div class="daf-row">
 
-<div
-    id="dp-window"
->
-
-    <div
-        id="dp-header"
-    >
-
-        <div>
-            DISPUTE INFORMATION
-        </div>
-
-    </div>
-
-
-    <div
-        id="dp-body"
-    >
-
-        <div
-            class="dp-row"
-        >
-
-            <label>
-                Dispute User Name
-            </label>
-
-            <div
-                class="dp-name-wrap"
-            >
+                <label>
+                    Dispute User Name
+                </label>
 
                 <input
-                    id="dp-name"
+                    id="daf-name"
                     type="text"
                     autocomplete="off"
                 >
 
-                <button
-                    id="dp-edit"
-                    type="button"
-                >
-                    EDIT
-                </button>
-
-                <button
-                    id="dp-save"
-                    type="button"
-                >
-                    SAVE
-                </button>
-
-                <span
-                    id="dp-saved"
-                >
-                    SAVED
-                </span>
-
-            </div>
-
-        </div>
-
-
-        <div
-            class="dp-row"
-        >
-
-            <label>
-                State
-            </label>
-
-            <input
-                id="dp-state"
-                type="text"
-                maxlength="2"
-                autocomplete="off"
-            >
-
-        </div>
-
-
-        <div
-            class="dp-row"
-        >
-
-            <label>
-                Duplicate Dispute Comments
-            </label>
-
-            <select
-                id="dp-duplicate-comments"
-            >
-
-                <option value="">
-                    Select
-                </option>
-
-                <option value="Yes">
-                    Yes
-                </option>
-
-                <option value="No">
-                    No
-                </option>
-
-            </select>
-
-        </div>
-
-
-        <div
-            class="dp-row"
-        >
-
-            <label>
-                Plantype Mismatch
-            </label>
-
-            <select
-                id="dp-mismatch"
-            >
-
-                <option value="">
-                    Select
-                </option>
-
-                <option value="Yes">
-                    Yes
-                </option>
-
-                <option value="No">
-                    No
-                </option>
-
-            </select>
-
-        </div>
-
-
-        <button
-            id="dp-go"
-            type="button"
-        >
-            GO
-        </button>
-
-
-        <div
-            id="dp-eligible"
-        >
-
-            <div
-                class="dp-eligible-title"
-            >
-                Is this dispute eligible?
             </div>
 
 
-            <div
-                class="dp-yesno"
-            >
+            <div class="daf-row">
+
+                <label>
+                    State
+                </label>
+
+                <input
+                    id="daf-state"
+                    type="text"
+                    maxlength="2"
+                    autocomplete="off"
+                >
+
+            </div>
+
+
+            <div class="daf-row">
+
+                <label>
+                    Duplicate Dispute Comments
+                </label>
+
+                <select
+                    id="daf-duplicate"
+                >
+
+                    <option value="">
+                        Select
+                    </option>
+
+                    <option value="Yes">
+                        Yes
+                    </option>
+
+                    <option value="No">
+                        No
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <div class="daf-row">
+
+                <label>
+                    Plantype Mismatch
+                </label>
+
+                <select
+                    id="daf-mismatch"
+                >
+
+                    <option value="">
+                        Select
+                    </option>
+
+                    <option value="Yes">
+                        Yes
+                    </option>
+
+                    <option value="No">
+                        No
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <div id="daf-buttons">
 
                 <button
-                    id="dp-no"
+                    id="daf-go"
                     type="button"
                 >
-                    NO
+                    GO
                 </button>
 
 
                 <button
-                    id="dp-yes"
+                    id="daf-close"
                     type="button"
                 >
-                    YES
+                    CLOSE
                 </button>
 
             </div>
 
 
-            <div
-                id="dp-yes-extra"
-            >
+            <div id="daf-eligible">
 
-                <div
-                    class="dp-row"
-                >
+                <div>
+                    Is this dispute eligible?
+                </div>
 
-                    <label>
-                        Email
-                    </label>
 
-                    <input
-                        id="dp-email"
-                        type="email"
+                <div id="daf-eligible-buttons">
+
+                    <button
+                        id="daf-no"
+                        type="button"
                     >
-
-                </div>
-
-
-                <div
-                    class="dp-row"
-                >
-
-                    <label>
-                        Arbit Case Notes
-                    </label>
-
-                    <textarea
-                        id="dp-arbit-notes"
-                    ></textarea>
-
-                </div>
+                        NO
+                    </button>
 
 
-                <div
-                    class="dp-row"
-                >
-
-                    <label>
-                        Plan Type Evidence
-                    </label>
-
-                    <select
-                        id="dp-plan-evidence"
+                    <button
+                        id="daf-yes"
+                        type="button"
                     >
-
-                        <option value="">
-                            Select
-                        </option>
-
-                        <option value="Yes">
-                            Yes
-                        </option>
-
-                        <option value="No">
-                            No
-                        </option>
-
-                    </select>
+                        YES
+                    </button>
 
                 </div>
 
 
-                <div
-                    class="dp-row"
-                >
+                <div id="daf-yes-fields">
 
-                    <label>
-                        Verification Status
-                    </label>
+                    <div class="daf-row">
 
-                    <select
-                        id="dp-verified"
+                        <label>
+                            Email
+                        </label>
+
+                        <input
+                            id="daf-email"
+                            type="email"
+                        >
+
+                    </div>
+
+
+                    <div class="daf-row">
+
+                        <label>
+                            Arbit Case Notes
+                        </label>
+
+                        <textarea
+                            id="daf-notes"
+                        ></textarea>
+
+                    </div>
+
+
+                    <div class="daf-row">
+
+                        <label>
+                            Plan Type Evidence
+                        </label>
+
+                        <select
+                            id="daf-plan-evidence"
+                        >
+
+                            <option value="">
+                                Select
+                            </option>
+
+                            <option value="Yes">
+                                Yes
+                            </option>
+
+                            <option value="No">
+                                No
+                            </option>
+
+                        </select>
+
+                    </div>
+
+
+                    <div class="daf-row">
+
+                        <label>
+                            Verification Status
+                        </label>
+
+                        <select
+                            id="daf-verified"
+                        >
+
+                            <option value="">
+                                Select
+                            </option>
+
+                            <option value="Verified">
+                                Verified
+                            </option>
+
+                            <option value="Not Verified">
+                                Not Verified
+                            </option>
+
+                        </select>
+
+                    </div>
+
+
+                    <div class="daf-row">
+
+                        <label>
+                            Non-Bifurcated
+                        </label>
+
+                        <select
+                            id="daf-non-bifurcated"
+                        >
+
+                            <option value="">
+                                Select
+                            </option>
+
+                            <option value="Yes">
+                                Yes
+                            </option>
+
+                            <option value="No">
+                                No
+                            </option>
+
+                        </select>
+
+                    </div>
+
+
+                    <button
+                        id="daf-continue"
+                        type="button"
+                        disabled
                     >
-
-                        <option value="">
-                            Select
-                        </option>
-
-                        <option value="Verified">
-                            Verified
-                        </option>
-
-                        <option value="Not Verified">
-                            Not Verified
-                        </option>
-
-                    </select>
+                        CONTINUE
+                    </button>
 
                 </div>
-
-
-                <div
-                    class="dp-row"
-                >
-
-                    <label>
-                        Non-Bifurcated
-                    </label>
-
-                    <select
-                        id="dp-non-bifurcated"
-                    >
-
-                        <option value="">
-                            Select
-                        </option>
-
-                        <option value="Yes">
-                            Yes
-                        </option>
-
-                        <option value="No">
-                            No
-                        </option>
-
-                    </select>
-
-                </div>
-
-
-                <button
-                    id="dp-continue"
-                    type="button"
-                    disabled
-                >
-                    CONTINUE
-                </button>
 
             </div>
 
+
+            <button
+                id="daf-arbit"
+                type="button"
+            >
+                OPEN ARBIT ID
+            </button>
+
+
+            <div id="daf-status"></div>
+
         </div>
 
+    `;
 
-        <button
-            id="dp-arbit-id"
-            type="button"
-        >
-            OPEN ARBIT ID
-        </button>
 
-
-        <div
-            id="dp-status"
-        ></div>
-
-    </div>
-
-</div>
-
-`;
-
-
-document.body.appendChild(
-    panel
-);
-
-
-/* =========================================================
-   PANEL STYLE
-   ========================================================= */
-
-const panelStyle=
-    document.createElement("style");
-
-
-panelStyle.id=
-    "dispute-auto-fill-panel-style";
-
-
-panelStyle.textContent=`
-
-#dispute-auto-fill-panel{
-
-    position:fixed;
-
-    top:20px;
-    right:20px;
-
-    z-index:2147482000;
-
-    font-family:Arial,sans-serif;
-
-}
-
-
-#dp-window{
-
-    width:430px;
-
-    max-width:calc(100vw - 40px);
-
-    background:#fff;
-
-    border-radius:14px;
-
-    box-shadow:
-        0 15px 50px rgba(0,0,0,.35);
-
-    overflow:hidden;
-
-    border:1px solid #ddd;
-
-}
-
-
-#dp-header{
-
-    background:#111;
-
-    color:#fff;
-
-    padding:14px 16px;
-
-    font-size:15px;
-
-    font-weight:800;
-
-}
-
-
-#dp-body{
-
-    padding:16px;
-
-}
-
-
-.dp-row{
-
-    margin-bottom:12px;
-
-}
-
-
-.dp-row label{
-
-    display:block;
-
-    margin-bottom:5px;
-
-    font-size:12px;
-
-    font-weight:800;
-
-    color:#333;
-
-}
-
-
-.dp-row input,
-.dp-row select,
-.dp-row textarea,
-#dp-state{
-
-    width:100%;
-
-    box-sizing:border-box;
-
-    min-height:38px;
-
-    border:1px solid #bbb;
-
-    border-radius:8px;
-
-    padding:8px 10px;
-
-    font:14px Arial,sans-serif;
-
-    outline:none;
-
-}
-
-
-.dp-row textarea{
-
-    min-height:90px;
-
-    resize:vertical;
-
-}
-
-
-.dp-name-wrap{
-
-    display:flex;
-
-    gap:6px;
-
-    align-items:center;
-
-}
-
-
-#dp-name{
-
-    flex:1;
-
-    min-width:0;
-
-    min-height:38px;
-
-    box-sizing:border-box;
-
-    border:1px solid #bbb;
-
-    border-radius:8px;
-
-    padding:8px 10px;
-
-}
-
-
-#dp-edit,
-#dp-save{
-
-    min-height:38px;
-
-    padding:0 10px;
-
-    border:0;
-
-    border-radius:8px;
-
-    cursor:pointer;
-
-    font:700 11px Arial,sans-serif;
-
-}
-
-
-#dp-edit{
-
-    background:#555;
-
-    color:#fff;
-
-}
-
-
-#dp-save{
-
-    background:#175cd3;
-
-    color:#fff;
-
-}
-
-
-#dp-saved{
-
-    display:inline-flex;
-
-    align-items:center;
-
-    min-height:28px;
-
-    padding:0 8px;
-
-    border-radius:7px;
-
-    background:#dcfce7;
-
-    color:#166534;
-
-    font:800 10px Arial,sans-serif;
-
-}
-
-
-#dp-go,
-#dp-arbit-id,
-#dp-continue{
-
-    width:100%;
-
-    min-height:40px;
-
-    border:0;
-
-    border-radius:9px;
-
-    cursor:pointer;
-
-    font:800 12px Arial,sans-serif;
-
-    color:#fff;
-
-    margin-top:4px;
-
-}
-
-
-#dp-go{
-
-    background:#111;
-
-}
-
-
-#dp-arbit-id{
-
-    background:#7f1d1d;
-
-    margin-top:10px;
-
-}
-
-
-#dp-continue{
-
-    background:#166534;
-
-}
-
-
-#dp-continue:disabled{
-
-    background:#aaa;
-
-    cursor:not-allowed;
-
-}
-
-
-#dp-eligible{
-
-    display:none;
-
-    margin-top:14px;
-
-    padding-top:14px;
-
-    border-top:1px solid #ddd;
-
-}
-
-
-.dp-eligible-title{
-
-    font-size:13px;
-
-    font-weight:800;
-
-    margin-bottom:10px;
-
-}
-
-
-.dp-yesno{
-
-    display:flex;
-
-    gap:8px;
-
-}
-
-
-.dp-yesno button{
-
-    flex:1;
-
-    min-height:40px;
-
-    border:0;
-
-    border-radius:8px;
-
-    cursor:pointer;
-
-    color:#fff;
-
-    font:800 12px Arial,sans-serif;
-
-}
-
-
-#dp-no{
-
-    background:#b42318;
-
-}
-
-
-#dp-yes{
-
-    background:#166534;
-
-}
-
-
-#dp-yes-extra{
-
-    display:none;
-
-    margin-top:14px;
-
-}
-
-
-#dp-status{
-
-    margin-top:10px;
-
-    min-height:18px;
-
-    font-size:11px;
-
-    font-weight:700;
-
-    color:#555;
-
-}
-
-`;
-
-
-document.head.appendChild(
-    panelStyle
-);
-
-
-/* =========================================================
-   GET ELEMENTS
-   ========================================================= */
-
-const nameInput=
-    document.getElementById(
-        "dp-name"
-    );
-
-const stateInput=
-    document.getElementById(
-        "dp-state"
-    );
-
-const duplicateCommentsInput=
-    document.getElementById(
-        "dp-duplicate-comments"
-    );
-
-const mismatchInput=
-    document.getElementById(
-        "dp-mismatch"
-    );
-
-const editBtn=
-    document.getElementById(
-        "dp-edit"
-    );
-
-const saveBtn=
-    document.getElementById(
-        "dp-save"
-    );
-
-const savedLabel=
-    document.getElementById(
-        "dp-saved"
-    );
-
-const goBtn=
-    document.getElementById(
-        "dp-go"
-    );
-
-const status=
-    document.getElementById(
-        "dp-status"
-    );
-
-const eligible=
-    document.getElementById(
-        "dp-eligible"
-    );
-
-const noBtn=
-    document.getElementById(
-        "dp-no"
-    );
-
-const yesBtn=
-    document.getElementById(
-        "dp-yes"
-    );
-
-const yesExtra=
-    document.getElementById(
-        "dp-yes-extra"
-    );
-
-const emailInput=
-    document.getElementById(
-        "dp-email"
-    );
-
-const arbitNotesInput=
-    document.getElementById(
-        "dp-arbit-notes"
-    );
-
-const planEvidenceInput=
-    document.getElementById(
-        "dp-plan-evidence"
-    );
-
-const verifiedInput=
-    document.getElementById(
-        "dp-verified"
-    );
-
-const nonBifurcatedInput=
-    document.getElementById(
-        "dp-non-bifurcated"
-    );
-
-const continueBtn=
-    document.getElementById(
-        "dp-continue"
-    );
-
-const arbitIdBtn=
-    document.getElementById(
-        "dp-arbit-id"
+    document.body.appendChild(
+        overlay
     );
 
 
-/* =========================================================
-   ARBIT ID BUTTON
-   ========================================================= */
-
-arbitIdBtn.onclick=()=>{
-
-    openArbitIframe();
-
-};
-
-
-/* =========================================================
-   USER NAME
-   ========================================================= */
-
-let currentName=
-    getName();
-
-
-nameInput.value=
-    currentName;
-
-
-if(currentName){
-
-    nameInput.readOnly=true;
-
-    editBtn.style.display=
-        "inline-block";
-
-    saveBtn.style.display=
-        "none";
-
-    savedLabel.style.display=
-        "inline-flex";
-
-    status.textContent=
-        "Saved username: "+currentName;
-
-}else{
-
-    nameInput.readOnly=false;
-
-    editBtn.style.display=
-        "none";
-
-    saveBtn.style.display=
-        "inline-block";
-
-    savedLabel.style.display=
-        "none";
-
-    status.textContent=
-        "Please enter and save your Dispute User Name.";
-
-    nameInput.focus();
-
-}
-
-
-/* =========================================================
-   EDIT
-   ========================================================= */
-
-editBtn.onclick=()=>{
-
-    nameInput.readOnly=false;
-
-    nameInput.focus();
-
-    nameInput.select();
-
-    editBtn.style.display=
-        "none";
-
-    saveBtn.style.display=
-        "inline-block";
-
-    savedLabel.style.display=
-        "none";
-
-    status.textContent=
-        "Editing username...";
-
-};
-
-
-/* =========================================================
-   SAVE
-   ========================================================= */
-
-saveBtn.onclick=()=>{
-
-    const n=
-        nameInput.value.trim();
-
-
-    if(!n){
-
-        status.textContent=
-            "Enter a Dispute User Name first.";
-
-        nameInput.focus();
-
-        return;
-
-    }
-
-
-    if(!saveName(n)){
-
-        status.textContent=
-            "Could not save the username.";
-
-        return;
-
-    }
-
-
-    currentName=n;
-
-    nameInput.value=n;
-
-    nameInput.readOnly=true;
-
-    editBtn.style.display=
-        "inline-block";
-
-    saveBtn.style.display=
-        "none";
-
-    savedLabel.style.display=
-        "inline-flex";
-
-    status.textContent=
-        "Username saved.";
-
-    stateInput.focus();
-
-};
-
-
-/* =========================================================
-   VALIDATE MAIN FORM
-   ========================================================= */
-
-const validate=()=>{
-
-    if(!currentName){
-
-        status.textContent=
-            "Please save your Dispute User Name first.";
-
-        nameInput.focus();
-
-        return false;
-
-    }
-
-
-    if(!stateInput.value.trim()){
-
-        status.textContent=
-            "Enter a State.";
-
-        stateInput.focus();
-
-        return false;
-
-    }
-
-
-    if(!duplicateCommentsInput.value){
-
-        status.textContent=
-            "Please select Duplicate Dispute Comments.";
-
-        duplicateCommentsInput.focus();
-
-        return false;
-
-    }
-
-
-    if(!mismatchInput.value){
-
-        status.textContent=
-            "Please select Plantype Mismatch: Yes or No.";
-
-        mismatchInput.focus();
-
-        return false;
-
-    }
-
-
-    return true;
-
-};
-
-
-/* =========================================================
-   VALIDATE YES FORM
-   ========================================================= */
-
-const validateYesFields=()=>{
-
-    const email=
-        emailInput.value.trim();
-
-    const arbitNotes=
-        arbitNotesInput.value.trim();
-
-    const planEvidence=
-        planEvidenceInput.value;
-
-    const verificationStatus=
-        verifiedInput.value;
-
-    const nonBifurcated=
-        nonBifurcatedInput.value;
-
-
-    return(
-        !!email &&
-        !!arbitNotes &&
-        !!planEvidence &&
-        !!verificationStatus &&
-        !!nonBifurcated
-    );
-
-};
-
-
-/* =========================================================
-   UPDATE CONTINUE
-   ========================================================= */
-
-const updateContinueButton=()=>{
-
-    const complete=
-        validateYesFields();
-
-
-    continueBtn.disabled=
-        !complete;
-
-
-    if(complete){
-
-        continueBtn.title=
-            "All required fields are complete.";
-
-    }else{
-
-        continueBtn.title=
-            "Complete all required fields before continuing.";
-
-    }
-
-};
-
-
-/* =========================================================
-   YES FIELD LISTENERS
-   ========================================================= */
-
-emailInput.addEventListener(
-    "input",
-    updateContinueButton
-);
-
-arbitNotesInput.addEventListener(
-    "input",
-    updateContinueButton
-);
-
-planEvidenceInput.addEventListener(
-    "change",
-    updateContinueButton
-);
-
-verifiedInput.addEventListener(
-    "change",
-    updateContinueButton
-);
-
-nonBifurcatedInput.addEventListener(
-    "change",
-    updateContinueButton
-);
-
-
-/* =========================================================
-   GO
-   ========================================================= */
-
-const processGo=()=>{
-
-    if(!validate())
-        return;
-
-
-    stateInput.value=
-        stateInput.value
-            .trim()
-            .toUpperCase();
-
-
-    eligible.style.display=
-        "block";
-
-
-    yesExtra.style.display=
-        "none";
-
-
-    emailInput.value="";
-    arbitNotesInput.value="";
-    planEvidenceInput.value="";
-    verifiedInput.value="";
-    nonBifurcatedInput.value="";
-
-
-    updateContinueButton();
-
-
-    status.textContent=
-        "Choose eligibility to continue.";
-
-    noBtn.focus();
-
-};
-
-
-goBtn.onclick=
-    processGo;
-
-
-stateInput.onkeydown=e=>{
-
-    if(e.key==="Enter"){
-
-        e.preventDefault();
-
-        processGo();
-
-    }
-
-};
-
-
-/* =========================================================
-   BUILD ONE ROW
-   ========================================================= */
-
-const buildRow=(
-    id,
-    i,
-    stateValue,
-    duplicateComments,
-    isYes,
-    disputeUserName="",
-    email="",
-    verificationStatus="",
-    arbitCaseNotes="",
-    planTypeEvidence="",
-    nonBifurcated="",
-    plantypeMismatch=""
-)=>{
-
-    const actualG=
-        disputeStatus;
-
-
-    const actualL=
-        columnJValue;
-
-
-    const actualR=
-        getColumnRValue(
-            actualG,
-            actualL
+    const nameInput=
+        document.getElementById(
+            "daf-name"
+        );
+
+    const stateInput=
+        document.getElementById(
+            "daf-state"
+        );
+
+    const duplicateInput=
+        document.getElementById(
+            "daf-duplicate"
+        );
+
+    const mismatchInput=
+        document.getElementById(
+            "daf-mismatch"
+        );
+
+    const goBtn=
+        document.getElementById(
+            "daf-go"
+        );
+
+    const closeBtn=
+        document.getElementById(
+            "daf-close"
+        );
+
+    const eligibleBox=
+        document.getElementById(
+            "daf-eligible"
+        );
+
+    const noBtn=
+        document.getElementById(
+            "daf-no"
+        );
+
+    const yesBtn=
+        document.getElementById(
+            "daf-yes"
+        );
+
+    const yesFields=
+        document.getElementById(
+            "daf-yes-fields"
+        );
+
+    const emailInput=
+        document.getElementById(
+            "daf-email"
+        );
+
+    const notesInput=
+        document.getElementById(
+            "daf-notes"
+        );
+
+    const planEvidenceInput=
+        document.getElementById(
+            "daf-plan-evidence"
+        );
+
+    const verifiedInput=
+        document.getElementById(
+            "daf-verified"
+        );
+
+    const nonBifurcatedInput=
+        document.getElementById(
+            "daf-non-bifurcated"
+        );
+
+    const continueBtn=
+        document.getElementById(
+            "daf-continue"
+        );
+
+    const arbitBtn=
+        document.getElementById(
+            "daf-arbit"
+        );
+
+    const status=
+        document.getElementById(
+            "daf-status"
         );
 
 
-    const row=[
+    /* =====================================================
+       USER NAME
+       ===================================================== */
 
-        isYes
-            ?email
-            :"-",
+    nameInput.value=
+        getName();
 
-        getPlanType(i),
 
-        plantypeMismatch,
+    /* =====================================================
+       ARBIT BUTTON
+       ===================================================== */
 
-        duplicateComments,
+    arbitBtn.onclick=()=>{
 
-        disputeNumber,
+        openArbitIframe();
 
+    };
+
+
+    /* =====================================================
+       YES VALIDATION
+       ===================================================== */
+
+    const updateContinue=()=>{
+
+        const complete=
+            !!emailInput.value.trim() &&
+            !!notesInput.value.trim() &&
+            !!planEvidenceInput.value &&
+            !!verifiedInput.value &&
+            !!nonBifurcatedInput.value;
+
+
+        continueBtn.disabled=
+            !complete;
+
+    };
+
+
+    emailInput.addEventListener(
+        "input",
+        updateContinue
+    );
+
+    notesInput.addEventListener(
+        "input",
+        updateContinue
+    );
+
+    planEvidenceInput.addEventListener(
+        "change",
+        updateContinue
+    );
+
+    verifiedInput.addEventListener(
+        "change",
+        updateContinue
+    );
+
+    nonBifurcatedInput.addEventListener(
+        "change",
+        updateContinue
+    );
+
+
+    /* =====================================================
+       BUILD ONE ROW
+       ===================================================== */
+
+    const buildRow=(
         id,
-
-        actualG,
-
-        isYes
-            ?disputeUserName
-            :"-",
-
-        isYes
-            ?verificationStatus
-            :"-",
-
-        isYes
-            ?arbitCaseNotes
-            :"-",
-
-        isYes
-            ?planTypeEvidence
-            :"-",
-
-        actualL,
-
-        "N/A",
-
-        "N/A",
-
+        i,
         stateValue,
+        duplicateComments,
+        isYes,
+        disputeUserName="",
+        email="",
+        verificationStatus="",
+        arbitCaseNotes="",
+        planTypeEvidence="",
+        nonBifurcated="",
+        plantypeMismatch=""
+    )=>{
 
-        isYes
-            ?nonBifurcated
-            :"-",
-
-        isYes
-            ?"Yes"
-            :"No",
-
-        actualR
-
-    ];
+        const actualG=
+            disputeStatus;
 
 
-    if(row.length!==18){
+        const actualL=
+            columnJValue;
 
-        console.error(
-            "ERROR: ROW DOES NOT HAVE 18 COLUMNS!",
-            row,
-            "Length:",
-            row.length
+
+        const actualR=
+            getColumnRValue(
+                actualG,
+                actualL
+            );
+
+
+        /*
+         * IMPORTANT:
+         *
+         * COLUMN F = ARBIT ID NUMBER
+         *
+         * The old row structure is preserved.
+         * Only the value going into Column F is updated.
+         */
+
+        const row=[
+
+            isYes
+                ?email
+                :"-",
+
+            getPlanType(i),
+
+            plantypeMismatch,
+
+            duplicateComments,
+
+            disputeNumber,
+
+            arbitIdNumber,
+
+            actualG,
+
+            isYes
+                ?disputeUserName
+                :"-",
+
+            isYes
+                ?verificationStatus
+                :"-",
+
+            isYes
+                ?arbitCaseNotes
+                :"-",
+
+            isYes
+                ?planTypeEvidence
+                :"-",
+
+            actualL,
+
+            "N/A",
+
+            "N/A",
+
+            stateValue,
+
+            isYes
+                ?nonBifurcated
+                :"-",
+
+            isYes
+                ?"Yes"
+                :"No",
+
+            actualR
+
+        ];
+
+
+        if(row.length!==18){
+
+            console.error(
+                "ERROR: ROW DOES NOT HAVE 18 COLUMNS!",
+                row,
+                "Length:",
+                row.length
+            );
+
+        }
+
+
+        console.log(
+            "FINAL 18-COLUMN ROW",
+            row
         );
 
-    }
 
-
-    console.log(
-        "FINAL 18-COLUMN ROW",
-        row
-    );
-
-
-    return row.join("\t");
-
-};
-
-
-/* =========================================================
-   BUILD OUTPUT
-   ========================================================= */
-
-const buildOutput=(
-    stateValue,
-    duplicateComments,
-    isYes,
-    disputeUserName="",
-    email="",
-    verificationStatus="",
-    arbitCaseNotes="",
-    planTypeEvidence="",
-    nonBifurcated="",
-    plantypeMismatch=""
-)=>{
-
-    const rows=[];
-
-
-    for(
-        let i=0;
-        i<ids.length;
-        i++
-    ){
-
-        rows.push(
-            buildRow(
-                ids[i],
-                i,
-                stateValue,
-                duplicateComments,
-                isYes,
-                disputeUserName,
-                email,
-                verificationStatus,
-                arbitCaseNotes,
-                planTypeEvidence,
-                nonBifurcated,
-                plantypeMismatch
-            )
-        );
-
-    }
-
-
-    return rows.join("\n");
-
-};
-
-
-/* =========================================================
-   NO
-   ========================================================= */
-
-noBtn.onclick=async()=>{
-
-    const output=
-        buildOutput(
-            stateInput.value.trim().toUpperCase(),
-            duplicateCommentsInput.value,
-            false,
-            currentName
+        console.log(
+            "COLUMN F / ARBIT ID:",
+            row[5]
         );
 
 
-    const ok=
-        await copyText(
+        return row.join("\t");
+
+    };
+
+
+    /* =====================================================
+       BUILD OUTPUT
+       ===================================================== */
+
+    const buildOutput=(
+        stateValue,
+        duplicateComments,
+        isYes,
+        disputeUserName="",
+        email="",
+        verificationStatus="",
+        arbitCaseNotes="",
+        planTypeEvidence="",
+        nonBifurcated="",
+        plantypeMismatch=""
+    )=>{
+
+        const rows=
+            sameId
+            ?[
+                buildRow(
+                    ids[0],
+                    0,
+                    stateValue,
+                    duplicateComments,
+                    isYes,
+                    disputeUserName,
+                    email,
+                    verificationStatus,
+                    arbitCaseNotes,
+                    planTypeEvidence,
+                    nonBifurcated,
+                    plantypeMismatch
+                )
+            ]
+            :ids.map((id,i)=>
+                buildRow(
+                    id,
+                    i,
+                    stateValue,
+                    duplicateComments,
+                    isYes,
+                    disputeUserName,
+                    email,
+                    verificationStatus,
+                    arbitCaseNotes,
+                    planTypeEvidence,
+                    nonBifurcated,
+                    plantypeMismatch
+                )
+            );
+
+
+        const output=
+            rows.join("\r\n");
+
+
+        console.log(
+            "FINAL COPY OUTPUT",
             output
         );
 
 
-    showCopyMessage(
-        ok
-            ?"Copied 18-column output."
-            :"Copy failed.",
-        output
-    );
+        return output;
+
+    };
 
 
-    status.textContent=
-        ok
-            ?"Output copied."
-            :"Unable to copy output.";
+    /* =====================================================
+       VALIDATE MAIN FORM
+       ===================================================== */
 
-};
+    const validate=()=>{
 
-
-/* =========================================================
-   YES
-   ========================================================= */
-
-yesBtn.onclick=()=>{
-
-    yesExtra.style.display=
-        "block";
+        const username=
+            nameInput.value.trim();
 
 
-    updateContinueButton();
+        if(!username){
+
+            status.textContent=
+                "Please enter your Dispute User Name.";
+
+            nameInput.focus();
+
+            return false;
+
+        }
 
 
-    emailInput.focus();
+        if(!stateInput.value.trim()){
 
-};
+            status.textContent=
+                "Enter a State.";
 
+            stateInput.focus();
 
-/* =========================================================
-   CONTINUE
-   ========================================================= */
+            return false;
 
-continueBtn.onclick=async()=>{
-
-    if(!validateYesFields())
-        return;
+        }
 
 
-    const output=
-        buildOutput(
-            stateInput.value.trim().toUpperCase(),
-            duplicateCommentsInput.value,
-            true,
-            currentName,
-            emailInput.value.trim(),
-            verifiedInput.value,
-            arbitNotesInput.value.trim(),
-            planEvidenceInput.value,
-            nonBifurcatedInput.value,
-            mismatchInput.value
+        if(!duplicateInput.value){
+
+            status.textContent=
+                "Please select Duplicate Dispute Comments.";
+
+            duplicateInput.focus();
+
+            return false;
+
+        }
+
+
+        if(!mismatchInput.value){
+
+            status.textContent=
+                "Please select Plantype Mismatch.";
+
+            mismatchInput.focus();
+
+            return false;
+
+        }
+
+
+        saveName(
+            username
         );
 
 
-    const ok=
-        await copyText(
+        return true;
+
+    };
+
+
+    /* =====================================================
+       GO
+       ===================================================== */
+
+    goBtn.onclick=()=>{
+
+        if(!validate())
+            return;
+
+
+        stateInput.value=
+            stateInput.value
+                .trim()
+                .toUpperCase();
+
+
+        eligibleBox.style.display=
+            "block";
+
+
+        yesFields.style.display=
+            "none";
+
+
+        status.textContent=
+            "Choose eligibility.";
+
+    };
+
+
+    /* =====================================================
+       NO
+       ===================================================== */
+
+    noBtn.onclick=async()=>{
+
+        const output=
+            buildOutput(
+                stateInput.value.trim().toUpperCase(),
+                duplicateInput.value,
+                false,
+                nameInput.value.trim(),
+                "",
+                "",
+                "",
+                "",
+                "",
+                mismatchInput.value
+            );
+
+
+        const ok=
+            await copyText(
+                output
+            );
+
+
+        showCopyMessage(
+            ok
+                ?"Copied 18-column output."
+                :"Copy failed.",
             output
         );
 
 
-    showCopyMessage(
-        ok
-            ?"Copied 18-column output."
-            :"Copy failed.",
-        output
-    );
+        status.textContent=
+            ok
+                ?"Output copied."
+                :"Unable to copy output.";
+
+    };
 
 
-    status.textContent=
-        ok
-            ?"Output copied."
-            :"Unable to copy output.";
+    /* =====================================================
+       YES
+       ===================================================== */
 
-};
+    yesBtn.onclick=()=>{
 
-
-/* =========================================================
-   INITIAL STATE
-   ========================================================= */
-
-eligible.style.display=
-    "none";
+        yesFields.style.display=
+            "block";
 
 
-yesExtra.style.display=
-    "none";
+        updateContinue();
+
+        emailInput.focus();
+
+    };
 
 
-updateContinueButton();
+    /* =====================================================
+       CONTINUE
+       ===================================================== */
+
+    continueBtn.onclick=async()=>{
+
+        if(continueBtn.disabled)
+            return;
 
 
-console.log(
-    "Updated ARBIT selector:",
-    'a[title="Open Arbit"]'
-);
+        const output=
+            buildOutput(
+                stateInput.value.trim().toUpperCase(),
+                duplicateInput.value,
+                true,
+                nameInput.value.trim(),
+                emailInput.value.trim(),
+                verifiedInput.value,
+                notesInput.value.trim(),
+                planEvidenceInput.value,
+                nonBifurcatedInput.value,
+                mismatchInput.value
+            );
 
-console.log(
-    "Detected ARBIT ID:",
-    arbitIdNumber
-);
 
-console.log(
-    "Detected ARBIT links:",
-    uniqueArbitLinks
-);
+        const ok=
+            await copyText(
+                output
+            );
+
+
+        showCopyMessage(
+            ok
+                ?"Copied 18-column output."
+                :"Copy failed.",
+            output
+        );
+
+
+        status.textContent=
+            ok
+                ?"Output copied."
+                :"Unable to copy output.";
+
+    };
+
+
+    /* =====================================================
+       CLOSE
+       ===================================================== */
+
+    closeBtn.onclick=()=>{
+
+        overlay.remove();
+
+        style.remove();
+
+        resolve(null);
+
+    };
+
+
+    /* =====================================================
+       START
+       ===================================================== */
+
+    nameInput.focus();
+
+});
+
+
+await popup();
 
 })();
