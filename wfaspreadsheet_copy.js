@@ -1226,6 +1226,66 @@ const installVobIframeHandlers=iframe=>{
 const openArbitIframe=()=>{
 
     /*
+     * RESTORE EXISTING MINIMIZED IFRAME
+     *
+     * The iframe is NOT recreated.
+     * This keeps the current iframe page/state.
+     */
+
+    const existingOverlay=
+        document.getElementById(
+            "arbit-iframe-overlay"
+        );
+
+
+    if(
+        existingOverlay &&
+        existingOverlay.dataset.minimized==="true"
+    ){
+
+        existingOverlay.dataset.minimized="false";
+
+        existingOverlay.style.setProperty(
+            "display",
+            "flex",
+            "important"
+        );
+
+
+        const existingVobViewer=
+            document.getElementById(
+                "vob-file-viewer-overlay"
+            );
+
+
+        if(existingVobViewer){
+
+            existingVobViewer.style.setProperty(
+                "display",
+                "flex",
+                "important"
+            );
+
+        }
+
+
+        try{
+
+            document
+                .getElementById(
+                    "arbit-iframe"
+                )
+                ?.focus();
+
+        }catch(e){}
+
+
+        return;
+
+    }
+
+
+    /*
      * Get ALL available ARBIT / APP ID links.
      *
      * This is the important change:
@@ -1329,6 +1389,10 @@ const openArbitIframe=()=>{
         "arbit-iframe-overlay";
 
 
+    overlay.dataset.minimized=
+        "false";
+
+
     overlay.innerHTML=`
 
         <div id="arbit-iframe-window">
@@ -1419,9 +1483,20 @@ const openArbitIframe=()=>{
 
 
                     <button
+                        id="arbit-iframe-minimize"
+                        type="button"
+                        aria-label="Minimize ARBIT ID"
+                        title="Minimize"
+                    >
+                        −
+                    </button>
+
+
+                    <button
                         id="arbit-iframe-close"
                         type="button"
                         aria-label="Close ARBIT ID"
+                        title="Close"
                     >
                         ×
                     </button>
@@ -1936,6 +2011,68 @@ const openArbitIframe=()=>{
         }
 
 
+        /* =====================================================
+           MINIMIZE BUTTON
+           ===================================================== */
+
+        #arbit-iframe-minimize{
+
+            width:
+                38px!important;
+
+            height:
+                38px!important;
+
+            border:
+                0!important;
+
+            border-radius:
+                50%!important;
+
+            background:
+                rgba(250,204,21,.18)!important;
+
+            color:
+                #facc15!important;
+
+            font-size:
+                25px!important;
+
+            font-weight:
+                900!important;
+
+            line-height:
+                1!important;
+
+            cursor:pointer!important;
+
+            display:flex!important;
+
+            align-items:center!important;
+
+            justify-content:center!important;
+
+            flex-shrink:
+                0!important;
+
+            padding:
+                0!important;
+
+        }
+
+
+        #arbit-iframe-minimize:hover{
+
+            background:
+                rgba(250,204,21,.32)!important;
+
+        }
+
+
+        /* =====================================================
+           CLOSE BUTTON
+           ===================================================== */
+
         #arbit-iframe-close{
 
             width:
@@ -1944,13 +2081,14 @@ const openArbitIframe=()=>{
             height:
                 38px!important;
 
-            border:0!important;
+            border:
+                0!important;
 
             border-radius:
                 50%!important;
 
             background:
-                rgba(255,255,255,.08)!important;
+                #dc2626!important;
 
             color:#fff!important;
 
@@ -1971,13 +2109,16 @@ const openArbitIframe=()=>{
             flex-shrink:
                 0!important;
 
+            padding:
+                0!important;
+
         }
 
 
         #arbit-iframe-close:hover{
 
             background:
-                rgba(220,40,40,.92)!important;
+                #ef4444!important;
 
         }
 
@@ -2367,6 +2508,7 @@ const openArbitIframe=()=>{
             }
 
 
+            #arbit-iframe-minimize,
             #arbit-iframe-close{
 
                 width:
@@ -2411,6 +2553,12 @@ const openArbitIframe=()=>{
     const pullEvidenceBtn=
         document.getElementById(
             "arbit-pull-evidence"
+        );
+
+
+    const minimizeBtn=
+        document.getElementById(
+            "arbit-iframe-minimize"
         );
 
 
@@ -2702,6 +2850,35 @@ const openArbitIframe=()=>{
     installVobIframeHandlers(
         iframe
     );
+
+
+    /* =====================================================
+       MINIMIZE IFRAME
+       ===================================================== */
+
+    const minimizeIframe=()=>{
+
+        overlay.dataset.minimized=
+            "true";
+
+
+        /*
+         * Hide only the ARBIT iframe overlay.
+         * The iframe itself stays alive in the DOM,
+         * so its current page/state is preserved.
+         */
+
+        overlay.style.setProperty(
+            "display",
+            "none",
+            "important"
+        );
+
+    };
+
+
+    minimizeBtn.onclick=
+        minimizeIframe;
 
 
     /* =====================================================
