@@ -818,98 +818,6 @@ const runRushVerify=iframe=>{
 
 
 /* =========================================================
-   ALL IN ONE
-   ========================================================= */
-
-const runAllInOne=iframe=>{
-
-    const scriptUrl=
-        "https://luckyph10.github.io/bookmarklets/wfaspreadsheet_copy.js?" +
-        Date.now();
-
-
-    try{
-
-        const doc=
-            iframe.contentDocument ||
-            iframe.contentWindow?.document;
-
-
-        if(!doc){
-
-            throw new Error(
-                "Unable to access iframe document."
-            );
-
-        }
-
-
-        const oldScript=
-            doc.getElementById(
-                "all-in-one-script"
-            );
-
-
-        if(oldScript)
-            oldScript.remove();
-
-
-        const script=
-            doc.createElement("script");
-
-
-        script.id=
-            "all-in-one-script";
-
-
-        script.src=
-            scriptUrl;
-
-
-        script.onload=()=>{
-
-            console.log(
-                "ALL IN ONE loaded inside ARBIT iframe."
-            );
-
-        };
-
-
-        script.onerror=()=>{
-
-            alert(
-                "ALL IN ONE: Load failed."
-            );
-
-        };
-
-
-        (
-            doc.head||
-            doc.documentElement
-        ).appendChild(
-            script
-        );
-
-
-    }catch(e){
-
-        console.error(
-            "ALL IN ONE iframe error:",
-            e
-        );
-
-        alert(
-            "ALL IN ONE could not run inside the ARBIT iframe.\n\n"+
-            "The iframe page may block cross-origin script injection."
-        );
-
-    }
-
-};
-
-
-/* =========================================================
    PULL CASE / HISTORY EVIDENCE
    ========================================================= */
 
@@ -1124,6 +1032,10 @@ const installVobIframeHandlers=iframe=>{
                 return;
 
 
+            /* -------------------------------------------------
+               CATCH window.open FROM VOB FILE ACTIONS
+               ------------------------------------------------- */
+
             if(
                 !win.__disputeVobOpenPatched
             ){
@@ -1167,6 +1079,10 @@ const installVobIframeHandlers=iframe=>{
 
             }
 
+
+            /* -------------------------------------------------
+               CATCH VOB LINKS
+               ------------------------------------------------- */
 
             if(
                 !doc.__disputeVobClickHandler
@@ -1309,10 +1225,100 @@ const installVobIframeHandlers=iframe=>{
 
 const openArbitIframe=()=>{
 
+    /*
+     * NEW:
+     * If the iframe already exists and was minimized,
+     * simply restore it instead of creating another iframe.
+     */
+
+    const existingOverlay=
+        document.getElementById(
+            "arbit-iframe-overlay"
+        );
+
+
+    if(existingOverlay){
+
+        if(
+            existingOverlay.dataset.minimized===
+            "true"
+        ){
+
+            existingOverlay.dataset.minimized=
+                "false";
+
+
+            existingOverlay.style.display=
+                "flex";
+
+
+            const existingWindow=
+                existingOverlay.querySelector(
+                    "#arbit-iframe-window"
+                );
+
+
+            if(existingWindow){
+
+                existingWindow.style.display=
+                    "flex";
+
+            }
+
+
+            const existingClose=
+                existingOverlay.querySelector(
+                    "#arbit-iframe-close"
+                );
+
+
+            if(existingClose){
+
+                setTimeout(()=>{
+
+                    try{
+
+                        existingClose.focus();
+
+                    }catch(e){}
+
+                },30);
+
+            }
+
+
+            return;
+
+        }
+
+
+        /*
+         * It is already open and not minimized.
+         * Bring it visually to the front.
+         */
+
+        existingOverlay.style.zIndex=
+            "2147483647";
+
+
+        return;
+
+    }
+
+
+    /*
+     * Get ALL available ARBIT / APP ID links.
+     */
+
     let appLinks=[
         ...uniqueArbitLinks
     ];
 
+
+    /*
+     * Fallback if the link collector did not find
+     * anything for some reason.
+     */
 
     if(!appLinks.length){
 
@@ -1351,25 +1357,9 @@ const openArbitIframe=()=>{
     }
 
 
-    const old=
-        document.getElementById(
-            "arbit-iframe-overlay"
-        );
-
-
-    if(old)
-        old.remove();
-
-
-    const oldStyle=
-        document.getElementById(
-            "arbit-iframe-style"
-        );
-
-
-    if(oldStyle)
-        oldStyle.remove();
-
+    /* =====================================================
+       CURRENT OPEN APP
+       ===================================================== */
 
     let currentAppIndex=0;
 
@@ -1377,12 +1367,20 @@ const openArbitIframe=()=>{
         appLinks[currentAppIndex];
 
 
+    /* =====================================================
+       CREATE OVERLAY
+       ===================================================== */
+
     const overlay=
         document.createElement("div");
 
 
     overlay.id=
         "arbit-iframe-overlay";
+
+
+    overlay.dataset.minimized=
+        "false";
 
 
     overlay.innerHTML=`
@@ -1408,15 +1406,17 @@ const openArbitIframe=()=>{
                     </div>
 
 
-                    <div id="arbit-app-selector-wrap">
+                    ${
+                        appLinks.length>1
+                        ?`
 
-                        ${
-                            appLinks.length>1
-                            ?`
+                        <div
+                            id="arbit-app-selector-wrap"
+                        >
 
                             <select
                                 id="arbit-app-selector"
-                                title="Select another App ID"
+                                title="Select another ARBIT / APP ID"
                             >
 
                                 ${appLinks.map((item,index)=>`
@@ -1445,20 +1445,11 @@ const openArbitIframe=()=>{
                                 OPEN
                             </button>
 
-                            `
-                            :""
-                        }
+                        </div>
 
-
-                        <button
-                            id="arbit-all-in-one"
-                            type="button"
-                            title="Run All In One"
-                        >
-                            ALL IN ONE
-                        </button>
-
-                    </div>
+                        `
+                        :""
+                    }
 
                 </div>
 
@@ -1481,10 +1472,23 @@ const openArbitIframe=()=>{
                     </button>
 
 
+                    <!-- NEW MINIMIZE BUTTON -->
+
+                    <button
+                        id="arbit-iframe-minimize"
+                        type="button"
+                        aria-label="Minimize ARBIT iframe"
+                        title="Minimize"
+                    >
+                        −
+                    </button>
+
+
                     <button
                         id="arbit-iframe-close"
                         type="button"
                         aria-label="Close ARBIT ID"
+                        title="Close"
                     >
                         ×
                     </button>
@@ -1637,17 +1641,19 @@ const openArbitIframe=()=>{
         }
 
 
+        /* =====================================================
+           LEFT SIDE
+           ===================================================== */
+
         #arbit-iframe-left{
 
             display:flex!important;
 
             align-items:center!important;
 
-            gap:
-                10px!important;
+            gap:10px!important;
 
-            min-width:
-                0!important;
+            min-width:0!important;
 
             flex:1!important;
 
@@ -1704,17 +1710,19 @@ const openArbitIframe=()=>{
         }
 
 
+        /* =====================================================
+           APP / ARBIT ID DROPDOWN
+           ===================================================== */
+
         #arbit-app-selector-wrap{
 
             display:flex!important;
 
             align-items:center!important;
 
-            gap:
-                6px!important;
+            gap:6px!important;
 
-            min-width:
-                0!important;
+            min-width:0!important;
 
         }
 
@@ -1758,8 +1766,7 @@ const openArbitIframe=()=>{
 
             cursor:pointer!important;
 
-            box-sizing:
-                border-box!important;
+            box-sizing:border-box!important;
 
         }
 
@@ -1793,6 +1800,10 @@ const openArbitIframe=()=>{
 
         }
 
+
+        /* =====================================================
+           OPEN SELECTED APP BUTTON
+           ===================================================== */
 
         #arbit-app-open{
 
@@ -1835,12 +1846,6 @@ const openArbitIframe=()=>{
                 0 4px 14px
                 rgba(0,0,0,.3)!important;
 
-            display:inline-flex!important;
-
-            align-items:center!important;
-
-            justify-content:center!important;
-
         }
 
 
@@ -1855,82 +1860,17 @@ const openArbitIframe=()=>{
         }
 
 
-        /* =====================================================
-           ALL IN ONE BUTTON
-           ===================================================== */
-
-        #arbit-all-in-one{
-
-            height:
-                38px!important;
-
-            padding:
-                0 14px!important;
-
-            border:
-                1px solid
-                rgba(255,255,255,.20)!important;
-
-            border-radius:
-                8px!important;
-
-            background:
-                #16a34a!important;
-
-            color:#fff!important;
-
-            font-family:
-                Arial,sans-serif!important;
-
-            font-size:
-                11px!important;
-
-            font-weight:
-                900!important;
-
-            letter-spacing:
-                .3px!important;
-
-            cursor:pointer!important;
-
-            white-space:
-                nowrap!important;
-
-            box-shadow:
-                0 4px 14px
-                rgba(0,0,0,.30)!important;
-
-            display:inline-flex!important;
-
-            align-items:center!important;
-
-            justify-content:center!important;
-
-        }
-
-
-        #arbit-all-in-one:hover{
-
-            background:
-                #22c55e!important;
-
-            box-shadow:
-                0 5px 18px
-                rgba(34,197,94,.40)!important;
-
-            transform:
-                translateY(-1px)!important;
-
-        }
-
-
-        #arbit-all-in-one:active{
+        #arbit-app-open:active{
 
             transform:
                 translateY(0)!important;
 
         }
 
+
+        /* =====================================================
+           RIGHT ACTIONS
+           ===================================================== */
 
         #arbit-iframe-actions{
 
@@ -2064,6 +2004,77 @@ const openArbitIframe=()=>{
         }
 
 
+        /* =====================================================
+           NEW MINIMIZE BUTTON
+           ===================================================== */
+
+        #arbit-iframe-minimize{
+
+            width:
+                38px!important;
+
+            height:
+                38px!important;
+
+            border:
+                1px solid
+                rgba(255,255,255,.12)!important;
+
+            border-radius:
+                50%!important;
+
+            background:
+                rgba(255,255,255,.08)!important;
+
+            color:#fff!important;
+
+            font-family:
+                Arial,sans-serif!important;
+
+            font-size:
+                24px!important;
+
+            font-weight:
+                700!important;
+
+            line-height:
+                1!important;
+
+            cursor:pointer!important;
+
+            display:flex!important;
+
+            align-items:center!important;
+
+            justify-content:center!important;
+
+            flex-shrink:
+                0!important;
+
+            padding:
+                0 0 5px 0!important;
+
+            box-sizing:
+                border-box!important;
+
+        }
+
+
+        #arbit-iframe-minimize:hover{
+
+            background:
+                rgba(255,193,7,.28)!important;
+
+            border-color:
+                rgba(255,193,7,.45)!important;
+
+        }
+
+
+        /* =====================================================
+           CLOSE BUTTON
+           ===================================================== */
+
         #arbit-iframe-close{
 
             width:
@@ -2109,6 +2120,10 @@ const openArbitIframe=()=>{
 
         }
 
+
+        /* =====================================================
+           IFRAME
+           ===================================================== */
 
         #arbit-iframe{
 
@@ -2304,7 +2319,15 @@ const openArbitIframe=()=>{
            RESPONSIVE
            ===================================================== */
 
-        @media(max-width:1400px){
+        @media(max-width:1250px){
+
+            #arbit-iframe-header{
+
+                gap:
+                    5px!important;
+
+            }
+
 
             #arbit-iframe-left{
 
@@ -2314,13 +2337,13 @@ const openArbitIframe=()=>{
             }
 
 
-            #arbit-all-in-one{
+            #arbit-app-selector{
 
-                padding:
-                    0 10px!important;
+                min-width:
+                    125px!important;
 
-                font-size:
-                    10px!important;
+                max-width:
+                    180px!important;
 
             }
 
@@ -2339,7 +2362,7 @@ const openArbitIframe=()=>{
         }
 
 
-        @media(max-width:1100px){
+        @media(max-width:950px){
 
             #arbit-iframe-title{
 
@@ -2352,22 +2375,18 @@ const openArbitIframe=()=>{
             #arbit-app-selector{
 
                 min-width:
-                    120px!important;
+                    110px!important;
 
                 max-width:
-                    170px!important;
+                    145px!important;
 
             }
 
 
-            #arbit-app-open,
-            #arbit-all-in-one{
+            #arbit-app-open{
 
                 padding:
-                    0 8px!important;
-
-                font-size:
-                    9px!important;
+                    0 10px!important;
 
             }
 
@@ -2386,9 +2405,34 @@ const openArbitIframe=()=>{
         }
 
 
-        @media(max-width:800px){
+        @media(max-width:700px){
+
+            #arbit-iframe-overlay{
+
+                padding:
+                    4px!important;
+
+            }
+
+
+            #arbit-iframe-window{
+
+                width:
+                    100vw!important;
+
+                height:
+                    98vh!important;
+
+                border-radius:
+                    10px!important;
+
+            }
+
 
             #arbit-iframe-header{
+
+                padding-left:
+                    8px!important;
 
                 gap:
                     4px!important;
@@ -2423,7 +2467,7 @@ const openArbitIframe=()=>{
             #arbit-app-selector{
 
                 min-width:
-                    90px!important;
+                    85px!important;
 
                 max-width:
                     120px!important;
@@ -2437,17 +2481,16 @@ const openArbitIframe=()=>{
             }
 
 
-            #arbit-app-open,
-            #arbit-all-in-one{
+            #arbit-app-open{
 
                 height:
                     34px!important;
 
                 padding:
-                    0 7px!important;
+                    0 8px!important;
 
                 font-size:
-                    8px!important;
+                    9px!important;
 
             }
 
@@ -2467,6 +2510,7 @@ const openArbitIframe=()=>{
             }
 
 
+            #arbit-iframe-minimize,
             #arbit-iframe-close{
 
                 width:
@@ -2477,22 +2521,14 @@ const openArbitIframe=()=>{
 
             }
 
-        }
 
+            #arbit-iframe-minimize{
 
-        @media(max-width:600px){
+                font-size:
+                    21px!important;
 
-            #arbit-pull-evidence{
-
-                display:none!important;
-
-            }
-
-
-            #arbit-all-in-one{
-
-                padding:
-                    0 6px!important;
+                padding-bottom:
+                    4px!important;
 
             }
 
@@ -2533,9 +2569,9 @@ const openArbitIframe=()=>{
         );
 
 
-    const allInOneBtn=
+    const minimizeBtn=
         document.getElementById(
-            "arbit-all-in-one"
+            "arbit-iframe-minimize"
         );
 
 
@@ -2607,6 +2643,12 @@ const openArbitIframe=()=>{
 
                 }
 
+
+                /*
+                 * We DO NOT load the iframe here.
+                 *
+                 * We only show OPEN.
+                 */
 
                 if(
                     selectedIndex===
@@ -2719,28 +2761,62 @@ const openArbitIframe=()=>{
 
 
     /* =====================================================
-       ALL IN ONE BUTTON
+       MINIMIZE
        ===================================================== */
 
-    if(allInOneBtn){
+    if(minimizeBtn){
 
-        allInOneBtn.addEventListener(
+        minimizeBtn.addEventListener(
             "click",
-            ()=>{
+            e=>{
 
-                runAllInOne(
-                    iframe
+                e.preventDefault();
+                e.stopPropagation();
+
+
+                /*
+                 * Keep the overlay and iframe alive.
+                 * Only hide the visual window.
+                 *
+                 * The main ARBIT ID button can then
+                 * restore this exact same iframe.
+                 */
+
+                overlay.dataset.minimized=
+                    "true";
+
+
+                const iframeWindow=
+                    document.getElementById(
+                        "arbit-iframe-window"
+                    );
+
+
+                if(iframeWindow){
+
+                    iframeWindow.style.display=
+                        "none";
+
+                }
+
+
+                overlay.style.display=
+                    "none";
+
+
+                console.log(
+                    "ARBIT iframe minimized."
                 );
 
-            }
-
+            },
+            true
         );
 
     }
 
 
     /* =====================================================
-       UPDATE CURRENT ID
+       UPDATE IFRAME ARBIT NUMBER
        ===================================================== */
 
     updateCurrentIdDisplay();
