@@ -16,34 +16,17 @@
     const caseNotesButtonSelector =
         "#ngForm > fieldset > div:nth-child(24) > div.d-flex.mb-2 > button";
 
-    /* Ineligibility Reasons textarea */
     const ineligibilityReasonsSelector =
         "#ngForm > fieldset > div:nth-child(15) > div:nth-child(3) > div:nth-child(2) > div > div:nth-child(2) > textarea";
 
-    /* State selector */
     const stateSelector =
         "#ngForm > fieldset > div:nth-child(15) > div:nth-child(3) > div.col-lg-6.justify-content-end.mb-4 > div:nth-child(1) > select";
-
-
-    /* ============================================================
-       VOB SECTION BUTTON
-       ============================================================ */
 
     const vobSectionButtonSelector =
         "#ngForm > fieldset > div:nth-child(22) > div.d-flex.mb-2 > button";
 
-
-    /* ============================================================
-       FILES BUTTON
-       ============================================================ */
-
     const filesButtonSelector =
         'button[title="Toggle the Files list"]';
-
-
-    /* ============================================================
-       NOTES BUTTON
-       ============================================================ */
 
     const notesButtonSelector =
         'button[title="Toggle Notes section"]';
@@ -55,29 +38,26 @@
 
     function openVobSection() {
 
-        const vobSectionButton =
+        const button =
             document.querySelector(
                 vobSectionButtonSelector
             );
 
-        if (!vobSectionButton) {
+        if (!button) {
             return;
         }
 
-        const ariaExpanded =
-            vobSectionButton.getAttribute(
+        const expanded =
+            button.getAttribute(
                 "aria-expanded"
             );
 
-        if (ariaExpanded === "false") {
+        if (
+            expanded === "false" ||
+            expanded === null
+        ) {
 
-            vobSectionButton.click();
-
-        }
-
-        else if (ariaExpanded === null) {
-
-            vobSectionButton.click();
+            button.click();
 
         }
 
@@ -90,22 +70,26 @@
 
     function openFilesSection() {
 
-        const filesBtn =
+        const button =
             document.querySelector(
                 filesButtonSelector
             );
 
-        if (!filesBtn) {
+        if (!button) {
             return;
         }
 
-        if (
-            filesBtn.getAttribute(
+        const expanded =
+            button.getAttribute(
                 "aria-expanded"
-            ) === "false"
+            );
+
+        if (
+            expanded === "false" ||
+            expanded === null
         ) {
 
-            filesBtn.click();
+            button.click();
 
         }
 
@@ -118,22 +102,26 @@
 
     function openNotesSection() {
 
-        const notesBtn =
+        const button =
             document.querySelector(
                 notesButtonSelector
             );
 
-        if (!notesBtn) {
+        if (!button) {
             return;
         }
 
-        if (
-            notesBtn.getAttribute(
+        const expanded =
+            button.getAttribute(
                 "aria-expanded"
-            ) === "false"
+            );
+
+        if (
+            expanded === "false" ||
+            expanded === null
         ) {
 
-            notesBtn.click();
+            button.click();
 
         }
 
@@ -141,7 +129,7 @@
 
 
     /* ============================================================
-       NORMALIZE FILE TEXT
+       NORMALIZE TEXT
        ============================================================ */
 
     function normalizeFileText(text) {
@@ -157,361 +145,12 @@
 
 
     /* ============================================================
-       GET ALL TEXT FROM AN ELEMENT
-       ============================================================ */
-
-    function getElementSearchText(element) {
-
-        if (!element) {
-            return "";
-        }
-
-        const values = [
-
-            element.innerText,
-            element.textContent,
-            element.title,
-            element.getAttribute("aria-label"),
-            element.getAttribute("data-title"),
-            element.getAttribute("data-name"),
-            element.getAttribute("data-file-name"),
-            element.getAttribute("filename"),
-            element.getAttribute("name"),
-            element.getAttribute("alt")
-
-        ];
-
-        return normalizeFileText(
-            values
-                .filter(Boolean)
-                .join(" ")
-        );
-
-    }
-
-
-    /* ============================================================
-       FIND VOB BUTTONS
-       ============================================================ */
-
-    function findVobButtons() {
-
-        return [
-            ...document.querySelectorAll(
-                "button.btn-modal"
-            )
-        ].filter(function (btn) {
-
-            const title =
-                (
-                    btn.title ||
-                    ""
-                ).toLowerCase();
-
-            const text =
-                (
-                    btn.textContent ||
-                    ""
-                ).toLowerCase();
-
-            return (
-                title.includes("view vob") ||
-                text.includes("vob")
-            );
-
-        });
-
-    }
-
-
-    /* ============================================================
-       FILE TYPE DEFINITIONS
-       ============================================================ */
-
-    const fileDefinitions = [
-
-        {
-            key: "proofOfIdInitiation",
-
-            label: "Proof of ID Initiation",
-
-            icon: "🪪",
-
-            keywords: [
-
-                "proof of id initiation",
-                "proof of id",
-                "proofofidinitiation",
-                "proofidinitiation",
-                "proof id initiation",
-                "id initiation"
-
-            ]
-
-        },
-
-        {
-            key: "insuranceCard",
-
-            label: "Insurance Card",
-
-            icon: "💳",
-
-            keywords: [
-
-                "insurance card",
-                "insurancecard",
-                "insurance",
-                "ins card",
-                "inscard"
-
-            ]
-
-        },
-
-        {
-            key: "eob",
-
-            label: "EOB",
-
-            icon: "📄",
-
-            keywords: [
-
-                "eob",
-                "e o b",
-                "explanation of benefits",
-                "explanation benefits"
-
-            ]
-
-        }
-
-    ];
-
-
-    /* ============================================================
-       CHECK IF ELEMENT IS A FILE BUTTON
-       ============================================================ */
-
-    function elementLooksLikeFileControl(element) {
-
-        if (!element) {
-            return false;
-        }
-
-        /*
-         * We primarily want clickable controls.
-         */
-
-        const tag =
-            element.tagName
-                ? element.tagName.toLowerCase()
-                : "";
-
-        return (
-            tag === "button" ||
-            tag === "a" ||
-            tag === "input" ||
-            element.getAttribute("role") === "button"
-        );
-
-    }
-
-
-    /* ============================================================
-       FIND FILE BUTTON FOR DEFINITION
-       ============================================================ */
-
-    function findFileButton(definition) {
-
-        const candidates = [
-
-            ...document.querySelectorAll(
-                "button"
-            ),
-
-            ...document.querySelectorAll(
-                "a"
-            ),
-
-            ...document.querySelectorAll(
-                '[role="button"]'
-            ),
-
-            ...document.querySelectorAll(
-                "input[type='button'], input[type='submit']"
-            )
-
-        ];
-
-        const seen =
-            new Set();
-
-        const matches =
-            [];
-
-        candidates.forEach(
-            function (element) {
-
-                if (
-                    seen.has(element)
-                ) {
-                    return;
-                }
-
-                seen.add(element);
-
-                if (
-                    !elementLooksLikeFileControl(
-                        element
-                    )
-                ) {
-                    return;
-                }
-
-                const searchText =
-                    getElementSearchText(
-                        element
-                    );
-
-                if (!searchText) {
-                    return;
-                }
-
-                const matched =
-                    definition.keywords.some(
-                        function (keyword) {
-
-                            const normalizedKeyword =
-                                normalizeFileText(
-                                    keyword
-                                );
-
-                            /*
-                             * Exact/contained matching.
-                             */
-
-                            return (
-                                searchText ===
-                                    normalizedKeyword ||
-
-                                searchText.includes(
-                                    normalizedKeyword
-                                ) ||
-
-                                normalizedKeyword.includes(
-                                    searchText
-                                )
-                            );
-
-                        }
-                    );
-
-                if (matched) {
-
-                    matches.push(
-                        element
-                    );
-
-                }
-
-            }
-        );
-
-        /*
-         * Prefer buttons that are actually inside
-         * the Files area when possible.
-         */
-
-        const filesBtn =
-            document.querySelector(
-                filesButtonSelector
-            );
-
-        if (filesBtn) {
-
-            const filesContainer =
-                filesBtn.closest(
-                    "div"
-                );
-
-            if (filesContainer) {
-
-                const insideFiles =
-                    matches.filter(
-                        function (element) {
-
-                            return filesContainer.contains(
-                                element
-                            );
-
-                        }
-                    );
-
-                if (
-                    insideFiles.length
-                ) {
-
-                    return insideFiles[0];
-
-                }
-
-            }
-
-        }
-
-        return matches[0] || null;
-
-    }
-
-
-    /* ============================================================
-       FIND ALL SUPPORTED FILES
-       ============================================================ */
-
-    function findSupportedFiles() {
-
-        const results =
-            [];
-
-        fileDefinitions.forEach(
-            function (definition) {
-
-                const button =
-                    findFileButton(
-                        definition
-                    );
-
-                if (button) {
-
-                    results.push({
-
-                        definition:
-                            definition,
-
-                        button:
-                            button
-
-                    });
-
-                }
-
-            }
-        );
-
-        return results;
-
-    }
-
-
-    /* ============================================================
        ESCAPE HTML
        ============================================================ */
 
     function escapeHtml(text) {
 
-        return String(text)
+        return String(text || "")
             .replace(
                 /&/g,
                 "&amp;"
@@ -537,6 +176,970 @@
 
 
     /* ============================================================
+       GET ELEMENT ATTRIBUTES
+       ============================================================ */
+
+    function getElementAttributes(
+        element
+    ) {
+
+        if (!element) {
+            return [];
+        }
+
+        return [
+
+            element.innerText,
+
+            element.textContent,
+
+            element.title,
+
+            element.getAttribute(
+                "aria-label"
+            ),
+
+            element.getAttribute(
+                "data-title"
+            ),
+
+            element.getAttribute(
+                "data-name"
+            ),
+
+            element.getAttribute(
+                "data-file-name"
+            ),
+
+            element.getAttribute(
+                "data-filename"
+            ),
+
+            element.getAttribute(
+                "data-document-name"
+            ),
+
+            element.getAttribute(
+                "data-document"
+            ),
+
+            element.getAttribute(
+                "filename"
+            ),
+
+            element.getAttribute(
+                "name"
+            ),
+
+            element.getAttribute(
+                "alt"
+            )
+
+        ].filter(Boolean);
+
+    }
+
+
+    /* ============================================================
+       FILE DEFINITIONS
+       ============================================================ */
+
+    const fileDefinitions = [
+
+        {
+            key:
+                "proofOfIdInitiation",
+
+            label:
+                "Proof of ID Initiation",
+
+            icon:
+                "🪪",
+
+            /*
+             * Important:
+             * Include multiple possible spellings.
+             */
+
+            keywords: [
+
+                "proof of id initiation",
+
+                "proof of id",
+
+                "proof of id init",
+
+                "proof id initiation",
+
+                "proof id init",
+
+                "proofofidinitiation",
+
+                "proofofid",
+
+                "proofidinitiation",
+
+                "proofid",
+
+                "id initiation",
+
+                "id initiation document",
+
+                "id proof",
+
+                "proof of identification",
+
+                "identification proof"
+
+            ]
+
+        },
+
+
+        {
+            key:
+                "insuranceCard",
+
+            label:
+                "Insurance Card",
+
+            icon:
+                "💳",
+
+            keywords: [
+
+                "insurance card",
+
+                "insurancecard",
+
+                "insurance-card",
+
+                "ins card",
+
+                "inscard"
+
+            ]
+
+        },
+
+
+        {
+            key:
+                "eob",
+
+            label:
+                "EOB",
+
+            icon:
+                "📄",
+
+            keywords: [
+
+                "eob",
+
+                "eob file",
+
+                "eob document",
+
+                "eob report",
+
+                "explanation of benefits",
+
+                "explanation benefits"
+
+            ]
+
+        }
+
+    ];
+
+
+    /* ============================================================
+       GET SEARCH TEXT
+       ============================================================ */
+
+    function getSearchText(
+        element
+    ) {
+
+        return normalizeFileText(
+
+            getElementAttributes(
+                element
+            ).join(" ")
+
+        );
+
+    }
+
+
+    /* ============================================================
+       STRICT FILE MATCH
+       ============================================================ */
+
+    function matchesFileDefinition(
+        text,
+        definition
+    ) {
+
+        const normalized =
+            normalizeFileText(
+                text
+            );
+
+        if (!normalized) {
+            return false;
+        }
+
+
+        /* ========================================================
+           EOB
+           ======================================================== */
+
+        if (
+            definition.key ===
+            "eob"
+        ) {
+
+            /*
+             * EOB must be its own meaningful label.
+             *
+             * This prevents a parent containing:
+             *
+             * VOB
+             * Insurance Card
+             * EOB
+             *
+             * from being selected.
+             */
+
+            const eobExactValues = [
+
+                "eob",
+
+                "eob file",
+
+                "eob document",
+
+                "eob report",
+
+                "explanation of benefits",
+
+                "explanation benefits"
+
+            ];
+
+            if (
+                eobExactValues.indexOf(
+                    normalized
+                ) > -1
+            ) {
+
+                return true;
+
+            }
+
+
+            /*
+             * Also allow a filename such as:
+             *
+             * EOB_2026.pdf
+             *
+             * EOB-123.pdf
+             */
+
+            if (
+                /^eob\s*\d+$/.test(
+                    normalized
+                )
+            ) {
+
+                return true;
+
+            }
+
+
+            if (
+                /^eob\s+file\s*\d+$/.test(
+                    normalized
+                )
+            ) {
+
+                return true;
+
+            }
+
+
+            if (
+                normalized.startsWith(
+                    "explanation of benefits"
+                )
+            ) {
+
+                return true;
+
+            }
+
+
+            return false;
+
+        }
+
+
+        /* ========================================================
+           PROOF OF ID
+           ======================================================== */
+
+        if (
+            definition.key ===
+            "proofOfIdInitiation"
+        ) {
+
+            return (
+
+                normalized ===
+                    "proof of id initiation" ||
+
+                normalized ===
+                    "proof of id" ||
+
+                normalized ===
+                    "proof of id init" ||
+
+                normalized ===
+                    "proof id initiation" ||
+
+                normalized ===
+                    "proof id init" ||
+
+                normalized ===
+                    "proofofidinitiation" ||
+
+                normalized ===
+                    "proofofid" ||
+
+                normalized ===
+                    "proofidinitiation" ||
+
+                normalized ===
+                    "proofid" ||
+
+                normalized ===
+                    "id initiation" ||
+
+                normalized ===
+                    "id proof" ||
+
+                normalized ===
+                    "proof of identification"
+
+            );
+
+        }
+
+
+        /* ========================================================
+           INSURANCE CARD
+           ======================================================== */
+
+        if (
+            definition.key ===
+            "insuranceCard"
+        ) {
+
+            return (
+
+                normalized ===
+                    "insurance card" ||
+
+                normalized ===
+                    "insurancecard" ||
+
+                normalized ===
+                    "ins card" ||
+
+                normalized ===
+                    "inscard"
+
+            );
+
+        }
+
+
+        return false;
+
+    }
+
+
+    /* ============================================================
+       GET CLICKABLE ELEMENTS
+       ============================================================ */
+
+    function getClickableElements() {
+
+        const selector = [
+
+            "button",
+
+            "a",
+
+            '[role="button"]',
+
+            "input[type='button']",
+
+            "input[type='submit']"
+
+        ].join(",");
+
+
+        return [
+            ...document.querySelectorAll(
+                selector
+            )
+        ];
+
+    }
+
+
+    /* ============================================================
+       FIND FILE ROW
+       ============================================================ */
+
+    function findFileRow(
+        element
+    ) {
+
+        if (!element) {
+            return null;
+        }
+
+
+        /*
+         * Try common table/list/card structures.
+         */
+
+        const row =
+            element.closest(
+                "tr, li, .row, .list-group-item, .card, .file-item"
+            );
+
+
+        if (row) {
+            return row;
+        }
+
+
+        /*
+         * Otherwise use immediate parent.
+         */
+
+        return element.parentElement;
+
+    }
+
+
+    /* ============================================================
+       FILE CONTROL LOOKUP
+       ============================================================ */
+
+    function findFileControlsForDefinition(
+        definition
+    ) {
+
+        const allControls =
+            getClickableElements();
+
+
+        const results =
+            [];
+
+
+        const seen =
+            new Set();
+
+
+        /* ========================================================
+           PASS 1
+           DIRECT CONTROL TEXT
+           ======================================================== */
+
+        allControls.forEach(
+            function (control) {
+
+                if (
+                    seen.has(
+                        control
+                    )
+                ) {
+
+                    return;
+
+                }
+
+
+                const attributes =
+                    getElementAttributes(
+                        control
+                    );
+
+
+                for (
+                    let i = 0;
+                    i < attributes.length;
+                    i++
+                ) {
+
+                    if (
+                        matchesFileDefinition(
+                            attributes[i],
+                            definition
+                        )
+                    ) {
+
+                        seen.add(
+                            control
+                        );
+
+                        results.push(
+                            control
+                        );
+
+                        return;
+
+                    }
+
+                }
+
+            }
+        );
+
+
+        /* ========================================================
+           PASS 2
+           CHILD TEXT
+           ======================================================== */
+
+        allControls.forEach(
+            function (control) {
+
+                if (
+                    seen.has(
+                        control
+                    )
+                ) {
+
+                    return;
+
+                }
+
+
+                const children =
+                    control.querySelectorAll(
+                        "span, div, label, strong, small, p"
+                    );
+
+
+                for (
+                    let i = 0;
+                    i < children.length;
+                    i++
+                ) {
+
+                    const child =
+                        children[i];
+
+
+                    const childText =
+                        getElementAttributes(
+                            child
+                        );
+
+
+                    let matched =
+                        false;
+
+
+                    for (
+                        let j = 0;
+                        j < childText.length;
+                        j++
+                    ) {
+
+                        if (
+                            matchesFileDefinition(
+                                childText[j],
+                                definition
+                            )
+                        ) {
+
+                            matched =
+                                true;
+
+                            break;
+
+                        }
+
+                    }
+
+
+                    if (matched) {
+
+                        seen.add(
+                            control
+                        );
+
+                        results.push(
+                            control
+                        );
+
+                        return;
+
+                    }
+
+                }
+
+            }
+        );
+
+
+        /* ========================================================
+           PASS 3
+           FILE ROW SEARCH
+           ======================================================== */
+
+        const possibleRows =
+            document.querySelectorAll(
+                "tr, li, .row, .list-group-item, .card, .file-item"
+            );
+
+
+        possibleRows.forEach(
+            function (row) {
+
+                const rowText =
+                    normalizeFileText(
+                        row.innerText ||
+                        row.textContent ||
+                        ""
+                    );
+
+
+                /*
+                 * Do not use broad EOB row matching.
+                 */
+
+                let rowMatches =
+                    false;
+
+
+                if (
+                    definition.key ===
+                    "eob"
+                ) {
+
+                    const words =
+                        rowText.split(
+                            " "
+                        );
+
+
+                    /*
+                     * Look for an EOB token,
+                     * but don't match a row that
+                     * contains VOB and Insurance Card
+                     * without an actual EOB control.
+                     */
+
+                    if (
+                        words.indexOf(
+                            "eob"
+                        ) > -1
+                    ) {
+
+                        rowMatches =
+                            true;
+
+                    }
+
+                }
+
+                else {
+
+                    rowMatches =
+                        matchesFileDefinition(
+                            rowText,
+                            definition
+                        );
+
+                }
+
+
+                if (!rowMatches) {
+                    return;
+                }
+
+
+                const rowControls =
+                    row.querySelectorAll(
+                        "button, a, [role='button'], input[type='button'], input[type='submit']"
+                    );
+
+
+                /*
+                 * Prefer a control whose own text
+                 * identifies the file.
+                 */
+
+                for (
+                    let i = 0;
+                    i < rowControls.length;
+                    i++
+                ) {
+
+                    const control =
+                        rowControls[i];
+
+
+                    const controlText =
+                        getSearchText(
+                            control
+                        );
+
+
+                    if (
+                        matchesFileDefinition(
+                            controlText,
+                            definition
+                        )
+                    ) {
+
+                        if (
+                            !seen.has(
+                                control
+                            )
+                        ) {
+
+                            seen.add(
+                                control
+                            );
+
+                            results.push(
+                                control
+                            );
+
+                        }
+
+                        return;
+
+                    }
+
+                }
+
+
+                /*
+                 * If no exact control was found,
+                 * use a small clickable control in
+                 * the row.
+                 */
+
+                if (
+                    rowControls.length ===
+                    1
+                ) {
+
+                    const control =
+                        rowControls[0];
+
+
+                    if (
+                        !seen.has(
+                            control
+                        )
+                    ) {
+
+                        seen.add(
+                            control
+                        );
+
+                        results.push(
+                            control
+                        );
+
+                    }
+
+                }
+
+            }
+        );
+
+
+        return results;
+
+    }
+
+
+    /* ============================================================
+       FIND ALL SUPPORTED FILES
+       ============================================================ */
+
+    function findSupportedFiles() {
+
+        const results =
+            [];
+
+
+        fileDefinitions.forEach(
+            function (definition) {
+
+                const controls =
+                    findFileControlsForDefinition(
+                        definition
+                    );
+
+
+                controls.forEach(
+                    function (control) {
+
+                        results.push({
+
+                            definition:
+                                definition,
+
+                            button:
+                                control
+
+                        });
+
+                    }
+                );
+
+            }
+        );
+
+
+        return results;
+
+    }
+
+
+    /* ============================================================
+       FIND VOB BUTTONS
+       ============================================================ */
+
+    function findVobButtons() {
+
+        return [
+
+            ...document.querySelectorAll(
+                "button.btn-modal"
+            )
+
+        ].filter(
+            function (btn) {
+
+                const title =
+                    (
+                        btn.title ||
+                        ""
+                    ).toLowerCase();
+
+
+                const text =
+                    (
+                        btn.textContent ||
+                        ""
+                    ).toLowerCase();
+
+
+                return (
+
+                    title.includes(
+                        "view vob"
+                    ) ||
+
+                    text.includes(
+                        "vob"
+                    )
+
+                );
+
+            }
+        );
+
+    }
+
+
+    /* ============================================================
+       CREATE FILE BUTTON LABEL
+       ============================================================ */
+
+    function getFileButtonLabel(
+        file,
+        number
+    ) {
+
+        const definition =
+            file.definition;
+
+
+        const originalButton =
+            file.button;
+
+
+        let originalText =
+            getSearchText(
+                originalButton
+            );
+
+
+        /*
+         * Don't display giant parent text.
+         */
+
+        if (
+            originalText.length >
+            80
+        ) {
+
+            originalText =
+                "";
+
+        }
+
+
+        let label =
+            definition.label;
+
+
+        /*
+         * Multiple files of same type.
+         */
+
+        if (
+            number > 1
+        ) {
+
+            label +=
+                " " +
+                number;
+
+        }
+
+
+        return {
+
+            label:
+                label,
+
+            originalText:
+                originalText
+
+        };
+
+    }
+
+
+    /* ============================================================
        MAIN LOGIC
        ============================================================ */
 
@@ -550,6 +1153,7 @@
             document.querySelector(
                 "#DOB"
             );
+
 
         if (!dob) {
 
@@ -627,16 +1231,22 @@
                 document.querySelectorAll(
                     "select"
                 )
-            ).find(function (s) {
+            ).find(
+                function (s) {
 
-                return (
-                    s.parentElement &&
-                    s.parentElement.innerText.indexOf(
-                        "Plan Type"
-                    ) > -1
-                );
+                    return (
 
-            });
+                        s.parentElement &&
+
+                        s.parentElement.innerText
+                            .indexOf(
+                                "Plan Type"
+                            ) > -1
+
+                    );
+
+                }
+            );
 
 
         if (plan) {
@@ -722,33 +1332,22 @@
                 ) {
 
                     return (
+
                         stateLower ===
                         bifurcatedState
                             .toLowerCase()
                             .trim()
+
                     );
 
                 }
             );
 
 
-        /* ========================================================
-           STATE INDICATOR
-           ======================================================== */
-
-        var stateColor;
-
-        if (isBifurcated) {
-
-            stateColor =
-                "#ff4d4f";
-
-        } else {
-
-            stateColor =
-                "#2ecc71";
-
-        }
+        var stateColor =
+            isBifurcated
+                ? "#ff4d4f"
+                : "#2ecc71";
 
 
         var stateStatus =
@@ -882,7 +1481,6 @@
             "oos",
             "uhss",
             "commercial plans can have tiers with self funded",
-            "n859",
             "n860",
             "n862",
             "n863",
@@ -1044,9 +1642,11 @@
                 function (keyword) {
 
                     return (
+
                         planTypeLower.indexOf(
                             keyword
                         ) > -1
+
                     );
 
                 }
@@ -1095,7 +1695,7 @@
 
 
         /* ========================================================
-           FIND VOB BUTTONS
+           FIND VOB
            ======================================================== */
 
         var vobs =
@@ -1108,6 +1708,49 @@
 
         var supportedFiles =
             findSupportedFiles();
+
+
+        /* ========================================================
+           REMOVE DUPLICATE FILE CONTROLS
+           ======================================================== */
+
+        var uniqueFiles =
+            [];
+
+
+        var fileSeen =
+            new Set();
+
+
+        supportedFiles.forEach(
+            function (file) {
+
+                if (
+                    fileSeen.has(
+                        file.button
+                    )
+                ) {
+
+                    return;
+
+                }
+
+
+                fileSeen.add(
+                    file.button
+                );
+
+
+                uniqueFiles.push(
+                    file
+                );
+
+            }
+        );
+
+
+        supportedFiles =
+            uniqueFiles;
 
 
         /* ========================================================
@@ -1168,17 +1811,15 @@
             "";
 
 
-        if (
-            vobs.length
-        ) {
+        if (vobs.length) {
 
             vobHtml +=
 
                 '<div style="margin-top:16px;padding-top:12px;border-top:1px solid #374151;">' +
 
-                '<div style="font-size:20px;font-weight:bold;display:flex;align-items:center;gap:8px;">' +
+                '<div style="font-size:20px;font-weight:bold;">' +
 
-                "VOB" +
+                "VOB " +
 
                 '<span style="font-size:12px;color:#9ca3af;font-weight:normal;">' +
 
@@ -1210,6 +1851,7 @@
                         '<button class="mainVobBtn" data-vob-index="' +
                         i +
                         '" style="' +
+
                         "display:block;" +
                         "width:100%;" +
                         "padding:9px 10px;" +
@@ -1222,12 +1864,13 @@
                         "font-weight:600;" +
                         "font-size:13px;" +
                         "text-align:left;" +
+
                         '">' +
 
                         "📄 VOB " +
                         (i + 1) +
 
-                        '<span style="float:right;color:#dbeafe;font-size:11px;">' +
+                        '<span style="float:right;color:#dbeafe;font-size:11px;max-width:45%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' +
 
                         escapeHtml(
                             vobTitle
@@ -1250,11 +1893,7 @@
 
                 '<div style="margin-top:16px;padding-top:12px;border-top:1px solid #374151;">' +
 
-                '<div style="font-size:18px;font-weight:bold;">' +
-
-                "VOB" +
-
-                "</div>" +
+                '<div style="font-size:18px;font-weight:bold;">VOB</div>' +
 
                 '<div style="margin-top:6px;font-size:13px;color:#ff6b6b;">' +
 
@@ -1268,36 +1907,46 @@
 
 
         /* ========================================================
-           OTHER FILES HTML
+           FILES HTML
            ======================================================== */
 
         var filesHtml =
-            "";
+
+            '<div style="margin-top:16px;padding-top:12px;border-top:1px solid #374151;">' +
+
+            '<div style="font-size:20px;font-weight:bold;">' +
+
+            "FILES " +
+
+            '<span style="font-size:12px;color:#9ca3af;font-weight:normal;">' +
+
+            "(" +
+            supportedFiles.length +
+            " found)" +
+
+            "</span>" +
+
+            "</div>" +
+
+            '<div style="margin-top:8px;">';
 
 
         if (
             supportedFiles.length
         ) {
 
-            filesHtml +=
+            const counters = {
 
-                '<div style="margin-top:16px;padding-top:12px;border-top:1px solid #374151;">' +
+                proofOfIdInitiation:
+                    0,
 
-                '<div style="font-size:20px;font-weight:bold;display:flex;align-items:center;gap:8px;">' +
+                insuranceCard:
+                    0,
 
-                "FILES" +
+                eob:
+                    0
 
-                '<span style="font-size:12px;color:#9ca3af;font-weight:normal;">' +
-
-                "(" +
-                supportedFiles.length +
-                " found)" +
-
-                "</span>" +
-
-                "</div>" +
-
-                '<div style="margin-top:8px;">';
+            };
 
 
             supportedFiles.forEach(
@@ -1306,20 +1955,22 @@
                     i
                 ) {
 
-                    const definition =
-                        file.definition;
+                    const key =
+                        file.definition.key;
 
-                    const originalButton =
-                        file.button;
 
-                    const originalTitle =
-                        originalButton.title ||
-                        originalButton.getAttribute(
-                            "aria-label"
-                        ) ||
-                        originalButton.innerText ||
-                        originalButton.textContent ||
-                        definition.label;
+                    counters[key] =
+                        (
+                            counters[key] ||
+                            0
+                        ) + 1;
+
+
+                    const display =
+                        getFileButtonLabel(
+                            file,
+                            counters[key]
+                        );
 
 
                     filesHtml +=
@@ -1327,6 +1978,7 @@
                         '<button class="mainFileBtn" data-file-index="' +
                         i +
                         '" style="' +
+
                         "display:block;" +
                         "width:100%;" +
                         "padding:9px 10px;" +
@@ -1339,52 +1991,55 @@
                         "font-weight:600;" +
                         "font-size:13px;" +
                         "text-align:left;" +
+
                         '">' +
 
-                        definition.icon +
+                        file.definition.icon +
                         " " +
-                        escapeHtml(
-                            definition.label
-                        ) +
-
-                        '<span style="float:right;color:#d1d5db;font-size:11px;max-width:45%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' +
 
                         escapeHtml(
-                            originalTitle
+                            display.label
                         ) +
 
-                        "</span>" +
+                        (
+                            display.originalText
+
+                                ?
+
+                                '<span style="float:right;color:#d1d5db;font-size:11px;max-width:42%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' +
+
+                                escapeHtml(
+                                    display.originalText
+                                ) +
+
+                                "</span>"
+
+                                :
+
+                                ""
+
+                        ) +
 
                         "</button>";
 
                 }
             );
 
-
-            filesHtml +=
-                "</div></div>";
-
         } else {
 
-            filesHtml =
+            filesHtml +=
 
-                '<div style="margin-top:16px;padding-top:12px;border-top:1px solid #374151;">' +
-
-                '<div style="font-size:18px;font-weight:bold;">' +
-
-                "FILES" +
-
-                "</div>" +
-
-                '<div style="margin-top:6px;font-size:13px;color:#ff6b6b;">' +
+                '<div style="font-size:13px;color:#ff6b6b;">' +
 
                 "No Proof of ID Initiation, Insurance Card, or EOB files found." +
-
-                "</div>" +
 
                 "</div>";
 
         }
+
+
+        filesHtml +=
+            "</div></div>";
 
 
         /* ========================================================
@@ -1393,9 +2048,7 @@
 
         popup.innerHTML =
 
-            /* CLOSE */
-
-            '<button style="position:absolute;top:5px;right:10px;background:none;border:none;color:#fff;font-size:20px;cursor:pointer;">×</button>' +
+            '<button id="closeAgePopup" style="position:absolute;top:5px;right:10px;background:none;border:none;color:#fff;font-size:20px;cursor:pointer;">×</button>' +
 
 
             /* AGE */
@@ -1406,7 +2059,7 @@
 
             age +
 
-            ' <span style="width:14px;height:14px;border-radius:50%;background:' +
+            '<span style="width:14px;height:14px;border-radius:50%;background:' +
 
             ageColor +
 
@@ -1425,7 +2078,7 @@
                 planType
             ) +
 
-            ' <span style="width:14px;height:14px;border-radius:50%;background:' +
+            '<span style="width:14px;height:14px;border-radius:50%;background:' +
 
             ptColor +
 
@@ -1434,7 +2087,7 @@
             "</div>" +
 
 
-            /* HISTORY EVIDENCE */
+            /* HISTORY */
 
             (
 
@@ -1563,7 +2216,7 @@
             vobHtml +
 
 
-            /* OTHER FILES */
+            /* FILES */
 
             filesHtml;
 
@@ -1578,12 +2231,12 @@
 
 
         /* ========================================================
-           CLOSE BUTTON
+           CLOSE
            ======================================================== */
 
-        var closeButton =
+        const closeButton =
             popup.querySelector(
-                "button"
+                "#closeAgePopup"
             );
 
 
@@ -1600,7 +2253,7 @@
 
 
         /* ========================================================
-           VOB BUTTON EVENTS
+           VOB EVENTS
            ======================================================== */
 
         popup
@@ -1613,7 +2266,7 @@
                     btn.onclick =
                         function () {
 
-                            var index =
+                            const index =
                                 parseInt(
                                     btn.getAttribute(
                                         "data-vob-index"
@@ -1622,33 +2275,26 @@
                                 );
 
 
-                            var v =
+                            const vob =
                                 vobs[index];
 
 
-                            if (v) {
-
-                                /*
-                                 * Remove popup first.
-                                 */
-
-                                popup.remove();
-
-
-                                /*
-                                 * DO NOT SCROLL.
-                                 */
-
-                                setTimeout(
-                                    function () {
-
-                                        v.click();
-
-                                    },
-                                    100
-                                );
-
+                            if (!vob) {
+                                return;
                             }
+
+
+                            popup.remove();
+
+
+                            setTimeout(
+                                function () {
+
+                                    vob.click();
+
+                                },
+                                100
+                            );
 
                         };
 
@@ -1657,7 +2303,7 @@
 
 
         /* ========================================================
-           FILE BUTTON EVENTS
+           FILE EVENTS
            ======================================================== */
 
         popup
@@ -1670,7 +2316,7 @@
                     btn.onclick =
                         function () {
 
-                            var index =
+                            const index =
                                 parseInt(
                                     btn.getAttribute(
                                         "data-file-index"
@@ -1679,7 +2325,7 @@
                                 );
 
 
-                            var file =
+                            const file =
                                 supportedFiles[index];
 
 
@@ -1694,32 +2340,26 @@
 
 
                             /*
-                             * Save reference before
-                             * removing popup.
+                             * Keep the original application
+                             * element before removing popup.
                              */
 
-                            var originalFileButton =
+                            const originalButton =
                                 file.button;
 
-
-                            /*
-                             * Remove popup first.
-                             */
 
                             popup.remove();
 
 
-                            /*
-                             * DO NOT SCROLL.
-                             *
-                             * Click the actual existing
-                             * application button.
-                             */
-
                             setTimeout(
                                 function () {
 
-                                    originalFileButton.click();
+                                    /*
+                                     * Click the REAL
+                                     * application control.
+                                     */
+
+                                    originalButton.click();
 
                                 },
                                 100
@@ -1732,13 +2372,13 @@
 
 
         /* ========================================================
-           AUTO CLOSE AFTER 10 SECONDS
+           AUTO CLOSE
            ======================================================== */
 
         setTimeout(
             function () {
 
-                var p =
+                const p =
                     document.getElementById(
                         "agePopupBookmarklet"
                     );
@@ -1806,10 +2446,6 @@
         historyButton
     ) {
 
-        /*
-         * No scrolling.
-         */
-
         historyButton.click();
 
     }
@@ -1824,17 +2460,13 @@
         caseNotesButton
     ) {
 
-        /*
-         * No scrolling.
-         */
-
         caseNotesButton.click();
 
     }
 
 
     /* ============================================================
-       OPEN VOB SECTION
+       OPEN VOB
        ============================================================ */
 
     openVobSection();
@@ -1855,7 +2487,7 @@
 
 
     /* ============================================================
-       RUN MAIN LOGIC
+       WAIT FOR ANGULAR FILE LIST
        ============================================================ */
 
     setTimeout(
@@ -1864,7 +2496,7 @@
             runLogic();
 
         },
-        700
+        1000
     );
 
 })();
