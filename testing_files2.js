@@ -1238,34 +1238,11 @@ const openArbitIframe=()=>{
                 "false";
 
 
-            /*
-             * IMPORTANT:
-             * Overlay CSS uses !important.
-             * Therefore restoring also uses !important.
-             */
-
             existingOverlay.style.setProperty(
                 "display",
                 "flex",
                 "important"
             );
-
-
-            const existingWindow=
-                existingOverlay.querySelector(
-                    "#arbit-iframe-window"
-                );
-
-
-            if(existingWindow){
-
-                existingWindow.style.setProperty(
-                    "display",
-                    "flex",
-                    "important"
-                );
-
-            }
 
 
             existingOverlay.style.setProperty(
@@ -1276,7 +1253,7 @@ const openArbitIframe=()=>{
 
 
             console.log(
-                "ARBIT iframe restored from minimized state."
+                "ARBIT iframe restored."
             );
 
 
@@ -1284,11 +1261,6 @@ const openArbitIframe=()=>{
 
         }
 
-
-        /*
-         * Already visible.
-         * Bring it to front.
-         */
 
         existingOverlay.style.setProperty(
             "z-index",
@@ -1303,17 +1275,13 @@ const openArbitIframe=()=>{
 
 
     /* =====================================================
-       GET ALL AVAILABLE ARBIT / APP ID LINKS
+       GET ALL ARBIT / APP ID LINKS
        ===================================================== */
 
     let appLinks=[
         ...uniqueArbitLinks
     ];
 
-
-    /* =====================================================
-       FALLBACK
-       ===================================================== */
 
     if(!appLinks.length){
 
@@ -1326,14 +1294,19 @@ const openArbitIframe=()=>{
         if(fallbackLink){
 
             appLinks=[
+
                 {
                     id:
                         arbitIdNumber||
                         "UNKNOWN",
+
                     href:
                         fallbackLink.href,
+
                     index:0
+
                 }
+
             ];
 
         }
@@ -1350,20 +1323,6 @@ const openArbitIframe=()=>{
         return;
 
     }
-
-
-    /* =====================================================
-       REMOVE OLD IFRAME STYLE
-       ===================================================== */
-
-    const oldStyle=
-        document.getElementById(
-            "arbit-iframe-style"
-        );
-
-
-    if(oldStyle)
-        oldStyle.remove();
 
 
     /* =====================================================
@@ -1445,6 +1404,11 @@ const openArbitIframe=()=>{
 
                             </select>
 
+
+                            <!--
+                                OPEN ONLY APPEARS WHEN
+                                ANOTHER ID IS SELECTED.
+                            -->
 
                             <button
                                 id="arbit-app-open"
@@ -1719,6 +1683,10 @@ const openArbitIframe=()=>{
         }
 
 
+        /* =====================================================
+           APP DROPDOWN
+           ===================================================== */
+
         #arbit-app-selector-wrap{
 
             display:flex!important;
@@ -1809,6 +1777,16 @@ const openArbitIframe=()=>{
         }
 
 
+        /* =====================================================
+           OPEN BUTTON
+           
+           LOGIC:
+           CURRENT ID -> HIDDEN
+           DIFFERENT ID -> VISIBLE
+           CLICK -> SAME IFRAME LOAD
+           AFTER LOAD -> HIDDEN
+           ===================================================== */
+
         #arbit-app-open{
 
             height:
@@ -1869,6 +1847,18 @@ const openArbitIframe=()=>{
 
         }
 
+
+        #arbit-app-open:active{
+
+            transform:
+                translateY(0)!important;
+
+        }
+
+
+        /* =====================================================
+           RIGHT ACTIONS
+           ===================================================== */
 
         #arbit-iframe-actions{
 
@@ -1939,6 +1929,10 @@ const openArbitIframe=()=>{
             background:
                 #22c55e!important;
 
+            box-shadow:
+                0 5px 18px
+                rgba(34,197,94,.4)!important;
+
         }
 
 
@@ -1990,6 +1984,10 @@ const openArbitIframe=()=>{
 
             background:
                 #3b82f6!important;
+
+            box-shadow:
+                0 5px 18px
+                rgba(59,130,246,.4)!important;
 
         }
 
@@ -2060,6 +2058,10 @@ const openArbitIframe=()=>{
 
         }
 
+
+        /* =====================================================
+           CLOSE
+           ===================================================== */
 
         #arbit-iframe-close{
 
@@ -2600,6 +2602,10 @@ const openArbitIframe=()=>{
 
     /* =====================================================
        APP DROPDOWN CHANGE
+       
+       PRESERVED LOGIC:
+       Current ID    -> OPEN hidden
+       Other ID      -> OPEN appears
        ===================================================== */
 
     if(appSelector){
@@ -2631,15 +2637,21 @@ const openArbitIframe=()=>{
                     currentAppIndex
                 ){
 
-                    if(appOpenBtn)
+                    if(appOpenBtn){
+
                         appOpenBtn.style.display=
                             "none";
 
+                    }
+
                 }else{
 
-                    if(appOpenBtn)
+                    if(appOpenBtn){
+
                         appOpenBtn.style.display=
                             "inline-flex";
+
+                    }
 
                 }
 
@@ -2652,6 +2664,12 @@ const openArbitIframe=()=>{
 
     /* =====================================================
        OPEN SELECTED APP IN SAME IFRAME
+       
+       PRESERVED LOGIC:
+       - Only appears after choosing another ID
+       - Opens that ID in the same iframe
+       - Updates header ID
+       - Hides OPEN afterward
        ===================================================== */
 
     if(appOpenBtn){
@@ -2713,6 +2731,8 @@ const openArbitIframe=()=>{
                     selectedApp;
 
 
+                /* SAME iframe -- only src changes */
+
                 iframe.src=
                     selectedApp.href;
 
@@ -2720,9 +2740,13 @@ const openArbitIframe=()=>{
                 updateCurrentIdDisplay();
 
 
+                /* OPEN hides after opening */
+
                 appOpenBtn.style.display=
                     "none";
 
+
+                /* Keep dropdown synchronized */
 
                 appSelector.value=
                     String(
@@ -2751,14 +2775,8 @@ const openArbitIframe=()=>{
 
 
                 /*
-                 * IMPORTANT FIX:
-                 *
-                 * The overlay uses display:flex!important.
-                 * Therefore normal .style.display="none"
-                 * does NOT win.
-                 *
-                 * setProperty(...,"important") makes the
-                 * minimize actually hide the entire iframe.
+                 * The overlay is display:flex!important,
+                 * so the important flag is necessary.
                  */
 
                 overlay.dataset.minimized=
