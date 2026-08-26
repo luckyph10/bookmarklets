@@ -361,10 +361,48 @@ const getColumnRValue=(actualG,actualL)=>{
     const g=normalizeValue(actualG);
     const l=normalizeValue(actualL);
 
+
+    console.log(
+        "========================================"
+    );
+
+    console.log(
+        "R / NOTES RULE CHECK"
+    );
+
+    console.log(
+        "G / Dispute Review Status:",
+        actualG
+    );
+
+    console.log(
+        "Normalized G:",
+        g
+    );
+
+    console.log(
+        "L / Dispute Status:",
+        actualL
+    );
+
+    console.log(
+        "Normalized L:",
+        l
+    );
+
+
+    /* =====================================================
+       COLUMN L = CLOSED
+       ===================================================== */
+
     if(
         l==="closed"||
         l.includes("closed")
     ){
+
+        console.log(
+            "R RULE MATCH: L = CLOSED"
+        );
 
         return(
             "Completed. Dispute is Closed Due to Receiving Payment Determination."
@@ -372,11 +410,20 @@ const getColumnRValue=(actualG,actualL)=>{
 
     }
 
+
+    /* =====================================================
+       COLUMN G = PLAN TYPE VALIDATED
+       ===================================================== */
+
     if(
         g.includes(
             "plan type validated post idr initiation"
         )
     ){
+
+        console.log(
+            "R RULE MATCH: PLAN TYPE VALIDATED"
+        );
 
         return(
             "VOB verified, Plan Type Validated Post IDR Initiation – Eligible (Federal NSA)."
@@ -384,17 +431,31 @@ const getColumnRValue=(actualG,actualL)=>{
 
     }
 
+
+    /* =====================================================
+       COLUMN G = PLAN TYPE OBJECTION SUBMITTED
+       ===================================================== */
+
     if(
         g.includes(
             "plan type objection submitted"
         )
     ){
 
+        console.log(
+            "R RULE MATCH: PLAN TYPE OBJECTION SUBMITTED"
+        );
+
         return(
             "Already completed by Onshore."
         );
 
     }
+
+
+    /* =====================================================
+       COLUMN G = TIMELINE ENFORCEMENT SUBMITTED TO IDRE
+       ===================================================== */
 
     if(
         g.includes(
@@ -402,11 +463,21 @@ const getColumnRValue=(actualG,actualL)=>{
         )
     ){
 
+        console.log(
+            "R RULE MATCH: TIMELINE ENFORCEMENT SUBMITTED TO IDRE"
+        );
+
         return(
             "Already completed by Onshore."
         );
 
     }
+
+
+    /* =====================================================
+       COLUMN G = ADDITIONAL INFO PROVIDED TO IDRE
+       THROUGH EMAIL
+       ===================================================== */
 
     if(
         g.includes(
@@ -414,11 +485,21 @@ const getColumnRValue=(actualG,actualL)=>{
         )
     ){
 
+        console.log(
+            "R RULE MATCH: ADDITIONAL INFO EMAIL"
+        );
+
         return(
             "VOB verified, evidence uploaded, Additional info requested, Arbit updated."
         );
 
     }
+
+
+    /* =====================================================
+       COLUMN G = ADDITIONAL INFO PROVIDED TO IDRE
+       THROUGH PORTAL
+       ===================================================== */
 
     if(
         g.includes(
@@ -426,11 +507,28 @@ const getColumnRValue=(actualG,actualL)=>{
         )
     ){
 
+        console.log(
+            "R RULE MATCH: ADDITIONAL INFO PORTAL"
+        );
+
         return(
             "VOB verified, evidence uploaded, Additional info requested, Arbit updated."
         );
 
     }
+
+
+    /* =====================================================
+       NO MATCH
+       ===================================================== */
+
+    console.warn(
+        "NO G/L -> R RULE MATCHED",
+        {
+            disputeReviewStatus:actualG,
+            disputeStatus:actualL
+        }
+    );
 
     return"";
 
@@ -455,7 +553,14 @@ const copyText=async text=>{
             return true;
         }
 
-    }catch(e){}
+    }catch(e){
+
+        console.warn(
+            "Clipboard API failed:",
+            e
+        );
+
+    }
 
 
     try{
@@ -493,6 +598,11 @@ const copyText=async text=>{
 
     }catch(e){
 
+        console.error(
+            "Clipboard fallback failed:",
+            e
+        );
+
         return false;
 
     }
@@ -517,7 +627,6 @@ const showCopyMessage=(message,clipboardText)=>{
 
     const toast=
         document.createElement("div");
-
 
     toast.id=
         "dispute-copy-toast";
@@ -565,10 +674,12 @@ const showCopyMessage=(message,clipboardText)=>{
                 clipboardText
             );
 
+
         copyAgainBtn.textContent=
             ok
                 ?"COPIED ✓"
                 :"COPY FAILED";
+
 
         if(ok){
 
@@ -596,6 +707,7 @@ const showCopyMessage=(message,clipboardText)=>{
 
             toast.style.opacity="0";
 
+
             setTimeout(()=>{
 
                 if(toast.parentNode)
@@ -606,6 +718,9 @@ const showCopyMessage=(message,clipboardText)=>{
         }
 
     },5000);
+
+
+    return toast;
 
 };
 
@@ -620,11 +735,13 @@ const runRushVerify=iframe=>{
         "https://luckyph10.github.io/bookmarklets/vob_intelligence.js?" +
         Date.now();
 
+
     try{
 
         const doc=
             iframe.contentDocument ||
             iframe.contentWindow?.document;
+
 
         if(!doc){
 
@@ -634,22 +751,46 @@ const runRushVerify=iframe=>{
 
         }
 
+
         const oldScript=
             doc.getElementById(
                 "rush-verify-script"
             );
 
+
         if(oldScript)
             oldScript.remove();
+
 
         const script=
             doc.createElement("script");
 
+
         script.id=
             "rush-verify-script";
 
+
         script.src=
             scriptUrl;
+
+
+        script.onload=()=>{
+
+            console.log(
+                "RUSH VERIFY loaded inside ARBIT iframe."
+            );
+
+        };
+
+
+        script.onerror=()=>{
+
+            alert(
+                "RUSH VERIFY: Load failed."
+            );
+
+        };
+
 
         (
             doc.head||
@@ -657,6 +798,7 @@ const runRushVerify=iframe=>{
         ).appendChild(
             script
         );
+
 
     }catch(e){
 
@@ -666,7 +808,106 @@ const runRushVerify=iframe=>{
         );
 
         alert(
-            "RUSH VERIFY could not run inside the ARBIT iframe."
+            "RUSH VERIFY could not run inside the ARBIT iframe.\n\n"+
+            "The iframe page may block cross-origin script injection."
+        );
+
+    }
+
+};
+
+
+/* =========================================================
+   ALL IN ONE
+   ========================================================= */
+
+const runAllInOne=iframe=>{
+
+    const scriptUrl=
+        "https://luckyph10.github.io/bookmarklets/wfaspreadsheet_copy.js?" +
+        Date.now();
+
+
+    try{
+
+        const doc=
+            iframe.contentDocument ||
+            iframe.contentWindow?.document;
+
+
+        if(!doc){
+
+            throw new Error(
+                "Unable to access iframe document."
+            );
+
+        }
+
+
+        /*
+         * Remove previous copy of the script from
+         * this iframe so each click always loads
+         * the latest version.
+         */
+
+        const oldScript=
+            doc.getElementById(
+                "all-in-one-script"
+            );
+
+
+        if(oldScript)
+            oldScript.remove();
+
+
+        const script=
+            doc.createElement("script");
+
+
+        script.id=
+            "all-in-one-script";
+
+
+        script.src=
+            scriptUrl;
+
+
+        script.onload=()=>{
+
+            console.log(
+                "ALL IN ONE loaded inside ARBIT iframe."
+            );
+
+        };
+
+
+        script.onerror=()=>{
+
+            alert(
+                "ALL IN ONE: Load failed."
+            );
+
+        };
+
+
+        (
+            doc.head||
+            doc.documentElement
+        ).appendChild(
+            script
+        );
+
+
+    }catch(e){
+
+        console.error(
+            "ALL IN ONE iframe error:",
+            e
+        );
+
+        alert(
+            "ALL IN ONE could not run inside the ARBIT iframe.\n\n"+
+            "The iframe page may block cross-origin script injection."
         );
 
     }
@@ -684,11 +925,13 @@ const runPullEvidence=iframe=>{
         "https://luckyph10.github.io/bookmarklets/case_notes_puller.js?" +
         Date.now();
 
+
     try{
 
         const doc=
             iframe.contentDocument ||
             iframe.contentWindow?.document;
+
 
         if(!doc){
 
@@ -698,22 +941,46 @@ const runPullEvidence=iframe=>{
 
         }
 
+
         const oldScript=
             doc.getElementById(
                 "pull-case-history-evidence-script"
             );
 
+
         if(oldScript)
             oldScript.remove();
+
 
         const script=
             doc.createElement("script");
 
+
         script.id=
             "pull-case-history-evidence-script";
 
+
         script.src=
             scriptUrl;
+
+
+        script.onload=()=>{
+
+            console.log(
+                "Pull Case/History Evidence loaded inside ARBIT iframe."
+            );
+
+        };
+
+
+        script.onerror=()=>{
+
+            alert(
+                "Pull Case/History Evidence: Load failed."
+            );
+
+        };
+
 
         (
             doc.head||
@@ -721,6 +988,7 @@ const runPullEvidence=iframe=>{
         ).appendChild(
             script
         );
+
 
     }catch(e){
 
@@ -730,180 +998,9 @@ const runPullEvidence=iframe=>{
         );
 
         alert(
-            "Pull Case/History Evidence could not run inside the ARBIT iframe."
+            "Pull Case/History Evidence could not run inside the ARBIT iframe.\n\n"+
+            "The iframe page may block cross-origin script injection."
         );
-
-    }
-
-};
-
-
-/* =========================================================
-   FIND EXISTING ALL IN ONE BUTTON ON PARENT PAGE
-   ========================================================= */
-
-const findExistingAllInOneButton=()=>{
-
-    const allButtons=[
-        ...document.querySelectorAll(
-            "button,input[type='button'],input[type='submit'],a"
-        )
-    ];
-
-
-    const candidates=
-        allButtons.filter(el=>{
-
-            const text=
-                (
-                    el.innerText||
-                    el.textContent||
-                    el.value||
-                    el.title||
-                    el.getAttribute("aria-label")||
-                    ""
-                )
-                .replace(/\u00A0/g," ")
-                .replace(/\s+/g," ")
-                .trim()
-                .toLowerCase();
-
-
-            return(
-                text==="all in one"||
-                text.includes("all in one")
-            );
-
-        });
-
-
-    if(candidates.length){
-
-        console.log(
-            "Existing ALL IN ONE button found:",
-            candidates[0]
-        );
-
-        return candidates[0];
-
-    }
-
-
-    /*
-     * Secondary fallback:
-     * Some existing implementations may use a
-     * data attribute or ID instead of visible text.
-     */
-
-    const fallbackSelectors=[
-
-        "#all-in-one",
-
-        "#allInOne",
-
-        "#all_in_one",
-
-        "[id*='all-in-one']",
-
-        "[id*='allInOne']",
-
-        "[class*='all-in-one']",
-
-        "[class*='allInOne']",
-
-        "[title*='All In One']",
-
-        "[aria-label*='All In One']"
-
-    ];
-
-
-    for(const selector of fallbackSelectors){
-
-        const el=
-            document.querySelector(
-                selector
-            );
-
-
-        if(el){
-
-            console.log(
-                "Existing ALL IN ONE button found by selector:",
-                selector,
-                el
-            );
-
-            return el;
-
-        }
-
-    }
-
-
-    return null;
-
-};
-
-
-/* =========================================================
-   RUN EXISTING ALL IN ONE BUTTON
-   ========================================================= */
-
-const runAllInOne=()=>{
-
-    const originalButton=
-        findExistingAllInOneButton();
-
-
-    if(!originalButton){
-
-        alert(
-            "The existing ALL IN ONE button could not be found on the main page."
-        );
-
-        console.warn(
-            "ALL IN ONE: No original parent-page button found."
-        );
-
-        return false;
-
-    }
-
-
-    try{
-
-        /*
-         * This triggers the EXACT existing button.
-         *
-         * We are NOT recreating its script here.
-         *
-         * Therefore any changes you make to the
-         * original button/functionality remain the
-         * source of truth.
-         */
-
-        originalButton.click();
-
-        console.log(
-            "ALL IN ONE: original parent-page button clicked.",
-            originalButton
-        );
-
-        return true;
-
-    }catch(e){
-
-        console.error(
-            "ALL IN ONE original button click failed:",
-            e
-        );
-
-        alert(
-            "ALL IN ONE could not be triggered."
-        );
-
-        return false;
 
     }
 
@@ -925,12 +1022,14 @@ const openVobViewer=url=>{
             "vob-file-viewer-overlay"
         );
 
+
     if(old)
         old.remove();
 
 
     const viewer=
         document.createElement("div");
+
 
     viewer.id=
         "vob-file-viewer-overlay";
@@ -945,6 +1044,7 @@ const openVobViewer=url=>{
                 <div id="vob-file-viewer-title">
                     VOB FILE
                 </div>
+
 
                 <button
                     id="vob-file-viewer-close"
@@ -1020,9 +1120,11 @@ const installVobIframeHandlers=iframe=>{
             const win=
                 iframe.contentWindow;
 
+
             const doc=
                 iframe.contentDocument||
                 win?.document;
+
 
             if(!win||!doc)
                 return;
@@ -1276,7 +1378,7 @@ const openArbitIframe=()=>{
 
 
     /* =====================================================
-       CURRENT OPEN APP
+       CURRENT APP
        ===================================================== */
 
     let currentAppIndex=0;
@@ -1320,17 +1422,15 @@ const openArbitIframe=()=>{
                     </div>
 
 
-                    ${
-                        appLinks.length>1
-                        ?`
+                    <div id="arbit-app-selector-wrap">
 
-                        <div
-                            id="arbit-app-selector-wrap"
-                        >
+                        ${
+                            appLinks.length>1
+                            ?`
 
                             <select
                                 id="arbit-app-selector"
-                                title="Select another ARBIT / APP ID"
+                                title="Select another App ID"
                             >
 
                                 ${appLinks.map((item,index)=>`
@@ -1359,36 +1459,20 @@ const openArbitIframe=()=>{
                                 OPEN
                             </button>
 
+                            `
+                            :""
+                        }
 
-                            <button
-                                id="arbit-all-in-one"
-                                type="button"
-                                title="Use existing All In One button"
-                            >
-                                ALL IN ONE
-                            </button>
 
-                        </div>
-
-                        `
-                        :`
-
-                        <div
-                            id="arbit-app-selector-wrap"
+                        <button
+                            id="arbit-all-in-one"
+                            type="button"
+                            title="Run All In One"
                         >
+                            ALL IN ONE
+                        </button>
 
-                            <button
-                                id="arbit-all-in-one"
-                                type="button"
-                                title="Use existing All In One button"
-                            >
-                                ALL IN ONE
-                            </button>
-
-                        </div>
-
-                        `
-                    }
+                    </div>
 
                 </div>
 
@@ -1453,8 +1537,11 @@ const openArbitIframe=()=>{
         #arbit-iframe-overlay{
 
             position:fixed!important;
+
             inset:0!important;
+
             width:100vw!important;
+
             height:100vh!important;
 
             background:
@@ -1472,6 +1559,7 @@ const openArbitIframe=()=>{
             display:flex!important;
 
             align-items:center!important;
+
             justify-content:center!important;
 
             padding:
@@ -1572,7 +1660,8 @@ const openArbitIframe=()=>{
             gap:
                 10px!important;
 
-            min-width:0!important;
+            min-width:
+                0!important;
 
             flex:1!important;
 
@@ -1621,6 +1710,10 @@ const openArbitIframe=()=>{
 
             margin-left:
                 2px!important;
+
+            text-shadow:
+                0 1px 4px
+                rgba(0,0,0,.4)!important;
 
         }
 
@@ -1685,6 +1778,26 @@ const openArbitIframe=()=>{
         }
 
 
+        #arbit-app-selector:hover{
+
+            border-color:
+                rgba(255,255,255,.45)!important;
+
+        }
+
+
+        #arbit-app-selector:focus{
+
+            border-color:
+                #facc15!important;
+
+            box-shadow:
+                0 0 0 3px
+                rgba(250,204,21,.12)!important;
+
+        }
+
+
         #arbit-app-selector option{
 
             background:
@@ -1705,7 +1818,7 @@ const openArbitIframe=()=>{
 
             border:
                 1px solid
-                rgba(255,255,255,.20)!important;
+                rgba(255,255,255,.2)!important;
 
             border-radius:
                 8px!important;
@@ -1724,10 +1837,23 @@ const openArbitIframe=()=>{
             font-weight:
                 900!important;
 
+            letter-spacing:
+                .3px!important;
+
             cursor:pointer!important;
 
             white-space:
                 nowrap!important;
+
+            box-shadow:
+                0 4px 14px
+                rgba(0,0,0,.3)!important;
+
+            display:inline-flex!important;
+
+            align-items:center!important;
+
+            justify-content:center!important;
 
         }
 
@@ -1736,6 +1862,9 @@ const openArbitIframe=()=>{
 
             background:
                 #fbbf24!important;
+
+            transform:
+                translateY(-1px)!important;
 
         }
 
@@ -1781,15 +1910,15 @@ const openArbitIframe=()=>{
             white-space:
                 nowrap!important;
 
+            box-shadow:
+                0 4px 14px
+                rgba(0,0,0,.30)!important;
+
             display:inline-flex!important;
 
             align-items:center!important;
 
             justify-content:center!important;
-
-            box-shadow:
-                0 4px 14px
-                rgba(0,0,0,.30)!important;
 
         }
 
@@ -1802,6 +1931,17 @@ const openArbitIframe=()=>{
             box-shadow:
                 0 5px 18px
                 rgba(34,197,94,.40)!important;
+
+            transform:
+                translateY(-1px)!important;
+
+        }
+
+
+        #arbit-all-in-one:active{
+
+            transform:
+                translateY(0)!important;
 
         }
 
@@ -1836,7 +1976,7 @@ const openArbitIframe=()=>{
 
             border:
                 1px solid
-                rgba(255,255,255,.20)!important;
+                rgba(255,255,255,.2)!important;
 
             border-radius:
                 8px!important;
@@ -1855,10 +1995,17 @@ const openArbitIframe=()=>{
             font-weight:
                 800!important;
 
+            letter-spacing:
+                .35px!important;
+
             cursor:pointer!important;
 
             white-space:
                 nowrap!important;
+
+            box-shadow:
+                0 4px 14px
+                rgba(0,0,0,.3)!important;
 
         }
 
@@ -1867,6 +2014,10 @@ const openArbitIframe=()=>{
 
             background:
                 #22c55e!important;
+
+            box-shadow:
+                0 5px 18px
+                rgba(34,197,94,.4)!important;
 
         }
 
@@ -1881,7 +2032,7 @@ const openArbitIframe=()=>{
 
             border:
                 1px solid
-                rgba(255,255,255,.20)!important;
+                rgba(255,255,255,.2)!important;
 
             border-radius:
                 8px!important;
@@ -1900,10 +2051,17 @@ const openArbitIframe=()=>{
             font-weight:
                 800!important;
 
+            letter-spacing:
+                .2px!important;
+
             cursor:pointer!important;
 
             white-space:
                 nowrap!important;
+
+            box-shadow:
+                0 4px 14px
+                rgba(0,0,0,.3)!important;
 
         }
 
@@ -1912,6 +2070,10 @@ const openArbitIframe=()=>{
 
             background:
                 #3b82f6!important;
+
+            box-shadow:
+                0 5px 18px
+                rgba(59,130,246,.4)!important;
 
         }
 
@@ -1937,6 +2099,9 @@ const openArbitIframe=()=>{
             font-size:
                 27px!important;
 
+            line-height:
+                1!important;
+
             cursor:pointer!important;
 
             display:flex!important;
@@ -1944,6 +2109,9 @@ const openArbitIframe=()=>{
             align-items:center!important;
 
             justify-content:center!important;
+
+            flex-shrink:
+                0!important;
 
         }
 
@@ -2017,6 +2185,9 @@ const openArbitIframe=()=>{
             box-sizing:
                 border-box!important;
 
+            isolation:
+                isolate!important;
+
         }
 
 
@@ -2041,6 +2212,10 @@ const openArbitIframe=()=>{
                 14px!important;
 
             overflow:hidden!important;
+
+            box-shadow:
+                0 25px 100px
+                rgba(0,0,0,.9)!important;
 
             display:flex!important;
 
@@ -2113,6 +2288,14 @@ const openArbitIframe=()=>{
         }
 
 
+        #vob-file-viewer-close:hover{
+
+            background:
+                rgba(220,40,40,.95)!important;
+
+        }
+
+
         #vob-file-viewer-frame{
 
             width:
@@ -2131,47 +2314,106 @@ const openArbitIframe=()=>{
         }
 
 
-        @media(max-width:1050px){
+        /* =====================================================
+           RESPONSIVE
+           ===================================================== */
 
-            #arbit-rush-verify,
-            #arbit-pull-evidence,
-            #arbit-all-in-one{
+        @media(max-width:1400px){
 
-                padding:
-                    0 9px!important;
+            #arbit-iframe-left{
 
-                font-size:
-                    9px!important;
+                gap:
+                    6px!important;
 
             }
 
-            #arbit-app-selector{
 
-                min-width:
-                    120px!important;
+            #arbit-all-in-one{
+
+                padding:
+                    0 10px!important;
+
+                font-size:
+                    10px!important;
+
+            }
+
+
+            #arbit-rush-verify,
+            #arbit-pull-evidence{
+
+                padding:
+                    0 10px!important;
+
+                font-size:
+                    10px!important;
 
             }
 
         }
 
 
-        @media(max-width:700px){
+        @media(max-width:1100px){
 
-            #arbit-iframe-overlay{
+            #arbit-iframe-title{
+
+                font-size:
+                    12px!important;
+
+            }
+
+
+            #arbit-app-selector{
+
+                min-width:
+                    120px!important;
+
+                max-width:
+                    170px!important;
+
+            }
+
+
+            #arbit-app-open,
+            #arbit-all-in-one{
 
                 padding:
+                    0 8px!important;
+
+                font-size:
+                    9px!important;
+
+            }
+
+
+            #arbit-rush-verify,
+            #arbit-pull-evidence{
+
+                padding:
+                    0 7px!important;
+
+                font-size:
+                    9px!important;
+
+            }
+
+        }
+
+
+        @media(max-width:800px){
+
+            #arbit-iframe-header{
+
+                gap:
                     4px!important;
 
             }
 
 
-            #arbit-iframe-window{
+            #arbit-iframe-left{
 
-                width:
-                    100vw!important;
-
-                height:
-                    98vh!important;
+                gap:
+                    4px!important;
 
             }
 
@@ -2184,10 +2426,18 @@ const openArbitIframe=()=>{
             }
 
 
+            #arbit-iframe-number{
+
+                font-size:
+                    10px!important;
+
+            }
+
+
             #arbit-app-selector{
 
                 min-width:
-                    85px!important;
+                    90px!important;
 
                 max-width:
                     120px!important;
@@ -2202,14 +2452,13 @@ const openArbitIframe=()=>{
 
 
             #arbit-app-open,
-            #arbit-all-in-one,
-            #arbit-rush-verify{
+            #arbit-all-in-one{
 
                 height:
                     34px!important;
 
                 padding:
-                    0 6px!important;
+                    0 7px!important;
 
                 font-size:
                     8px!important;
@@ -2217,9 +2466,17 @@ const openArbitIframe=()=>{
             }
 
 
+            #arbit-rush-verify,
             #arbit-pull-evidence{
 
-                display:none!important;
+                height:
+                    34px!important;
+
+                padding:
+                    0 5px!important;
+
+                font-size:
+                    8px!important;
 
             }
 
@@ -2231,6 +2488,25 @@ const openArbitIframe=()=>{
 
                 height:
                     34px!important;
+
+            }
+
+        }
+
+
+        @media(max-width:600px){
+
+            #arbit-pull-evidence{
+
+                display:none!important;
+
+            }
+
+
+            #arbit-all-in-one{
+
+                padding:
+                    0 6px!important;
 
             }
 
@@ -2302,7 +2578,7 @@ const openArbitIframe=()=>{
 
 
     /* =====================================================
-       CURRENT ID DISPLAY
+       UPDATE CURRENT ID DISPLAY
        ===================================================== */
 
     const updateCurrentIdDisplay=()=>{
@@ -2319,7 +2595,7 @@ const openArbitIframe=()=>{
 
 
     /* =====================================================
-       APP DROPDOWN
+       APP DROPDOWN CHANGE
        ===================================================== */
 
     if(appSelector){
@@ -2347,10 +2623,13 @@ const openArbitIframe=()=>{
 
 
                 /*
-                 * Do NOT open immediately.
+                 * IMPORTANT:
                  *
-                 * OPEN appears only when another
-                 * ARBIT ID has been selected.
+                 * Selecting another ID does NOT
+                 * automatically load it.
+                 *
+                 * OPEN appears only after selecting
+                 * a different ID.
                  */
 
                 if(
@@ -2384,7 +2663,7 @@ const openArbitIframe=()=>{
 
 
     /* =====================================================
-       OPEN SELECTED ARBIT ID IN SAME IFRAME
+       OPEN SELECTED APP IN SAME IFRAME
        ===================================================== */
 
     if(appOpenBtn){
@@ -2416,8 +2695,7 @@ const openArbitIframe=()=>{
 
 
                 /*
-                 * Do nothing if user selected
-                 * the ID already open.
+                 * Already open.
                  */
 
                 if(
@@ -2438,7 +2716,7 @@ const openArbitIframe=()=>{
 
 
                 console.log(
-                    "Opening ARBIT ID in SAME iframe:",
+                    "Opening selected APP / ARBIT ID in SAME iframe:",
                     selectedApp
                 );
 
@@ -2453,8 +2731,7 @@ const openArbitIframe=()=>{
 
                 /*
                  * SAME iframe.
-                 *
-                 * We only change the src.
+                 * Only replace its src.
                  */
 
                 iframe.src=
@@ -2465,8 +2742,7 @@ const openArbitIframe=()=>{
 
 
                 /*
-                 * OPEN disappears after the
-                 * new ARBIT ID becomes active.
+                 * Hide OPEN after changing.
                  */
 
                 appOpenBtn.style.display=
@@ -2486,27 +2762,27 @@ const openArbitIframe=()=>{
 
 
     /* =====================================================
-       ALL IN ONE
+       ALL IN ONE BUTTON
        ===================================================== */
 
     if(allInOneBtn){
 
-        allInOneBtn.addEventListener(
-            "click",
-            ()=>{
+        allInOneBtn.onclick=()=>{
 
-                /*
-                 * Trigger the ORIGINAL working
-                 * button on the parent page.
-                 *
-                 * No duplicate implementation.
-                 */
+            /*
+             * Run the current wfaspreadsheet_copy.js
+             * inside the SAME ARBIT iframe.
+             *
+             * Every click removes the old copy first,
+             * then loads the current version with a
+             * cache-busting timestamp.
+             */
 
-                runAllInOne();
+            runAllInOne(
+                iframe
+            );
 
-            },
-            true
-        );
+        };
 
     }
 
@@ -2548,7 +2824,14 @@ const openArbitIframe=()=>{
             "important"
         );
 
-    }catch(e){}
+    }catch(e){
+
+        console.warn(
+            "Could not force iframe stacking:",
+            e
+        );
+
+    }
 
 
     /* =====================================================
@@ -2565,7 +2848,7 @@ const openArbitIframe=()=>{
 
 
     /* =====================================================
-       PULL CASE / HISTORY
+       PULL CASE / HISTORY EVIDENCE
        ===================================================== */
 
     pullEvidenceBtn.onclick=()=>{
@@ -2578,7 +2861,7 @@ const openArbitIframe=()=>{
 
 
     /* =====================================================
-       VOB HANDLERS
+       INSTALL VOB HANDLERS
        ===================================================== */
 
     installVobIframeHandlers(
@@ -2587,7 +2870,7 @@ const openArbitIframe=()=>{
 
 
     /* =====================================================
-       CLOSE
+       CLOSE IFRAME
        ===================================================== */
 
     const closeIframe=()=>{
@@ -2669,6 +2952,10 @@ const openArbitIframe=()=>{
         true
     );
 
+
+    /* =====================================================
+       FOCUS
+       ===================================================== */
 
     setTimeout(()=>{
 
@@ -3008,7 +3295,7 @@ const popup=()=>new Promise(resolve=>{
 
 
     /* =====================================================
-       POPUP STYLE
+       STYLE
        ===================================================== */
 
     const style=
@@ -3024,11 +3311,17 @@ const popup=()=>new Promise(resolve=>{
         #dispute-popup-overlay{
 
             position:fixed;
+
             inset:0;
+
             width:100%;
+
             height:100%;
+
             z-index:2147483646;
+
             pointer-events:none;
+
             isolation:isolate;
 
         }
@@ -3110,6 +3403,8 @@ const popup=()=>new Promise(resolve=>{
 
             font-weight:700;
 
+            margin:0;
+
         }
 
 
@@ -3133,7 +3428,15 @@ const popup=()=>new Promise(resolve=>{
 
             font-weight:800;
 
+            letter-spacing:.4px;
+
             cursor:pointer;
+
+            white-space:nowrap;
+
+            box-shadow:
+                0 4px 12px
+                rgba(0,0,0,.3);
 
         }
 
@@ -3141,6 +3444,8 @@ const popup=()=>new Promise(resolve=>{
         #dp-arbit-id:hover{
 
             background:#ef3333;
+
+            transform:translateY(-1px);
 
         }
 
@@ -3243,7 +3548,8 @@ const popup=()=>new Promise(resolve=>{
 
             outline:none;
 
-            padding:0 12px;
+            padding:
+                0 12px;
 
             font-size:14px;
 
@@ -3300,7 +3606,39 @@ const popup=()=>new Promise(resolve=>{
         #dp-duplicate-comments option{
 
             background:#222;
+
             color:#fff;
+
+        }
+
+
+        #dp-name::placeholder,
+        #dp-state::placeholder,
+        #dp-email::placeholder,
+        #dp-arbit-notes::placeholder{
+
+            color:
+                rgba(255,255,255,.5);
+
+        }
+
+
+        #dp-name:focus,
+        #dp-state:focus,
+        #dp-email:focus,
+        #dp-arbit-notes:focus,
+        #dp-mismatch:focus,
+        #dp-plan-evidence:focus,
+        #dp-verified:focus,
+        #dp-non-bifurcated:focus,
+        #dp-duplicate-comments:focus{
+
+            border-color:
+                rgba(255,255,255,.65);
+
+            box-shadow:
+                0 0 0 3px
+                rgba(255,255,255,.08);
 
         }
 
@@ -3311,7 +3649,8 @@ const popup=()=>new Promise(resolve=>{
 
             height:42px;
 
-            padding:0 15px;
+            padding:
+                0 15px;
 
             border:
                 1px solid
@@ -3329,6 +3668,8 @@ const popup=()=>new Promise(resolve=>{
             font-size:14px;
 
             cursor:pointer;
+
+            white-space:nowrap;
 
         }
 
@@ -3350,6 +3691,17 @@ const popup=()=>new Promise(resolve=>{
 
             background:
                 rgba(35,150,70,.9);
+
+            border-color:
+                rgba(35,150,70,.65);
+
+        }
+
+
+        #dp-go:hover{
+
+            background:
+                rgba(45,175,80,.98);
 
         }
 
@@ -3384,6 +3736,8 @@ const popup=()=>new Promise(resolve=>{
             align-items:center;
 
             justify-content:center;
+
+            white-space:nowrap;
 
         }
 
@@ -3467,10 +3821,26 @@ const popup=()=>new Promise(resolve=>{
         }
 
 
+        #dp-no:hover{
+
+            background:
+                rgba(220,45,45,.95);
+
+        }
+
+
         #dp-yes{
 
             background:
                 rgba(30,95,190,.9);
+
+        }
+
+
+        #dp-yes:hover{
+
+            background:
+                rgba(40,115,220,.98);
 
         }
 
@@ -3516,15 +3886,80 @@ const popup=()=>new Promise(resolve=>{
         }
 
 
+        #dp-continue:hover:not(:disabled){
+
+            background:
+                rgba(45,175,80,.98);
+
+        }
+
+
         #dp-continue:disabled{
 
             background:
                 rgba(100,100,100,.45);
 
+            border-color:
+                rgba(255,255,255,.12);
+
             color:
                 rgba(255,255,255,.45);
 
             cursor:not-allowed;
+
+            opacity:.65;
+
+        }
+
+
+        @media(max-width:650px){
+
+            #dp-title-row{
+
+                padding-right:34px;
+
+            }
+
+
+            #dp-title{
+
+                font-size:18px;
+
+            }
+
+
+            #dp-arbit-id{
+
+                padding:
+                    0 11px;
+
+                font-size:
+                    12px;
+
+            }
+
+
+            #dp-state-row{
+
+                flex-wrap:wrap;
+
+            }
+
+
+            #dp-state{
+
+                width:100%;
+
+                flex:none;
+
+            }
+
+
+            #dp-duplicate-comments{
+
+                width:100%;
+
+            }
 
         }
 
@@ -3827,33 +4262,70 @@ const popup=()=>new Promise(resolve=>{
 
 
     /* =====================================================
-       VALIDATE YES FIELDS
+       VALIDATE YES FORM
        ===================================================== */
 
     const validateYesFields=()=>{
 
+        const email=
+            emailInput.value.trim();
+
+        const arbitNotes=
+            arbitNotesInput.value.trim();
+
+        const planEvidence=
+            planEvidenceInput.value;
+
+        const verificationStatus=
+            verifiedInput.value;
+
+        const nonBifurcated=
+            nonBifurcatedInput.value;
+
+
         return(
-            !!emailInput.value.trim() &&
-            !!arbitNotesInput.value.trim() &&
-            !!planEvidenceInput.value &&
-            !!verifiedInput.value &&
-            !!nonBifurcatedInput.value
+            !!email &&
+            !!arbitNotes &&
+            !!planEvidence &&
+            !!verificationStatus &&
+            !!nonBifurcated
         );
 
     };
 
 
     /* =====================================================
-       UPDATE CONTINUE BUTTON
+       UPDATE CONTINUE
        ===================================================== */
 
     const updateContinueButton=()=>{
 
+        const complete=
+            validateYesFields();
+
+
         continueBtn.disabled=
-            !validateYesFields();
+            !complete;
+
+
+        if(complete){
+
+            continueBtn.title=
+                "All required fields are complete.";
+
+        }else{
+
+            continueBtn.title=
+                "Complete all required fields before continuing.";
+
+        }
 
     };
 
+
+    /* =====================================================
+       YES FIELD LISTENERS
+       ===================================================== */
 
     emailInput.addEventListener(
         "input",
@@ -4029,6 +4501,24 @@ const popup=()=>new Promise(resolve=>{
         ];
 
 
+        if(row.length!==18){
+
+            console.error(
+                "ERROR: ROW DOES NOT HAVE 18 COLUMNS!",
+                row,
+                "Length:",
+                row.length
+            );
+
+        }
+
+
+        console.log(
+            "FINAL 18-COLUMN ROW",
+            row
+        );
+
+
         return row.join("\t");
 
     };
@@ -4087,7 +4577,17 @@ const popup=()=>new Promise(resolve=>{
             );
 
 
-        return rows.join("\r\n");
+        const output=
+            rows.join("\r\n");
+
+
+        console.log(
+            "FINAL COPY OUTPUT",
+            output
+        );
+
+
+        return output;
 
     };
 
@@ -4102,12 +4602,24 @@ const popup=()=>new Promise(resolve=>{
             return;
 
 
+        const stateValue=
+            stateInput.value
+                .trim()
+                .toUpperCase();
+
+
+        const duplicateComments=
+            duplicateCommentsInput.value;
+
+
+        const plantypeMismatch=
+            mismatchInput.value;
+
+
         const output=
             buildOutput(
-                stateInput.value
-                    .trim()
-                    .toUpperCase(),
-                duplicateCommentsInput.value,
+                stateValue,
+                duplicateComments,
                 false,
                 "",
                 "",
@@ -4115,7 +4627,7 @@ const popup=()=>new Promise(resolve=>{
                 "",
                 "",
                 "",
-                mismatchInput.value
+                plantypeMismatch
             );
 
 
@@ -4127,10 +4639,16 @@ const popup=()=>new Promise(resolve=>{
         style.remove();
 
 
+        const rowCount=
+            sameId
+            ?1
+            :ids.length;
+
+
         showCopyMessage(
 
             copied
-            ?`✅ COPIED ${sameId?1:ids.length} ROW${sameId||ids.length===1?"":"S"} — COLUMN C UPDATED`
+            ?`✅ COPIED ${rowCount} ROW${rowCount!==1?"S":""} — COLUMN C UPDATED`
             :`❌ COPY FAILED — CLICK COPY AGAIN`,
 
             output
@@ -4178,7 +4696,7 @@ const popup=()=>new Promise(resolve=>{
         if(continueBtn.disabled){
 
             status.textContent=
-                "Please complete all required fields.";
+                "Please complete all required fields before continuing.";
 
             return;
 
@@ -4189,20 +4707,136 @@ const popup=()=>new Promise(resolve=>{
             return;
 
 
+        if(!validateYesFields()){
+
+            status.textContent=
+                "Please complete all required YES fields.";
+
+            updateContinueButton();
+
+            return;
+
+        }
+
+
+        const email=
+            emailInput.value.trim();
+
+
+        const arbitCaseNotes=
+            arbitNotesInput.value.trim();
+
+
+        const planTypeEvidence=
+            planEvidenceInput.value;
+
+
+        const verificationStatus=
+            verifiedInput.value;
+
+
+        const nonBifurcated=
+            nonBifurcatedInput.value;
+
+
+        const plantypeMismatch=
+            mismatchInput.value;
+
+
+        if(!email){
+
+            status.textContent=
+                "Enter PLANTYPE_IDRE_EMAIL.";
+
+            emailInput.focus();
+
+            return;
+
+        }
+
+
+        if(!arbitCaseNotes){
+
+            status.textContent=
+                "Enter Arbit Case Notes.";
+
+            arbitNotesInput.focus();
+
+            return;
+
+        }
+
+
+        if(!planTypeEvidence){
+
+            status.textContent=
+                "Select Plan Type Evidence.";
+
+            planEvidenceInput.focus();
+
+            return;
+
+        }
+
+
+        if(!verificationStatus){
+
+            status.textContent=
+                "Select Yes or No for Verified.";
+
+            verifiedInput.focus();
+
+            return;
+
+        }
+
+
+        if(!nonBifurcated){
+
+            status.textContent=
+                "Select N/A or Yes for Non-Bifurcated state/Federal.";
+
+            nonBifurcatedInput.focus();
+
+            return;
+
+        }
+
+
+        if(!plantypeMismatch){
+
+            status.textContent=
+                "Select Yes or No for Plantype Mismatch.";
+
+            mismatchInput.focus();
+
+            return;
+
+        }
+
+
+        const stateValue=
+            stateInput.value
+                .trim()
+                .toUpperCase();
+
+
+        const duplicateComments=
+            duplicateCommentsInput.value;
+
+
         const output=
             buildOutput(
-                stateInput.value
-                    .trim()
-                    .toUpperCase(),
-                duplicateCommentsInput.value,
+                stateValue,
+                duplicateComments,
                 true,
                 currentName,
-                emailInput.value.trim(),
-                verifiedInput.value,
-                arbitNotesInput.value.trim(),
-                planEvidenceInput.value,
-                nonBifurcatedInput.value,
-                mismatchInput.value
+                email,
+                verificationStatus,
+                arbitCaseNotes,
+                planTypeEvidence,
+                nonBifurcated,
+                plantypeMismatch
             );
 
 
@@ -4214,10 +4848,16 @@ const popup=()=>new Promise(resolve=>{
         style.remove();
 
 
+        const rowCount=
+            sameId
+            ?1
+            :ids.length;
+
+
         showCopyMessage(
 
             copied
-            ?`✅ COPIED ${sameId?1:ids.length} ROW${sameId||ids.length===1?"":"S"} — COLUMNS A:R`
+            ?`✅ COPIED ${rowCount} ROW${rowCount!==1?"S":""} — COLUMNS A:R`
             :`❌ COPY FAILED — CLICK COPY AGAIN`,
 
             output
@@ -4247,9 +4887,24 @@ const popup=()=>new Promise(resolve=>{
             ){
 
                 e.preventDefault();
+                e.stopPropagation();
 
                 duplicateCommentsInput.value=
                     "N/A";
+
+
+                duplicateCommentsInput.dispatchEvent(
+                    new Event(
+                        "change",
+                        {
+                            bubbles:true
+                        }
+                    )
+                );
+
+
+                status.textContent=
+                    "Duplicate Dispute Comments: N/A";
 
                 return;
 
@@ -4265,9 +4920,24 @@ const popup=()=>new Promise(resolve=>{
             ){
 
                 e.preventDefault();
+                e.stopPropagation();
 
                 duplicateCommentsInput.value=
                     "Duplicate Dispute Reviewed";
+
+
+                duplicateCommentsInput.dispatchEvent(
+                    new Event(
+                        "change",
+                        {
+                            bubbles:true
+                        }
+                    )
+                );
+
+
+                status.textContent=
+                    "Duplicate Dispute Comments: Duplicate Dispute Reviewed";
 
                 return;
 
@@ -4283,9 +4953,24 @@ const popup=()=>new Promise(resolve=>{
             ){
 
                 e.preventDefault();
+                e.stopPropagation();
 
                 mismatchInput.value=
                     "No";
+
+
+                mismatchInput.dispatchEvent(
+                    new Event(
+                        "change",
+                        {
+                            bubbles:true
+                        }
+                    )
+                );
+
+
+                status.textContent=
+                    "Plantype Mismatch: No";
 
                 return;
 
@@ -4301,9 +4986,24 @@ const popup=()=>new Promise(resolve=>{
             ){
 
                 e.preventDefault();
+                e.stopPropagation();
 
                 mismatchInput.value=
                     "Yes";
+
+
+                mismatchInput.dispatchEvent(
+                    new Event(
+                        "change",
+                        {
+                            bubbles:true
+                        }
+                    )
+                );
+
+
+                status.textContent=
+                    "Plantype Mismatch: Yes";
 
                 return;
 
@@ -4318,6 +5018,46 @@ const popup=()=>new Promise(resolve=>{
                 style.remove();
 
                 resolve(null);
+
+                return;
+
+            }
+
+
+            if(
+                e.ctrlKey &&
+                !e.altKey &&
+                !e.metaKey &&
+                !e.shiftKey &&
+                e.key==="0" &&
+                eligible.style.display==="block"
+            ){
+
+                e.preventDefault();
+                e.stopPropagation();
+
+                noBtn.click();
+
+                return;
+
+            }
+
+
+            if(
+                e.ctrlKey &&
+                !e.altKey &&
+                !e.metaKey &&
+                !e.shiftKey &&
+                e.key==="1" &&
+                eligible.style.display==="block"
+            ){
+
+                e.preventDefault();
+                e.stopPropagation();
+
+                yesBtn.click();
+
+                return;
 
             }
 
