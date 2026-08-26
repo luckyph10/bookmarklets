@@ -152,6 +152,61 @@ const ids=[
 
 
 /* =========================================================
+   GET ALL ARBIT / APP ID LINKS
+   ========================================================= */
+
+const arbitLinks=[
+    ...document.querySelectorAll(
+        "#table-body tr td:nth-child(2) a"
+    )
+]
+.map((link,index)=>{
+
+    const id=
+        link.closest("td")
+            ?.textContent
+            ?.replace(/\u00A0/g," ")
+            ?.replace(/\r?\n/g," ")
+            ?.replace(/\s+/g," ")
+            ?.trim()
+        ||
+        ids[index]
+        ||
+        "";
+
+    return{
+        id:id,
+        href:link.href,
+        index:index
+    };
+
+})
+.filter(item=>item.id && item.href);
+
+
+/* =========================================================
+   REMOVE DUPLICATE APP / ARBIT LINKS
+   ========================================================= */
+
+const uniqueArbitLinks=[];
+const seenArbitLinks=new Set();
+
+for(const item of arbitLinks){
+
+    const key=
+        `${item.id}|||${item.href}`;
+
+    if(seenArbitLinks.has(key))
+        continue;
+
+    seenArbitLinks.add(key);
+
+    uniqueArbitLinks.push(item);
+
+}
+
+
+/* =========================================================
    GET PLAN TYPES
    ========================================================= */
 
@@ -257,6 +312,11 @@ console.log(
 console.log(
     "IDs:",
     ids
+);
+
+console.log(
+    "ARBIT / APP LINKS:",
+    uniqueArbitLinks
 );
 
 console.log(
@@ -1160,18 +1220,59 @@ const installVobIframeHandlers=iframe=>{
 
 
 /* =========================================================
-   OPEN ARBIT ID IFRAME
+   OPEN ARBIT / APP ID IFRAME
    ========================================================= */
 
 const openArbitIframe=()=>{
 
-    const arbitLink=
-        document.querySelector(
-            "#table-body > tr > td:nth-child(2) > a"
-        );
+    /*
+     * Get ALL available ARBIT / APP ID links.
+     *
+     * This is the important change:
+     * instead of only using:
+     *
+     * #table-body > tr > td:nth-child(2) > a
+     *
+     * we collect every ID link from the table.
+     */
+
+    let appLinks=[
+        ...uniqueArbitLinks
+    ];
 
 
-    if(!arbitLink){
+    /*
+     * Fallback if the link collector did not find
+     * anything for some reason.
+     */
+
+    if(!appLinks.length){
+
+        const fallbackLink=
+            document.querySelector(
+                "#table-body > tr > td:nth-child(2) > a"
+            );
+
+
+        if(fallbackLink){
+
+            appLinks=[
+                {
+                    id:
+                        arbitIdNumber||
+                        "UNKNOWN",
+                    href:
+                        fallbackLink.href,
+                    index:0
+                }
+            ];
+
+        }
+
+    }
+
+
+    if(!appLinks.length){
 
         alert(
             "ARBIT ID link not found."
@@ -1181,6 +1282,10 @@ const openArbitIframe=()=>{
 
     }
 
+
+    /* =====================================================
+       REMOVE OLD IFRAME
+       ===================================================== */
 
     const old=
         document.getElementById(
@@ -1202,6 +1307,20 @@ const openArbitIframe=()=>{
         oldStyle.remove();
 
 
+    /* =====================================================
+       CURRENT OPEN APP
+       ===================================================== */
+
+    let currentAppIndex=0;
+
+    let currentApp=
+        appLinks[currentAppIndex];
+
+
+    /* =====================================================
+       CREATE OVERLAY
+       ===================================================== */
+
     const overlay=
         document.createElement("div");
 
@@ -1216,19 +1335,67 @@ const openArbitIframe=()=>{
 
             <div id="arbit-iframe-header">
 
-                <div id="arbit-iframe-title">
+                <div id="arbit-iframe-left">
 
-                    ARBIT ID:
+                    <div id="arbit-iframe-title">
 
-                    <span id="arbit-iframe-number">
-                        ${arbitIdNumber
-                            ?String(arbitIdNumber)
+                        ARBIT ID:
+
+                        <span id="arbit-iframe-number">
+                            ${String(currentApp.id||"UNKNOWN")
                                 .replace(/&/g,"&amp;")
                                 .replace(/</g,"&lt;")
                                 .replace(/>/g,"&gt;")
-                                .replace(/"/g,"&quot;")
-                            :"UNKNOWN"}
-                    </span>
+                                .replace(/"/g,"&quot;")}
+                        </span>
+
+                    </div>
+
+
+                    ${
+                        appLinks.length>1
+                        ?`
+
+                        <div
+                            id="arbit-app-selector-wrap"
+                        >
+
+                            <select
+                                id="arbit-app-selector"
+                                title="Select another ARBIT / APP ID"
+                            >
+
+                                ${appLinks.map((item,index)=>`
+
+                                    <option
+                                        value="${index}"
+                                        ${index===0?"selected":""}
+                                    >
+                                        ${String(item.id||"UNKNOWN")
+                                            .replace(/&/g,"&amp;")
+                                            .replace(/</g,"&lt;")
+                                            .replace(/>/g,"&gt;")
+                                            .replace(/"/g,"&quot;")}
+                                    </option>
+
+                                `).join("")}
+
+                            </select>
+
+
+                            <button
+                                id="arbit-app-open"
+                                type="button"
+                                style="display:none"
+                            >
+                                OPEN
+                            </button>
+
+                        </div>
+
+                        `
+                        :""
+                    }
 
                 </div>
 
@@ -1266,7 +1433,7 @@ const openArbitIframe=()=>{
 
             <iframe
                 id="arbit-iframe"
-                src="${arbitLink.href}"
+                src="${String(currentApp.href).replace(/"/g,"&quot;")}"
                 frameborder="0"
                 allowfullscreen
             ></iframe>
@@ -1275,6 +1442,10 @@ const openArbitIframe=()=>{
 
     `;
 
+
+    /* =====================================================
+       STYLE
+       ===================================================== */
 
     const iframeStyle=
         document.createElement("style");
@@ -1392,13 +1563,32 @@ const openArbitIframe=()=>{
             justify-content:space-between!important;
 
             gap:
-                8px!important;
+                10px!important;
 
             padding:
                 0 10px 0 16px!important;
 
             box-sizing:
                 border-box!important;
+
+        }
+
+
+        /* =====================================================
+           LEFT SIDE
+           ===================================================== */
+
+        #arbit-iframe-left{
+
+            display:flex!important;
+
+            align-items:center!important;
+
+            gap:10px!important;
+
+            min-width:0!important;
+
+            flex:1!important;
 
         }
 
@@ -1429,6 +1619,8 @@ const openArbitIframe=()=>{
             gap:
                 4px!important;
 
+            flex-shrink:0!important;
+
         }
 
 
@@ -1450,6 +1642,168 @@ const openArbitIframe=()=>{
         }
 
 
+        /* =====================================================
+           APP / ARBIT ID DROPDOWN
+           ===================================================== */
+
+        #arbit-app-selector-wrap{
+
+            display:flex!important;
+
+            align-items:center!important;
+
+            gap:6px!important;
+
+            min-width:0!important;
+
+        }
+
+
+        #arbit-app-selector{
+
+            height:
+                38px!important;
+
+            min-width:
+                150px!important;
+
+            max-width:
+                260px!important;
+
+            padding:
+                0 32px 0 11px!important;
+
+            border:
+                1px solid
+                rgba(255,255,255,.25)!important;
+
+            border-radius:
+                8px!important;
+
+            background:
+                #222!important;
+
+            color:#fff!important;
+
+            font-family:
+                Arial,sans-serif!important;
+
+            font-size:
+                12px!important;
+
+            font-weight:
+                700!important;
+
+            outline:none!important;
+
+            cursor:pointer!important;
+
+            box-sizing:border-box!important;
+
+        }
+
+
+        #arbit-app-selector:hover{
+
+            border-color:
+                rgba(255,255,255,.45)!important;
+
+        }
+
+
+        #arbit-app-selector:focus{
+
+            border-color:
+                #facc15!important;
+
+            box-shadow:
+                0 0 0 3px
+                rgba(250,204,21,.12)!important;
+
+        }
+
+
+        #arbit-app-selector option{
+
+            background:
+                #222!important;
+
+            color:#fff!important;
+
+        }
+
+
+        /* =====================================================
+           OPEN SELECTED APP BUTTON
+           ===================================================== */
+
+        #arbit-app-open{
+
+            height:
+                38px!important;
+
+            padding:
+                0 14px!important;
+
+            border:
+                1px solid
+                rgba(255,255,255,.2)!important;
+
+            border-radius:
+                8px!important;
+
+            background:
+                #f59e0b!important;
+
+            color:#111!important;
+
+            font-family:
+                Arial,sans-serif!important;
+
+            font-size:
+                12px!important;
+
+            font-weight:
+                900!important;
+
+            letter-spacing:
+                .3px!important;
+
+            cursor:pointer!important;
+
+            white-space:
+                nowrap!important;
+
+            box-shadow:
+                0 4px 14px
+                rgba(0,0,0,.3)!important;
+
+        }
+
+
+        #arbit-app-open:hover{
+
+            background:
+                #fbbf24!important;
+
+            transform:
+                translateY(-1px)!important;
+
+        }
+
+
+        #arbit-app-open:active{
+
+            transform:
+                translateY(0)!important;
+
+        }
+
+
+        /* =====================================================
+           RIGHT ACTIONS
+           ===================================================== */
+
         #arbit-iframe-actions{
 
             display:flex!important;
@@ -1463,6 +1817,9 @@ const openArbitIframe=()=>{
 
             flex-wrap:
                 nowrap!important;
+
+            flex-shrink:
+                0!important;
 
         }
 
@@ -1815,7 +2172,11 @@ const openArbitIframe=()=>{
         }
 
 
-        @media(max-width:1050px){
+        /* =====================================================
+           RESPONSIVE
+           ===================================================== */
+
+        @media(max-width:1250px){
 
             #arbit-iframe-header{
 
@@ -1825,10 +2186,21 @@ const openArbitIframe=()=>{
             }
 
 
-            #arbit-iframe-actions{
+            #arbit-iframe-left{
 
                 gap:
-                    5px!important;
+                    6px!important;
+
+            }
+
+
+            #arbit-app-selector{
+
+                min-width:
+                    125px!important;
+
+                max-width:
+                    180px!important;
 
             }
 
@@ -1847,7 +2219,7 @@ const openArbitIframe=()=>{
         }
 
 
-        @media(max-width:800px){
+        @media(max-width:950px){
 
             #arbit-iframe-title{
 
@@ -1857,10 +2229,21 @@ const openArbitIframe=()=>{
             }
 
 
-            #arbit-iframe-number{
+            #arbit-app-selector{
 
-                font-size:
-                    12px!important;
+                min-width:
+                    110px!important;
+
+                max-width:
+                    145px!important;
+
+            }
+
+
+            #arbit-app-open{
+
+                padding:
+                    0 10px!important;
 
             }
 
@@ -1903,12 +2286,29 @@ const openArbitIframe=()=>{
             }
 
 
+            #arbit-iframe-header{
+
+                padding-left:
+                    8px!important;
+
+                gap:
+                    4px!important;
+
+            }
+
+
+            #arbit-iframe-left{
+
+                gap:
+                    4px!important;
+
+            }
+
+
             #arbit-iframe-title{
 
-                display:flex!important;
-
                 font-size:
-                    11px!important;
+                    10px!important;
 
             }
 
@@ -1916,15 +2316,64 @@ const openArbitIframe=()=>{
             #arbit-iframe-number{
 
                 font-size:
-                    11px!important;
+                    10px!important;
 
             }
 
 
-            #arbit-iframe-header{
+            #arbit-app-selector{
 
-                padding-left:
+                min-width:
+                    85px!important;
+
+                max-width:
+                    120px!important;
+
+                height:
+                    34px!important;
+
+                font-size:
+                    9px!important;
+
+            }
+
+
+            #arbit-app-open{
+
+                height:
+                    34px!important;
+
+                padding:
+                    0 8px!important;
+
+                font-size:
+                    9px!important;
+
+            }
+
+
+            #arbit-rush-verify,
+            #arbit-pull-evidence{
+
+                height:
+                    34px!important;
+
+                padding:
+                    0 5px!important;
+
+                font-size:
                     8px!important;
+
+            }
+
+
+            #arbit-iframe-close{
+
+                width:
+                    34px!important;
+
+                height:
+                    34px!important;
 
             }
 
@@ -1942,6 +2391,10 @@ const openArbitIframe=()=>{
         overlay
     );
 
+
+    /* =====================================================
+       ELEMENTS
+       ===================================================== */
 
     const iframe=
         document.getElementById(
@@ -1967,22 +2420,213 @@ const openArbitIframe=()=>{
         );
 
 
-    /* =====================================================
-       UPDATE IFRAME ARBIT NUMBER
-       ===================================================== */
-
     const iframeNumberElement=
         document.getElementById(
             "arbit-iframe-number"
         );
 
 
-    if(iframeNumberElement){
+    const appSelector=
+        document.getElementById(
+            "arbit-app-selector"
+        );
+
+
+    const appOpenBtn=
+        document.getElementById(
+            "arbit-app-open"
+        );
+
+
+    /* =====================================================
+       UPDATE CURRENT ID DISPLAY
+       ===================================================== */
+
+    const updateCurrentIdDisplay=()=>{
+
+        if(!iframeNumberElement)
+            return;
+
 
         iframeNumberElement.textContent=
-            arbitIdNumber || "UNKNOWN";
+            currentApp?.id||
+            "UNKNOWN";
+
+    };
+
+
+    /* =====================================================
+       APP DROPDOWN CHANGE
+       ===================================================== */
+
+    if(appSelector){
+
+        appSelector.addEventListener(
+            "change",
+            ()=>{
+
+                const selectedIndex=
+                    Number(
+                        appSelector.value
+                    );
+
+
+                if(
+                    !Number.isInteger(
+                        selectedIndex
+                    )||
+                    !appLinks[selectedIndex]
+                ){
+
+                    return;
+
+                }
+
+
+                /*
+                 * IMPORTANT:
+                 *
+                 * We DO NOT load the iframe here.
+                 *
+                 * We only show OPEN.
+                 *
+                 * This matches your request:
+                 *
+                 * select another ID -> OPEN appears
+                 *
+                 * select current ID -> OPEN disappears
+                 */
+
+                if(
+                    selectedIndex===
+                    currentAppIndex
+                ){
+
+                    if(appOpenBtn)
+                        appOpenBtn.style.display=
+                            "none";
+
+                }else{
+
+                    if(appOpenBtn)
+                        appOpenBtn.style.display=
+                            "inline-flex";
+
+                }
+
+            }
+
+        );
 
     }
+
+
+    /* =====================================================
+       OPEN SELECTED APP IN SAME IFRAME
+       ===================================================== */
+
+    if(appOpenBtn){
+
+        appOpenBtn.addEventListener(
+            "click",
+            ()=>{
+
+                if(!appSelector)
+                    return;
+
+
+                const selectedIndex=
+                    Number(
+                        appSelector.value
+                    );
+
+
+                if(
+                    !Number.isInteger(
+                        selectedIndex
+                    )||
+                    !appLinks[selectedIndex]
+                ){
+
+                    return;
+
+                }
+
+
+                if(
+                    selectedIndex===
+                    currentAppIndex
+                ){
+
+                    appOpenBtn.style.display=
+                        "none";
+
+                    return;
+
+                }
+
+
+                const selectedApp=
+                    appLinks[selectedIndex];
+
+
+                console.log(
+                    "Opening selected APP / ARBIT ID in SAME iframe:",
+                    selectedApp
+                );
+
+
+                /*
+                 * Keep the SAME iframe element.
+                 *
+                 * Only change its src.
+                 */
+
+                currentAppIndex=
+                    selectedIndex;
+
+
+                currentApp=
+                    selectedApp;
+
+
+                iframe.src=
+                    selectedApp.href;
+
+
+                updateCurrentIdDisplay();
+
+
+                /*
+                 * Hide OPEN after opening because
+                 * the selected ID is now the active ID.
+                 */
+
+                appOpenBtn.style.display=
+                    "none";
+
+
+                /*
+                 * Make sure dropdown stays synchronized.
+                 */
+
+                appSelector.value=
+                    String(
+                        currentAppIndex
+                    );
+
+            }
+
+        );
+
+    }
+
+
+    /* =====================================================
+       UPDATE IFRAME ARBIT NUMBER
+       ===================================================== */
+
+    updateCurrentIdDisplay();
 
 
     /* =====================================================
