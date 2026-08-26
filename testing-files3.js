@@ -143,7 +143,7 @@
     /* ============================================================
        FIND VOB BUTTONS
        
-       KEEPING EXISTING VOB LOGIC
+       EXISTING VOB LOGIC PRESERVED
        ============================================================ */
 
     function findVobButtons() {
@@ -177,150 +177,64 @@
 
 
     /* ============================================================
-       FIND DOCUMENT BUTTONS
+       FIND IDR FILES
        
-       BOOKMARKLET LOGIC CONVERTED INTO EXISTING CODE
+       Exact bookmarklet logic:
+       View proofofidrinitiation
        ============================================================ */
 
-    function findDocumentButtons() {
+    function findIdrButtons() {
 
-        const documents = [];
-
-        /*
-         * ========================================================
-         * IDR FILE
-         * ========================================================
-         *
-         * Original bookmarklet:
-         *
-         * title="View proofofidrinitiation"
-         *
-         * If multiple exist:
-         *
-         * IDR FILE 1
-         * IDR FILE 2
-         * IDR FILE 3
-         * etc.
-         */
-
-        const idrButtons = [
+        return [
             ...document.querySelectorAll(
                 'button.btn-modal[title="View proofofidrinitiation"]'
             )
         ];
 
-        idrButtons.forEach(function (btn, index) {
-
-            documents.push({
-
-                btn: btn,
-
-                type: "idr",
-
-                label:
-                    "IDR FILE " +
-                    (index + 1),
-
-                icon: "📄",
-
-                index: index + 1
-
-            });
-
-        });
+    }
 
 
-        /*
-         * ========================================================
-         * INSURANCE CARD
-         * ========================================================
-         */
+    /* ============================================================
+       FIND INSURANCE CARD
+       ============================================================ */
 
-        const insuranceButtons = [
+    function findInsuranceButtons() {
+
+        return [
             ...document.querySelectorAll(
                 'button.btn-modal[title="View insurancecard"]'
             )
         ];
 
-        insuranceButtons.forEach(function (btn) {
-
-            documents.push({
-
-                btn: btn,
-
-                type: "insurance",
-
-                label:
-                    "Insurance Card",
-
-                icon: "🪪"
-
-            });
-
-        });
+    }
 
 
-        /*
-         * ========================================================
-         * FACE SHEET
-         * ========================================================
-         */
+    /* ============================================================
+       FIND FACE SHEET
+       ============================================================ */
 
-        const faceSheetButtons = [
+    function findFaceSheetButtons() {
+
+        return [
             ...document.querySelectorAll(
                 'button.btn-modal[title="View facesheet"]'
             )
         ];
 
-        faceSheetButtons.forEach(function (btn) {
-
-            documents.push({
-
-                btn: btn,
-
-                type: "facesheet",
-
-                label:
-                    "Face Sheet",
-
-                icon: "👤"
-
-            });
-
-        });
+    }
 
 
-        /*
-         * ========================================================
-         * EOB
-         * ========================================================
-         */
+    /* ============================================================
+       FIND EOB
+       ============================================================ */
 
-        const eobButtons = [
+    function findEobButtons() {
+
+        return [
             ...document.querySelectorAll(
                 'button.btn-modal[title="View eob"]'
             )
         ];
-
-        eobButtons.forEach(function (btn) {
-
-            documents.push({
-
-                btn: btn,
-
-                type: "eob",
-
-                label:
-                    "EOB",
-
-                icon: "📋"
-
-            });
-
-        });
-
-
-        return documents;
 
     }
 
@@ -357,15 +271,15 @@
 
 
     /* ============================================================
-       GET BUTTON DISPLAY NAME
+       GET BUTTON TITLE / TEXT
        ============================================================ */
 
-    function getButtonName(btn) {
+    function getButtonText(btn) {
 
         return (
+            btn.title ||
             btn.textContent ||
             btn.innerText ||
-            btn.title ||
             ""
         )
             .trim()
@@ -378,98 +292,54 @@
 
 
     /* ============================================================
-       CREATE DOCUMENT BUTTON
+       CREATE COMPACT DOCUMENT BUTTON
+       
+       SAME STYLE AS VOB
        ============================================================ */
 
     function createDocumentButton(
-        doc,
-        index
+        btn,
+        label,
+        icon,
+        index,
+        total,
+        type
     ) {
 
-        const originalName =
-            getButtonName(
-                doc.btn
+        const buttonText =
+            getButtonText(
+                btn
             );
+
+
+        let displayLabel =
+            label;
+
+
+        /*
+         * Number documents only when there
+         * are multiple of the same type.
+         */
+
+        if (total > 1) {
+
+            displayLabel =
+                label +
+                " " +
+                (index + 1);
+
+        }
 
 
         return (
 
-            '<div style="' +
+            '<button class="mainDocumentBtn" ' +
 
-            "background:#1f2937;" +
-            "border:1px solid #374151;" +
-            "border-radius:8px;" +
-            "padding:9px;" +
-            "margin-bottom:7px;" +
-
-            '">' +
-
-
-            /*
-             * TITLE
-             */
-
-            '<div style="' +
-
-            "font-size:13px;" +
-            "font-weight:700;" +
-            "margin-bottom:4px;" +
-            "display:flex;" +
-            "align-items:center;" +
-            "gap:6px;" +
-
-            '">' +
-
+            'data-document-type="' +
             escapeHtml(
-                doc.icon
+                type
             ) +
-
-            " " +
-
-            escapeHtml(
-                doc.label
-            ) +
-
-            "</div>" +
-
-
-            /*
-             * ORIGINAL BUTTON TEXT
-             */
-
-            (
-                originalName
-
-                    ?
-
-                    '<div style="' +
-
-                    "font-size:11px;" +
-                    "color:#d1d5db;" +
-                    "line-height:1.4;" +
-                    "word-break:break-word;" +
-                    "margin-bottom:7px;" +
-
-                    '">' +
-
-                    escapeHtml(
-                        originalName
-                    ) +
-
-                    "</div>"
-
-                    :
-
-                    ""
-
-            ) +
-
-
-            /*
-             * OPEN BUTTON
-             */
-
-            '<button class="documentOpenBtn" ' +
+            '" ' +
 
             'data-document-index="' +
             index +
@@ -477,24 +347,59 @@
 
             'style="' +
 
+            "display:block;" +
             "width:100%;" +
-            "padding:8px;" +
-            "background:#059669;" +
+            "padding:9px 10px;" +
+            "margin-bottom:6px;" +
+            "background:#2563eb;" +
             "color:#fff;" +
-            "border:0;" +
-            "border-radius:5px;" +
+            "border:none;" +
+            "border-radius:6px;" +
             "cursor:pointer;" +
-            "font-weight:700;" +
-            "font-size:12px;" +
+            "font-weight:600;" +
+            "font-size:13px;" +
+            "text-align:left;" +
+            "overflow:hidden;" +
 
             '">' +
 
-            "📁 Open" +
+            icon +
+            " " +
+            escapeHtml(
+                displayLabel
+            ) +
 
-            "</button>" +
+            (
+                buttonText
 
+                    ?
 
-            "</div>"
+                    '<span style="' +
+
+                    "float:right;" +
+                    "color:#dbeafe;" +
+                    "font-size:11px;" +
+                    "margin-left:8px;" +
+                    "max-width:60%;" +
+                    "overflow:hidden;" +
+                    "text-overflow:ellipsis;" +
+                    "white-space:nowrap;" +
+
+                    '">' +
+
+                    escapeHtml(
+                        buttonText
+                    ) +
+
+                    "</span>"
+
+                    :
+
+                    ""
+
+            ) +
+
+            "</button>"
 
         );
 
@@ -503,31 +408,21 @@
 
     /* ============================================================
        CREATE DOCUMENT SECTION
+       
+       Compact section matching VOB
        ============================================================ */
 
     function createDocumentSection(
-        documents
+        title,
+        icon,
+        buttons,
+        type,
+        emptyText
     ) {
 
         let html = "";
 
 
-        /*
-         * ========================================================
-         * IDR
-         * ========================================================
-         */
-
-        const idrDocuments =
-            documents.filter(function (doc) {
-
-                return (
-                    doc.type === "idr"
-                );
-
-            });
-
-
         html +=
 
             '<div style="' +
@@ -549,119 +444,9 @@
 
             '">' +
 
-            "IDR FILE" +
-
-            '<span style="' +
-
-            "font-size:11px;" +
-            "color:#9ca3af;" +
-            "font-weight:normal;" +
-
-            '">' +
-
-            "(" +
-            idrDocuments.length +
-            " found)" +
-
-            "</span>" +
-
-            "</div>" +
-
-
-            '<div style="margin-top:8px;">';
-
-
-        if (
-            idrDocuments.length
-        ) {
-
-            idrDocuments.forEach(
-                function (
-                    doc,
-                    index
-                ) {
-
-                    html +=
-                        createDocumentButton(
-                            doc,
-                            documents.indexOf(
-                                doc
-                            )
-                        );
-
-                }
-            );
-
-        } else {
-
-            html +=
-
-                '<div style="' +
-
-                "font-size:13px;" +
-                "color:#ff6b6b;" +
-                "padding:6px 0;" +
-
-                '">' +
-
-                "No IDR files found." +
-
-                "</div>";
-
-        }
-
-
-        html +=
-            "</div></div>";
-
-
-        /*
-         * ========================================================
-         * VOB
-         *
-         * This section is created separately because VOB uses
-         * the existing VOB detection logic.
-         * ========================================================
-         */
-
-        return html;
-
-    }
-
-
-    /* ============================================================
-       CREATE VOB SECTION
-       ============================================================ */
-
-    function createVobSection(
-        vobs
-    ) {
-
-        let vobHtml = "";
-
-
-        vobHtml +=
-
-            '<div style="' +
-
-            "margin-top:16px;" +
-            "padding-top:12px;" +
-            "border-top:1px solid #374151;" +
-
-            '">' +
-
-
-            '<div style="' +
-
-            "font-size:20px;" +
-            "font-weight:bold;" +
-            "display:flex;" +
-            "align-items:center;" +
-            "gap:8px;" +
-
-            '">' +
-
-            "VOB" +
+            escapeHtml(
+                title
+            ) +
 
             '<span style="' +
 
@@ -672,7 +457,7 @@
             '">' +
 
             "(" +
-            vobs.length +
+            buttons.length +
             " found)" +
 
             "</span>" +
@@ -684,186 +469,23 @@
 
 
         if (
-            vobs.length
+            buttons.length
         ) {
 
-            vobs.forEach(
+            buttons.forEach(
                 function (
-                    v,
-                    i
+                    btn,
+                    index
                 ) {
-
-                    const vobTitle =
-                        v.title ||
-                        v.textContent ||
-                        "View VOB";
-
-
-                    vobHtml +=
-
-                        '<button class="mainVobBtn" ' +
-
-                        'data-vob-index="' +
-                        i +
-                        '" ' +
-
-                        'style="' +
-
-                        "display:block;" +
-                        "width:100%;" +
-                        "padding:9px 10px;" +
-                        "margin-bottom:6px;" +
-                        "background:#2563eb;" +
-                        "color:#fff;" +
-                        "border:none;" +
-                        "border-radius:6px;" +
-                        "cursor:pointer;" +
-                        "font-weight:600;" +
-                        "font-size:13px;" +
-                        "text-align:left;" +
-
-                        '">' +
-
-                        "📄 VOB " +
-                        (i + 1) +
-
-                        '<span style="' +
-
-                        "float:right;" +
-                        "color:#dbeafe;" +
-                        "font-size:11px;" +
-
-                        '">' +
-
-                        escapeHtml(
-                            vobTitle
-                        ) +
-
-                        "</span>" +
-
-                        "</button>";
-
-                }
-            );
-
-        } else {
-
-            vobHtml +=
-
-                '<div style="' +
-
-                "font-size:13px;" +
-                "color:#ff6b6b;" +
-                "padding:6px 0;" +
-
-                '">' +
-
-                "No VOB files found." +
-
-                "</div>";
-
-        }
-
-
-        vobHtml +=
-            "</div></div>";
-
-
-        return vobHtml;
-
-    }
-
-
-    /* ============================================================
-       CREATE STANDARD DOCUMENT SECTION
-       
-       Insurance Card
-       Face Sheet
-       EOB
-       ============================================================ */
-
-    function createStandardDocumentSection(
-        documents,
-        type,
-        title,
-        icon
-    ) {
-
-        const matchingDocuments =
-            documents.filter(function (doc) {
-
-                return (
-                    doc.type === type
-                );
-
-            });
-
-
-        let html = "";
-
-
-        html +=
-
-            '<div style="' +
-
-            "margin-top:16px;" +
-            "padding-top:12px;" +
-            "border-top:1px solid #374151;" +
-
-            '">' +
-
-
-            '<div style="' +
-
-            "font-size:18px;" +
-            "font-weight:bold;" +
-            "display:flex;" +
-            "align-items:center;" +
-            "gap:7px;" +
-
-            '">' +
-
-            icon +
-
-            " " +
-
-            escapeHtml(
-                title
-            ) +
-
-            '<span style="' +
-
-            "font-size:11px;" +
-            "color:#9ca3af;" +
-            "font-weight:normal;" +
-
-            '">' +
-
-            "(" +
-            matchingDocuments.length +
-            " found)" +
-
-            "</span>" +
-
-            "</div>" +
-
-
-            '<div style="margin-top:8px;">';
-
-
-        if (
-            matchingDocuments.length
-        ) {
-
-            matchingDocuments.forEach(
-                function (doc) {
 
                     html +=
                         createDocumentButton(
-                            doc,
-                            documents.indexOf(
-                                doc
-                            )
+                            btn,
+                            title,
+                            icon,
+                            index,
+                            buttons.length,
+                            type
                         );
 
                 }
@@ -875,17 +497,15 @@
 
                 '<div style="' +
 
+                "margin-top:6px;" +
                 "font-size:13px;" +
                 "color:#ff6b6b;" +
-                "padding:6px 0;" +
 
                 '">' +
 
-                "No " +
                 escapeHtml(
-                    title
+                    emptyText
                 ) +
-                " files found." +
 
                 "</div>";
 
@@ -1334,7 +954,7 @@
                                 keyword
                             );
 
-                            }
+                        }
 
                     }
 
@@ -1469,11 +1089,23 @@
 
 
         /* ========================================================
-           FIND OTHER DOCUMENTS
+           FIND DOCUMENT BUTTONS
            ======================================================== */
 
-        var documents =
-            findDocumentButtons();
+        var idrButtons =
+            findIdrButtons();
+
+
+        var insuranceButtons =
+            findInsuranceButtons();
+
+
+        var faceSheetButtons =
+            findFaceSheetButtons();
+
+
+        var eobButtons =
+            findEobButtons();
 
 
         /* ========================================================
@@ -1527,87 +1159,216 @@
 
 
         /* ========================================================
-           DOCUMENT HTML
+           DOCUMENT HIERARCHY
            
-           HIERARCHY:
-           
-           IDR FILE
-           VOB
-           INSURANCE CARD
-           FACE SHEET
-           EOB
+           1. IDR FILE
+           2. VOB
+           3. INSURANCE CARD
+           4. FACE SHEET
+           5. EOB
            ======================================================== */
 
-        var documentHtml =
+
+        /* ========================================================
+           IDR FILE HTML
+           ======================================================== */
+
+        var idrHtml =
+            createDocumentSection(
+                "IDR FILE",
+                "📄",
+                idrButtons,
+                "idr",
+                "No IDR files found."
+            );
+
+
+        /* ========================================================
+           VOB HTML
+           
+           EXISTING STYLE
+           ======================================================== */
+
+        var vobHtml =
             "";
 
 
-        /*
-         * ========================================================
-         * IDR FILE
-         * ========================================================
-         */
+        vobHtml +=
 
-        documentHtml +=
+            '<div style="' +
+
+            "margin-top:16px;" +
+            "padding-top:12px;" +
+            "border-top:1px solid #374151;" +
+
+            '">' +
+
+
+            '<div style="' +
+
+            "font-size:20px;" +
+            "font-weight:bold;" +
+            "display:flex;" +
+            "align-items:center;" +
+            "gap:8px;" +
+
+            '">' +
+
+            "VOB" +
+
+            '<span style="' +
+
+            "font-size:12px;" +
+            "color:#9ca3af;" +
+            "font-weight:normal;" +
+
+            '">' +
+
+            "(" +
+            vobs.length +
+            " found)" +
+
+            "</span>" +
+
+            "</div>" +
+
+
+            '<div style="margin-top:8px;">';
+
+
+        if (
+            vobs.length
+        ) {
+
+            vobs.forEach(
+                function (
+                    v,
+                    i
+                ) {
+
+                    var vobTitle =
+                        v.title ||
+                        v.textContent ||
+                        "View VOB";
+
+
+                    vobHtml +=
+
+                        '<button class="mainVobBtn" ' +
+
+                        'data-vob-index="' +
+                        i +
+                        '" ' +
+
+                        'style="' +
+
+                        "display:block;" +
+                        "width:100%;" +
+                        "padding:9px 10px;" +
+                        "margin-bottom:6px;" +
+                        "background:#2563eb;" +
+                        "color:#fff;" +
+                        "border:none;" +
+                        "border-radius:6px;" +
+                        "cursor:pointer;" +
+                        "font-weight:600;" +
+                        "font-size:13px;" +
+                        "text-align:left;" +
+                        "overflow:hidden;" +
+
+                        '">' +
+
+                        "📄 VOB " +
+                        (i + 1) +
+
+                        '<span style="' +
+
+                        "float:right;" +
+                        "color:#dbeafe;" +
+                        "font-size:11px;" +
+                        "margin-left:8px;" +
+                        "max-width:60%;" +
+                        "overflow:hidden;" +
+                        "text-overflow:ellipsis;" +
+                        "white-space:nowrap;" +
+
+                        '">' +
+
+                        escapeHtml(
+                            getButtonText(
+                                v
+                            )
+                        ) +
+
+                        "</span>" +
+
+                        "</button>";
+
+                }
+            );
+
+        } else {
+
+            vobHtml +=
+
+                '<div style="' +
+
+                "margin-top:6px;" +
+                "font-size:13px;" +
+                "color:#ff6b6b;" +
+
+                '">' +
+
+                "No VOB files found." +
+
+                "</div>";
+
+        }
+
+
+        vobHtml +=
+            "</div></div>";
+
+
+        /* ========================================================
+           INSURANCE CARD HTML
+           ======================================================== */
+
+        var insuranceHtml =
             createDocumentSection(
-                documents
-            );
-
-
-        /*
-         * ========================================================
-         * VOB
-         * ========================================================
-         */
-
-        documentHtml +=
-            createVobSection(
-                vobs
-            );
-
-
-        /*
-         * ========================================================
-         * INSURANCE CARD
-         * ========================================================
-         */
-
-        documentHtml +=
-            createStandardDocumentSection(
-                documents,
-                "insurance",
                 "Insurance Card",
-                "🪪"
+                "🪪",
+                insuranceButtons,
+                "insurance",
+                "No Insurance Card files found."
             );
 
 
-        /*
-         * ========================================================
-         * FACE SHEET
-         * ========================================================
-         */
+        /* ========================================================
+           FACE SHEET HTML
+           ======================================================== */
 
-        documentHtml +=
-            createStandardDocumentSection(
-                documents,
-                "facesheet",
+        var faceSheetHtml =
+            createDocumentSection(
                 "Face Sheet",
-                "👤"
+                "👤",
+                faceSheetButtons,
+                "facesheet",
+                "No Face Sheet files found."
             );
 
 
-        /*
-         * ========================================================
-         * EOB
-         * ========================================================
-         */
+        /* ========================================================
+           EOB HTML
+           ======================================================== */
 
-        documentHtml +=
-            createStandardDocumentSection(
-                documents,
-                "eob",
+        var eobHtml =
+            createDocumentSection(
                 "EOB",
-                "📋"
+                "📋",
+                eobButtons,
+                "eob",
+                "No EOB files found."
             );
 
 
@@ -1909,16 +1670,38 @@
 
 
             /* ====================================================
-               DOCUMENTS
-               
-               IDR
-               VOB
-               INSURANCE
-               FACE SHEET
-               EOB
+               1. IDR FILE
                ==================================================== */
 
-            documentHtml;
+            idrHtml +
+
+
+            /* ====================================================
+               2. VOB
+               ==================================================== */
+
+            vobHtml +
+
+
+            /* ====================================================
+               3. INSURANCE CARD
+               ==================================================== */
+
+            insuranceHtml +
+
+
+            /* ====================================================
+               4. FACE SHEET
+               ==================================================== */
+
+            faceSheetHtml +
+
+
+            /* ====================================================
+               5. EOB
+               ==================================================== */
+
+            eobHtml;
 
 
         /* ========================================================
@@ -1955,12 +1738,12 @@
         /* ========================================================
            VOB BUTTON EVENTS
            
-           IMPORTANT:
-           Same existing logic.
+           EXISTING BEHAVIOR PRESERVED:
            
-           - Popup removed first
-           - No scrolling
-           - Original VOB button clicked
+           - Remove popup
+           - Wait 100ms
+           - Click original VOB button
+           - NO SCROLL
            ======================================================== */
 
         popup
@@ -1988,16 +1771,8 @@
 
                             if (v) {
 
-                                /*
-                                 * Remove popup first.
-                                 */
-
                                 popup.remove();
 
-
-                                /*
-                                 * DO NOT SCROLL.
-                                 */
 
                                 setTimeout(
                                     function () {
@@ -2017,25 +1792,32 @@
 
 
         /* ========================================================
-           DOCUMENT OPEN BUTTON EVENTS
+           OTHER DOCUMENT BUTTON EVENTS
            
            IDR
            INSURANCE CARD
            FACE SHEET
            EOB
            
-           Uses the original button from the page.
+           Same compact-button behavior.
+           No scrolling.
            ======================================================== */
 
         popup
             .querySelectorAll(
-                ".documentOpenBtn"
+                ".mainDocumentBtn"
             )
             .forEach(
                 function (btn) {
 
                     btn.onclick =
                         function () {
+
+                            var type =
+                                btn.getAttribute(
+                                    "data-document-type"
+                                );
+
 
                             var index =
                                 parseInt(
@@ -2046,38 +1828,77 @@
                                 );
 
 
-                            var doc =
-                                documents[index];
+                            var originalButton =
+                                null;
 
 
-                            if (!doc || !doc.btn) {
+                            /*
+                             * Find the corresponding original
+                             * button based on document type.
+                             */
 
-                                return;
+                            if (
+                                type === "idr"
+                            ) {
+
+                                originalButton =
+                                    idrButtons[index];
+
+                            }
+
+                            else if (
+                                type === "insurance"
+                            ) {
+
+                                originalButton =
+                                    insuranceButtons[index];
+
+                            }
+
+                            else if (
+                                type === "facesheet"
+                            ) {
+
+                                originalButton =
+                                    faceSheetButtons[index];
+
+                            }
+
+                            else if (
+                                type === "eob"
+                            ) {
+
+                                originalButton =
+                                    eobButtons[index];
 
                             }
 
 
-                            /*
-                             * Remove popup first.
-                             */
+                            if (
+                                originalButton
+                            ) {
 
-                            popup.remove();
+                                /*
+                                 * Remove popup first.
+                                 */
+
+                                popup.remove();
 
 
-                            /*
-                             * Open original file button.
-                             *
-                             * No scrollIntoView is used.
-                             */
+                                /*
+                                 * Do not scroll.
+                                 */
 
-                            setTimeout(
-                                function () {
+                                setTimeout(
+                                    function () {
 
-                                    doc.btn.click();
+                                        originalButton.click();
 
-                                },
-                                100
-                            );
+                                    },
+                                    100
+                                );
+
+                            }
 
                         };
 
