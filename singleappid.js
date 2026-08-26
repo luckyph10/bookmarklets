@@ -1,11 +1,13 @@
 (function () {
-    const el = document.querySelector(
-        '#table-body > tr > td:nth-child(2) > a'
-    );
+    const el = document.querySelector('#table-body a[title="Open Arbit"]');
 
     if (el) {
-        window.open(el.href, '_blank');
+        const url = el.href.startsWith('http')
+            ? el.href
+            : new URL(el.getAttribute('href'), window.location.origin).href;
+
+        window.open(url, '_blank');
     } else {
-        alert('Element not found');
+        alert('Open Arbit link not found');
     }
 })();
