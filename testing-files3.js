@@ -22,7 +22,6 @@
             return;
         }
 
-        // Convert an ID into its URL
         function getUrl(item) {
             // App ID
             if (/^\d{1,8}$/.test(item)) {
@@ -37,7 +36,6 @@
             return null;
         }
 
-        // Create valid URLs
         const urls = items
             .map(item => ({
                 item,
@@ -50,7 +48,7 @@
             return;
         }
 
-        // Add APPID button to the current page
+        // Create persistent APPID button
         function addAppIdButton() {
             if (document.getElementById("appid-bookmarklet-button")) {
                 return;
@@ -66,7 +64,7 @@
                 top: "20px",
                 right: "20px",
                 zIndex: "2147483647",
-                padding: "10px 16px",
+                padding: "10px 18px",
                 background: "#007bff",
                 color: "#fff",
                 border: "none",
@@ -74,15 +72,37 @@
                 fontSize: "14px",
                 fontWeight: "bold",
                 cursor: "pointer",
-                boxShadow: "0 2px 8px rgba(0,0,0,0.3)"
+                boxShadow: "0 2px 8px rgba(0,0,0,0.3)",
+                opacity: "1",
+                display: "block"
             });
 
             button.addEventListener("click", function () {
+
+                // Keep button visible
+                button.style.display = "block";
+                button.style.visibility = "visible";
+                button.style.opacity = "1";
+
+                // Load singleappid.js
                 const script = document.createElement("script");
 
                 script.src =
                     "https://luckyph10.github.io/bookmarklets/singleappid.js?" +
                     Date.now();
+
+                // Keep button after script loads
+                script.onload = function () {
+                    button.style.display = "block";
+                    button.style.visibility = "visible";
+                };
+
+                script.onerror = function () {
+                    console.error("Failed to load singleappid.js");
+
+                    button.style.display = "block";
+                    button.style.visibility = "visible";
+                };
 
                 document.head.appendChild(script);
             });
@@ -90,94 +110,25 @@
             document.body.appendChild(button);
         }
 
-        // Open the URLs
-        for (let i = 0; i < urls.length; i++) {
-            const tab = i === 0
-                ? window
-                : window.open("about:blank", "_blank");
-
-            if (!tab) {
-                console.error("Popup blocked by browser.");
-                continue;
-            }
-
-            tab.location.href = urls[i].url;
-
-            // For dispute pages, add the APPID button after navigation.
-            if (/^DISP-\d+$/i.test(urls[i].item)) {
-                if (tab === window) {
-                    // Current tab will reload, so the button must be
-                    // recreated by this script when the dispute page loads.
-                    sessionStorage.setItem("addAppIdButton", "1");
-                } else {
-                    try {
-                        const timer = setInterval(() => {
-                            try {
-                                if (
-                                    tab.document &&
-                                    tab.document.readyState === "complete"
-                                ) {
-                                    clearInterval(timer);
-
-                                    const buttonScript = `
-                                        (() => {
-                                            if (document.getElementById("appid-bookmarklet-button")) return;
-
-                                            const button = document.createElement("button");
-                                            button.id = "appid-bookmarklet-button";
-                                            button.textContent = "APPID";
-
-                                            Object.assign(button.style, {
-                                                position: "fixed",
-                                                top: "20px",
-                                                right: "20px",
-                                                zIndex: "2147483647",
-                                                padding: "10px 16px",
-                                                background: "#007bff",
-                                                color: "#fff",
-                                                border: "none",
-                                                borderRadius: "6px",
-                                                fontSize: "14px",
-                                                fontWeight: "bold",
-                                                cursor: "pointer",
-                                                boxShadow: "0 2px 8px rgba(0,0,0,0.3)"
-                                            });
-
-                                            button.onclick = () => {
-                                                const script = document.createElement("script");
-                                                script.src =
-                                                    "https://luckyph10.github.io/bookmarklets/singleappid.js?" +
-                                                    Date.now();
-                                                document.head.appendChild(script);
-                                            };
-
-                                            document.body.appendChild(button);
-                                        })();
-                                    `;
-
-                                    tab.eval(buttonScript);
-                                }
-                            } catch (e) {
-                                // Wait until the dispute page is accessible.
-                            }
-                        }, 500);
-                    } catch (e) {
-                        console.error("Could not add APPID button:", e);
-                    }
-                }
-            }
-        }
-
-        // If this script runs again on the dispute page,
-        // create the button.
-        if (sessionStorage.getItem("addAppIdButton") === "1") {
-            sessionStorage.removeItem("addAppIdButton");
-
+        // If current page is a dispute page,
+        // create the APPID button.
+        if (/\/dispute\/DISP-\d+/i.test(window.location.href)) {
             if (document.readyState === "loading") {
-                document.addEventListener("DOMContentLoaded", addAppIdButton);
+                document.addEventListener(
+                    "DOMContentLoaded",
+                    addAppIdButton
+                );
             } else {
                 addAppIdButton();
             }
+        }
+
+        // Open first URL in current tab
+        window.location.href = urls[0].url;
+
+        // Open remaining URLs in new tabs
+        for (let i = 1; i < urls.length; i++) {
+            window.open(urls[i].url, "_blank");
         }
 
     } catch (err) {
