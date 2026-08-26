@@ -282,7 +282,6 @@ const getColumnRValue=(actualG,actualL)=>{
     const g=normalizeValue(actualG);
     const l=normalizeValue(actualL);
 
-
     console.log(
         "========================================"
     );
@@ -598,8 +597,8 @@ const showCopyMessage=(message,clipboardText)=>{
 
         copyAgainBtn.textContent=
             ok
-            ?"COPIED ✓"
-            :"COPY FAILED";
+                ?"COPIED ✓"
+                :"COPY FAILED";
 
 
         if(ok){
@@ -628,7 +627,6 @@ const showCopyMessage=(message,clipboardText)=>{
 
             toast.style.opacity="0";
 
-
             setTimeout(()=>{
 
                 if(toast.parentNode)
@@ -642,6 +640,316 @@ const showCopyMessage=(message,clipboardText)=>{
 
 
     return toast;
+
+};
+
+
+/* =========================================================
+   ARBIT ID IFRAME POPUP
+   ========================================================= */
+
+const openArbitIframe=()=>{
+
+    const arbitLink=
+        document.querySelector(
+            "#table-body > tr > td:nth-child(2) > a"
+        );
+
+    if(!arbitLink){
+
+        alert("ARBIT ID link not found.");
+
+        return;
+    }
+
+
+    const old=
+        document.getElementById(
+            "arbit-iframe-overlay"
+        );
+
+    if(old)
+        old.remove();
+
+
+    const overlay=
+        document.createElement("div");
+
+    overlay.id=
+        "arbit-iframe-overlay";
+
+
+    overlay.innerHTML=`
+
+        <div id="arbit-iframe-window">
+
+            <div id="arbit-iframe-header">
+
+                <div id="arbit-iframe-title">
+                    ARBIT ID
+                </div>
+
+                <button id="arbit-iframe-close">
+                    ×
+                </button>
+
+            </div>
+
+            <iframe
+                id="arbit-iframe"
+                src="${arbitLink.href}"
+                frameborder="0"
+                allowfullscreen
+            ></iframe>
+
+        </div>
+
+    `;
+
+
+    const iframeStyle=
+        document.createElement("style");
+
+    iframeStyle.id=
+        "arbit-iframe-style";
+
+
+    iframeStyle.textContent=`
+
+        #arbit-iframe-overlay{
+
+            position:fixed;
+
+            inset:0;
+
+            width:100%;
+
+            height:100%;
+
+            background:rgba(0,0,0,.72);
+
+            backdrop-filter:blur(5px);
+
+            -webkit-backdrop-filter:blur(5px);
+
+            z-index:2147483646;
+
+            display:flex;
+
+            align-items:center;
+
+            justify-content:center;
+
+            padding:20px;
+
+            box-sizing:border-box;
+
+        }
+
+
+        #arbit-iframe-window{
+
+            width:95vw;
+
+            height:92vh;
+
+            max-width:1500px;
+
+            background:#111;
+
+            border:1px solid rgba(255,255,255,.2);
+
+            border-radius:16px;
+
+            overflow:hidden;
+
+            box-shadow:
+                0 20px 70px
+                rgba(0,0,0,.65);
+
+            display:flex;
+
+            flex-direction:column;
+
+        }
+
+
+        #arbit-iframe-header{
+
+            height:48px;
+
+            min-height:48px;
+
+            background:#181818;
+
+            border-bottom:
+                1px solid
+                rgba(255,255,255,.15);
+
+            display:flex;
+
+            align-items:center;
+
+            justify-content:space-between;
+
+            padding:0 10px 0 16px;
+
+            box-sizing:border-box;
+
+        }
+
+
+        #arbit-iframe-title{
+
+            color:#fff;
+
+            font-family:
+                Arial,
+                sans-serif;
+
+            font-size:14px;
+
+            font-weight:700;
+
+        }
+
+
+        #arbit-iframe-close{
+
+            width:36px;
+
+            height:36px;
+
+            border:0;
+
+            border-radius:50%;
+
+            background:
+                rgba(255,255,255,.08);
+
+            color:#fff;
+
+            font-size:27px;
+
+            line-height:1;
+
+            cursor:pointer;
+
+            display:flex;
+
+            align-items:center;
+
+            justify-content:center;
+
+        }
+
+
+        #arbit-iframe-close:hover{
+
+            background:
+                rgba(220,40,40,.9);
+
+        }
+
+
+        #arbit-iframe{
+
+            width:100%;
+
+            height:calc(100% - 48px);
+
+            flex:1;
+
+            border:0;
+
+            background:#fff;
+
+        }
+
+
+        @media(max-width:700px){
+
+            #arbit-iframe-overlay{
+
+                padding:8px;
+
+            }
+
+            #arbit-iframe-window{
+
+                width:100vw;
+
+                height:96vh;
+
+                border-radius:12px;
+
+            }
+
+        }
+
+    `;
+
+
+    document.head.appendChild(
+        iframeStyle
+    );
+
+    document.body.appendChild(
+        overlay
+    );
+
+
+    const closeIframe=()=>{
+
+        overlay.remove();
+        iframeStyle.remove();
+
+    };
+
+
+    const closeBtn=
+        document.getElementById(
+            "arbit-iframe-close"
+        );
+
+
+    closeBtn.onclick=
+        closeIframe;
+
+
+    overlay.addEventListener(
+        "mousedown",
+        e=>{
+
+            if(
+                e.target===overlay
+            ){
+
+                closeIframe();
+
+            }
+
+        }
+    );
+
+
+    overlay.addEventListener(
+        "keydown",
+        e=>{
+
+            if(e.key==="Escape"){
+
+                e.preventDefault();
+
+                closeIframe();
+
+            }
+
+        },
+        true
+    );
+
+    closeBtn.focus();
 
 };
 
@@ -677,8 +985,19 @@ const popup=()=>new Promise(resolve=>{
             </button>
 
 
-            <div id="dp-title">
-                Dispute Information
+            <div id="dp-title-row">
+
+                <div id="dp-title">
+                    Dispute Information
+                </div>
+
+                <button
+                    id="dp-arbit-id"
+                    type="button"
+                >
+                    ARBIT ID
+                </button>
+
             </div>
 
 
@@ -982,6 +1301,7 @@ const popup=()=>new Promise(resolve=>{
             inset:0;
 
             width:100%;
+
             height:100%;
 
             z-index:2147483647;
@@ -1035,11 +1355,33 @@ const popup=()=>new Promise(resolve=>{
                 blur(14px);
 
             font-family:
-                Arial,sans-serif;
+                Arial,
+                sans-serif;
 
             color:#fff;
 
             box-sizing:border-box;
+
+        }
+
+
+        /* =================================================
+           TITLE + ARBIT BUTTON
+           ================================================= */
+
+        #dp-title-row{
+
+            display:flex;
+
+            align-items:center;
+
+            justify-content:space-between;
+
+            gap:12px;
+
+            margin-bottom:20px;
+
+            padding-right:34px;
 
         }
 
@@ -1050,7 +1392,61 @@ const popup=()=>new Promise(resolve=>{
 
             font-weight:700;
 
-            margin-bottom:20px;
+            margin:0;
+
+        }
+
+
+        #dp-arbit-id{
+
+            height:38px;
+
+            padding:0 16px;
+
+            border:
+                1px solid
+                rgba(255,255,255,.25);
+
+            border-radius:9px;
+
+            background:
+                #d92828;
+
+            color:#fff;
+
+            font-size:13px;
+
+            font-weight:800;
+
+            letter-spacing:.4px;
+
+            cursor:pointer;
+
+            white-space:nowrap;
+
+            box-shadow:
+                0 4px 12px
+                rgba(0,0,0,.3);
+
+        }
+
+
+        #dp-arbit-id:hover{
+
+            background:#ef3333;
+
+            transform:translateY(-1px);
+
+            box-shadow:
+                0 5px 16px
+                rgba(220,40,40,.4);
+
+        }
+
+
+        #dp-arbit-id:active{
+
+            transform:translateY(0);
 
         }
 
@@ -1519,6 +1915,26 @@ const popup=()=>new Promise(resolve=>{
 
         @media(max-width:650px){
 
+            #dp-title-row{
+
+                padding-right:34px;
+
+            }
+
+            #dp-title{
+
+                font-size:18px;
+
+            }
+
+            #dp-arbit-id{
+
+                padding:0 11px;
+
+                font-size:12px;
+
+            }
+
             #dp-state-row{
 
                 flex-wrap:wrap;
@@ -1623,6 +2039,22 @@ const popup=()=>new Promise(resolve=>{
         document.getElementById(
             "dp-continue"
         );
+
+    const arbitIdBtn=
+        document.getElementById(
+            "dp-arbit-id"
+        );
+
+
+    /* =====================================================
+       ARBIT ID BUTTON
+       ===================================================== */
+
+    arbitIdBtn.onclick=()=>{
+
+        openArbitIframe();
+
+    };
 
 
     /* =====================================================
@@ -2080,7 +2512,7 @@ const popup=()=>new Promise(resolve=>{
             /* P */
             isYes
                 ?nonBifurcated
-                :"N/A",
+                :"-",
 
             /* Q */
             isYes
@@ -2128,7 +2560,7 @@ const popup=()=>new Promise(resolve=>{
         console.log("M - EMAIL VOB (ALWAYS N/A):",row[12]);
         console.log("N - EMAIL CLOSURES (ALWAYS N/A):",row[13]);
         console.log("O - STATE:",row[14]);
-        console.log("P - NON-BIFURCATED (NO = N/A):",row[15]);
+        console.log("P - NON-BIFURCATED:",row[15]);
         console.log("Q - ELIGIBLE:",row[16]);
         console.log("R - NOTES:",row[17]);
 
@@ -2147,9 +2579,9 @@ const popup=()=>new Promise(resolve=>{
     };
 
 
-    /* =====================================================
+    /* =========================================================
        BUILD OUTPUT
-       ===================================================== */
+       ========================================================= */
 
     const buildOutput=(
         stateValue,
