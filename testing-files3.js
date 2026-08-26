@@ -1,2045 +1,307 @@
-(function () {
+(async function () {
+    try {
+        // =====================================================
+        // REMOVE EXISTING POPUP IF ALREADY PRESENT
+        // =====================================================
 
-    /* ============================================================
-       SELECTORS
-       ============================================================ */
-
-    const openerSelector =
-        "#ngForm > fieldset > div:nth-child(5) > div:nth-child(1) > div:nth-child(2) > app-vob-history > div > div:nth-child(3) > div.small.text-muted.d-inline-flex.align-items-center.gap-1.user-select-none";
-
-    const openContentSelector =
-        "#ngForm > fieldset > div:nth-child(5) > div:nth-child(1) > div:nth-child(2) > app-vob-history > div > div:nth-child(3) > div.collapse.mt-1.small.show";
-
-    const caseNotesSelector =
-        "#ngForm > fieldset > div:nth-child(24) > div.collapse.show > div > div:nth-child(3) > div > div > table > tbody";
-
-    const caseNotesButtonSelector =
-        "#ngForm > fieldset > div:nth-child(24) > div.d-flex.mb-2 > button";
-
-    /* Ineligibility Reasons textarea */
-    const ineligibilityReasonsSelector =
-        "#ngForm > fieldset > div:nth-child(15) > div:nth-child(3) > div:nth-child(2) > div > div:nth-child(2) > textarea";
-
-    /* State selector */
-    const stateSelector =
-        "#ngForm > fieldset > div:nth-child(15) > div:nth-child(3) > div.col-lg-6.justify-content-end.mb-4 > div:nth-child(1) > select";
-
-
-    /* ============================================================
-       VOB SECTION BUTTON
-       ============================================================ */
-
-    const vobSectionButtonSelector =
-        "#ngForm > fieldset > div:nth-child(22) > div.d-flex.mb-2 > button";
-
-
-    /* ============================================================
-       FILES BUTTON
-       ============================================================ */
-
-    const filesButtonSelector =
-        'button[title="Toggle the Files list"]';
-
-
-    /* ============================================================
-       NOTES BUTTON
-       ============================================================ */
-
-    const notesButtonSelector =
-        'button[title="Toggle Notes section"]';
-
-
-    /* ============================================================
-       OPEN VOB SECTION
-       ============================================================ */
-
-    function openVobSection() {
-
-        const vobSectionButton =
-            document.querySelector(
-                vobSectionButtonSelector
-            );
-
-        if (!vobSectionButton) {
-            return;
+        const existingPopup = document.getElementById("openAppIdPopup");
+        if (existingPopup) {
+            existingPopup.remove();
         }
 
-        const ariaExpanded =
-            vobSectionButton.getAttribute(
-                "aria-expanded"
-            );
+        // =====================================================
+        // CREATE POPUP CONTAINER
+        // =====================================================
 
-        if (ariaExpanded === "false") {
+        const popup = document.createElement("div");
+        popup.id = "openAppIdPopup";
 
-            vobSectionButton.click();
+        popup.style.position = "fixed";
+        popup.style.top = "10px";
+        popup.style.left = "10px";
+        popup.style.zIndex = "999999999";
 
-        }
+        popup.style.display = "flex";
+        popup.style.alignItems = "center";
+        popup.style.gap = "6px";
 
-        else if (ariaExpanded === null) {
+        popup.style.padding = "8px";
+        popup.style.background = "#222";
+        popup.style.borderRadius = "8px";
+        popup.style.boxShadow = "0 3px 15px rgba(0,0,0,0.4)";
 
-            vobSectionButton.click();
+        popup.style.fontFamily = "Arial, sans-serif";
 
-        }
+        // =====================================================
+        // CREATE DROPDOWN
+        // =====================================================
 
-    }
+        const select = document.createElement("select");
+        select.id = "openAppIdSelect";
 
+        select.style.minWidth = "160px";
+        select.style.maxWidth = "300px";
 
-    /* ============================================================
-       OPEN FILES
-       ============================================================ */
+        select.style.padding = "9px 10px";
+        select.style.border = "none";
+        select.style.borderRadius = "5px";
 
-    function openFilesSection() {
+        select.style.background = "#fff";
+        select.style.color = "#222";
 
-        const filesBtn =
-            document.querySelector(
-                filesButtonSelector
-            );
+        select.style.fontSize = "14px";
+        select.style.cursor = "pointer";
+        select.style.outline = "none";
 
-        if (!filesBtn) {
-            return;
-        }
+        // =====================================================
+        // CREATE OPEN BUTTON
+        // =====================================================
 
-        if (
-            filesBtn.getAttribute(
-                "aria-expanded"
-            ) === "false"
-        ) {
+        const openButton = document.createElement("button");
+        openButton.id = "openAppIdButton";
+        openButton.textContent = "OPEN APPID";
 
-            filesBtn.click();
+        openButton.style.padding = "9px 14px";
+        openButton.style.border = "none";
+        openButton.style.borderRadius = "5px";
 
-        }
+        openButton.style.background = "#007bff";
+        openButton.style.color = "#fff";
 
-    }
+        openButton.style.fontSize = "14px";
+        openButton.style.fontWeight = "bold";
 
+        openButton.style.cursor = "pointer";
+        openButton.style.whiteSpace = "nowrap";
 
-    /* ============================================================
-       OPEN NOTES
-       ============================================================ */
-
-    function openNotesSection() {
-
-        const notesBtn =
-            document.querySelector(
-                notesButtonSelector
-            );
-
-        if (!notesBtn) {
-            return;
-        }
-
-        if (
-            notesBtn.getAttribute(
-                "aria-expanded"
-            ) === "false"
-        ) {
-
-            notesBtn.click();
-
-        }
-
-    }
-
-
-    /* ============================================================
-       FIND VOB BUTTONS
-       
-       EXISTING VOB LOGIC PRESERVED
-       ============================================================ */
-
-    function findVobButtons() {
-
-        return [
-            ...document.querySelectorAll(
-                "button.btn-modal"
-            )
-        ].filter(function (btn) {
-
-            const title =
-                (
-                    btn.title ||
-                    ""
-                ).toLowerCase();
-
-            const text =
-                (
-                    btn.textContent ||
-                    ""
-                ).toLowerCase();
-
-            return (
-                title.includes("view vob") ||
-                text.includes("vob")
-            );
-
+        openButton.addEventListener("mouseenter", function () {
+            if (!openButton.disabled) {
+                openButton.style.background = "#0056b3";
+            }
         });
 
-    }
+        openButton.addEventListener("mouseleave", function () {
+            if (!openButton.disabled) {
+                openButton.style.background = "#007bff";
+            }
+        });
 
+        // =====================================================
+        // CREATE REFRESH BUTTON
+        // =====================================================
 
-    /* ============================================================
-       FIND IDR FILES
-       
-       Exact bookmarklet logic:
-       View proofofidrinitiation
-       ============================================================ */
+        const refreshButton = document.createElement("button");
+        refreshButton.id = "refreshAppIdButton";
+        refreshButton.textContent = "↻";
 
-    function findIdrButtons() {
+        refreshButton.title = "Refresh IDs from clipboard";
 
-        return [
-            ...document.querySelectorAll(
-                'button.btn-modal[title="View proofofidrinitiation"]'
-            )
-        ];
+        refreshButton.style.width = "32px";
+        refreshButton.style.height = "32px";
 
-    }
+        refreshButton.style.border = "none";
+        refreshButton.style.borderRadius = "5px";
 
+        refreshButton.style.background = "#444";
+        refreshButton.style.color = "#fff";
 
-    /* ============================================================
-       FIND INSURANCE CARD
-       ============================================================ */
+        refreshButton.style.fontSize = "18px";
+        refreshButton.style.cursor = "pointer";
 
-    function findInsuranceButtons() {
+        refreshButton.addEventListener("mouseenter", function () {
+            refreshButton.style.background = "#555";
+        });
 
-        return [
-            ...document.querySelectorAll(
-                'button.btn-modal[title="View insurancecard"]'
-            )
-        ];
+        refreshButton.addEventListener("mouseleave", function () {
+            refreshButton.style.background = "#444";
+        });
 
-    }
+        // =====================================================
+        // ADD ELEMENTS TO POPUP
+        // =====================================================
 
+        popup.appendChild(select);
+        popup.appendChild(openButton);
+        popup.appendChild(refreshButton);
 
-    /* ============================================================
-       FIND FACE SHEET
-       ============================================================ */
+        document.body.appendChild(popup);
 
-    function findFaceSheetButtons() {
+        // =====================================================
+        // CONVERT ID INTO URL
+        // =====================================================
 
-        return [
-            ...document.querySelectorAll(
-                'button.btn-modal[title="View facesheet"]'
-            )
-        ];
+        function getUrl(item) {
+            // App ID
+            if (/^\d{1,8}$/.test(item)) {
+                return `https://arbit.halomd.com/calculator/${item}`;
+            }
 
-    }
+            // Dispute ID
+            if (/^DISP-\d+$/i.test(item)) {
+                return `https://arbit.halomd.com/dispute/${item}`;
+            }
 
-
-    /* ============================================================
-       FIND EOB
-       ============================================================ */
-
-    function findEobButtons() {
-
-        return [
-            ...document.querySelectorAll(
-                'button.btn-modal[title="View eob"]'
-            )
-        ];
-
-    }
-
-
-    /* ============================================================
-       ESCAPE HTML
-       ============================================================ */
-
-    function escapeHtml(text) {
-
-        return String(text)
-            .replace(
-                /&/g,
-                "&amp;"
-            )
-            .replace(
-                /</g,
-                "&lt;"
-            )
-            .replace(
-                />/g,
-                "&gt;"
-            )
-            .replace(
-                /"/g,
-                "&quot;"
-            )
-            .replace(
-                /'/g,
-                "&#039;"
-            );
-
-    }
-
-
-    /* ============================================================
-       GET BUTTON TITLE / TEXT
-       ============================================================ */
-
-    function getButtonText(btn) {
-
-        return (
-            btn.title ||
-            btn.textContent ||
-            btn.innerText ||
-            ""
-        )
-            .trim()
-            .replace(
-                /\s+/g,
-                " "
-            );
-
-    }
-
-
-    /* ============================================================
-       CREATE COMPACT DOCUMENT BUTTON
-       
-       SAME STYLE AS VOB
-       ============================================================ */
-
-    function createDocumentButton(
-        btn,
-        label,
-        icon,
-        index,
-        total,
-        type
-    ) {
-
-        const buttonText =
-            getButtonText(
-                btn
-            );
-
-
-        let displayLabel =
-            label;
-
-
-        /*
-         * Number documents only when there
-         * are multiple of the same type.
-         */
-
-        if (total > 1) {
-
-            displayLabel =
-                label +
-                " " +
-                (index + 1);
-
+            return null;
         }
 
+        // =====================================================
+        // LOAD IDS FROM CLIPBOARD
+        // =====================================================
 
-        return (
+        async function loadIds() {
+            try {
+                // Clear dropdown
+                select.innerHTML = "";
 
-            '<button class="mainDocumentBtn" ' +
+                // Read clipboard
+                let clipboardText = await navigator.clipboard.readText();
+                clipboardText = clipboardText.trim();
 
-            'data-document-type="' +
-            escapeHtml(
-                type
-            ) +
-            '" ' +
-
-            'data-document-index="' +
-            index +
-            '" ' +
-
-            'style="' +
-
-            "display:block;" +
-            "width:100%;" +
-            "padding:9px 10px;" +
-            "margin-bottom:6px;" +
-            "background:#2563eb;" +
-            "color:#fff;" +
-            "border:none;" +
-            "border-radius:6px;" +
-            "cursor:pointer;" +
-            "font-weight:600;" +
-            "font-size:13px;" +
-            "text-align:left;" +
-            "overflow:hidden;" +
-
-            '">' +
-
-            icon +
-            " " +
-            escapeHtml(
-                displayLabel
-            ) +
-
-            (
-                buttonText
-
-                    ?
-
-                    '<span style="' +
-
-                    "float:right;" +
-                    "color:#dbeafe;" +
-                    "font-size:11px;" +
-                    "margin-left:8px;" +
-                    "max-width:60%;" +
-                    "overflow:hidden;" +
-                    "text-overflow:ellipsis;" +
-                    "white-space:nowrap;" +
-
-                    '">' +
-
-                    escapeHtml(
-                        buttonText
-                    ) +
-
-                    "</span>"
-
-                    :
-
-                    ""
-
-            ) +
-
-            "</button>"
-
-        );
-
-    }
-
-
-    /* ============================================================
-       CREATE DOCUMENT SECTION
-       
-       Compact section matching VOB
-       ============================================================ */
-
-    function createDocumentSection(
-        title,
-        icon,
-        buttons,
-        type,
-        emptyText
-    ) {
-
-        let html = "";
-
-
-        html +=
-
-            '<div style="' +
-
-            "margin-top:16px;" +
-            "padding-top:12px;" +
-            "border-top:1px solid #374151;" +
-
-            '">' +
-
-
-            '<div style="' +
-
-            "font-size:20px;" +
-            "font-weight:bold;" +
-            "display:flex;" +
-            "align-items:center;" +
-            "gap:8px;" +
-
-            '">' +
-
-            escapeHtml(
-                title
-            ) +
-
-            '<span style="' +
-
-            "font-size:12px;" +
-            "color:#9ca3af;" +
-            "font-weight:normal;" +
-
-            '">' +
-
-            "(" +
-            buttons.length +
-            " found)" +
-
-            "</span>" +
-
-            "</div>" +
-
-
-            '<div style="margin-top:8px;">';
-
-
-        if (
-            buttons.length
-        ) {
-
-            buttons.forEach(
-                function (
-                    btn,
-                    index
+                // Remove surrounding quotes
+                if (
+                    clipboardText.startsWith('"') &&
+                    clipboardText.endsWith('"')
                 ) {
-
-                    html +=
-                        createDocumentButton(
-                            btn,
-                            title,
-                            icon,
-                            index,
-                            buttons.length,
-                            type
-                        );
-
+                    clipboardText = clipboardText.slice(1, -1).trim();
                 }
-            );
 
-        } else {
-
-            html +=
-
-                '<div style="' +
-
-                "margin-top:6px;" +
-                "font-size:13px;" +
-                "color:#ff6b6b;" +
-
-                '">' +
-
-                escapeHtml(
-                    emptyText
-                ) +
-
-                "</div>";
-
-        }
-
-
-        html +=
-            "</div></div>";
-
-
-        return html;
-
-    }
-
-
-    /* ============================================================
-       MAIN LOGIC
-       ============================================================ */
-
-    function runLogic() {
-
-        /* ========================================================
-           DOB
-           ======================================================== */
-
-        var dob =
-            document.querySelector(
-                "#DOB"
-            );
-
-
-        if (!dob) {
-
-            alert(
-                "DOB not found"
-            );
-
-            return;
-
-        }
-
-
-        var dobValue =
-            dob.value ||
-            dob.textContent ||
-            dob.innerText;
-
-
-        var dobDate =
-            new Date(
-                dobValue
-            );
-
-
-        if (isNaN(dobDate)) {
-
-            alert(
-                "Invalid DOB"
-            );
-
-            return;
-
-        }
-
-
-        /* ========================================================
-           AGE
-           ======================================================== */
-
-        var today =
-            new Date();
-
-
-        var age =
-            today.getFullYear() -
-            dobDate.getFullYear();
-
-
-        if (
-            today.getMonth() <
-                dobDate.getMonth() ||
-            (
-                today.getMonth() ===
-                    dobDate.getMonth() &&
-                today.getDate() <
-                    dobDate.getDate()
-            )
-        ) {
-
-            age--;
-
-        }
-
-
-        /* ========================================================
-           PLAN TYPE
-           ======================================================== */
-
-        var planType =
-            "Unknown";
-
-
-        var plan =
-            Array.from(
-                document.querySelectorAll(
-                    "select"
-                )
-            ).find(function (s) {
-
-                return (
-                    s.parentElement &&
-                    s.parentElement.innerText.indexOf(
-                        "Plan Type"
-                    ) > -1
-                );
-
-            });
-
-
-        if (plan) {
-
-            planType =
-                plan.options[
-                    plan.selectedIndex
-                ].text;
-
-        }
-
-
-        /* ========================================================
-           STATE
-           ======================================================== */
-
-        var state =
-            "Unknown";
-
-
-        var stateElement =
-            document.querySelector(
-                stateSelector
-            );
-
-
-        if (stateElement) {
-
-            state =
-                stateElement.selectedOptions[0]?.text ||
-                stateElement.value ||
-                "Unknown";
-
-
-            state =
-                state.trim();
-
-        }
-
-
-        /* ========================================================
-           BIFURCATED STATES
-           ======================================================== */
-
-        var bifurcatedStates = [
-
-            "Alaska",
-            "California",
-            "Colorado",
-            "Connecticut",
-            "Delaware",
-            "Florida",
-            "Georgia",
-            "Illinois",
-            "Maine",
-            "Maryland",
-            "Michigan",
-            "Missouri",
-            "Nebraska",
-            "Nevada",
-            "New Hampshire",
-            "New Jersey",
-            "New Mexico",
-            "New York",
-            "Ohio",
-            "Texas",
-            "Virginia",
-            "Washington"
-
-        ];
-
-
-        var stateLower =
-            state
-                .toLowerCase()
-                .trim();
-
-
-        var isBifurcated =
-            bifurcatedStates.some(
-                function (
-                    bifurcatedState
-                ) {
-
-                    return (
-                        stateLower ===
-                        bifurcatedState
-                            .toLowerCase()
+                // Split by:
+                // newline
+                // spaces
+                // commas
+                // tabs
+                // semicolons
+
+                const items = clipboardText
+                    .split(/[\s,;]+/)
+                    .map(item =>
+                        item
+                            .replace(/^"|"$/g, "")
                             .trim()
-                    );
+                    )
+                    .filter(Boolean);
 
+                if (!items.length) {
+                    const option = document.createElement("option");
+                    option.value = "";
+                    option.textContent = "Clipboard empty";
+
+                    select.appendChild(option);
+
+                    openButton.disabled = true;
+                    openButton.style.background = "#777";
+
+                    return;
                 }
-            );
 
+                // =================================================
+                // CREATE VALID URLS
+                // =================================================
 
-        /* ========================================================
-           STATE INDICATOR
-           ======================================================== */
+                const urls = items
+                    .map(item => ({
+                        item: item,
+                        url: getUrl(item)
+                    }))
+                    .filter(x => x.url);
 
-        var stateColor;
+                if (!urls.length) {
+                    const option = document.createElement("option");
+                    option.value = "";
+                    option.textContent = "No valid ID";
 
-        if (isBifurcated) {
+                    select.appendChild(option);
 
-            stateColor =
-                "#ff4d4f";
+                    openButton.disabled = true;
+                    openButton.style.background = "#777";
 
-        } else {
+                    return;
+                }
 
-            stateColor =
-                "#2ecc71";
+                // =================================================
+                // ADD VALID IDS TO DROPDOWN
+                // =================================================
 
-        }
+                urls.forEach((entry) => {
+                    const option = document.createElement("option");
 
+                    option.value = entry.url;
+                    option.textContent = entry.item;
 
-        var stateStatus =
-            isBifurcated
-                ? "Bifurcated"
-                : "Non-Bifurcated";
+                    select.appendChild(option);
+                });
 
+                // Select first ID
+                select.selectedIndex = 0;
 
-        /* ========================================================
-           HISTORY TEXT
-           ======================================================== */
+                // Enable button
+                openButton.disabled = false;
+                openButton.style.background = "#007bff";
 
-        var historyText =
-            "";
+                console.log("Loaded IDs:", urls);
 
+            } catch (err) {
+                console.error("Unable to read clipboard:", err);
 
-        document.querySelectorAll(
+                select.innerHTML = "";
 
-            "#ngForm > fieldset > div:nth-child(5) > div:nth-child(1) > div:nth-child(2) > app-vob-history > div > div:nth-child(3) > div.collapse.mt-1.small.show > div > div > div.d-flex.flex-wrap.gap-3.mb-1 > span:nth-child(1), #ngForm > fieldset > div:nth-child(5) > div:nth-child(1) > div:nth-child(2) > app-vob-history > div > div:nth-child(3) > div.collapse.mt-1.small.show > div > div > div.text-muted.fst-italic"
+                const option = document.createElement("option");
+                option.value = "";
+                option.textContent = "Clipboard unavailable";
 
-        ).forEach(
-            function (e) {
+                select.appendChild(option);
 
-                historyText +=
-                    " " +
-                    e.innerText;
-
+                openButton.disabled = true;
+                openButton.style.background = "#777";
             }
-        );
-
-
-        historyText =
-            historyText.toLowerCase();
-
-
-        /* ========================================================
-           CASE NOTES TEXT
-           ======================================================== */
-
-        var caseNotesText =
-            "";
-
-
-        var caseNotesElement =
-            document.querySelector(
-                caseNotesSelector
-            );
-
-
-        if (caseNotesElement) {
-
-            caseNotesText =
-                caseNotesElement
-                    .innerText
-                    .toLowerCase();
-
         }
 
+        // =====================================================
+        // LOAD CLIPBOARD IDS
+        // =====================================================
 
-        /* ========================================================
-           INELIGIBILITY REASONS
-           ======================================================== */
+        await loadIds();
 
-        var ineligibilityReasonsText =
-            "";
+        // =====================================================
+        // OPEN SELECTED ID
+        // =====================================================
 
+        openButton.addEventListener("click", function () {
+            const selectedUrl = select.value;
 
-        var ineligibilityReasonsElement =
-            document.querySelector(
-                ineligibilityReasonsSelector
-            );
+            if (!selectedUrl) {
+                return;
+            }
 
+            // Open ONLY the selected ID in a new tab
+            window.open(selectedUrl, "_blank");
+        });
 
-        if (
-            ineligibilityReasonsElement
-        ) {
+        // =====================================================
+        // REFRESH DROPDOWN
+        // =====================================================
 
-            ineligibilityReasonsText =
-                ineligibilityReasonsElement.value ||
-                ineligibilityReasonsElement.textContent ||
-                "";
+        refreshButton.addEventListener("click", async function () {
+            await loadIds();
+        });
 
+        // =====================================================
+        // LOG SELECTED ID
+        // =====================================================
 
-            ineligibilityReasonsText =
-                ineligibilityReasonsText.trim();
+        select.addEventListener("change", function () {
+            const selectedOption =
+                select.options[select.selectedIndex];
 
-        }
-
-
-        /* ========================================================
-           PT MATCH
-           ======================================================== */
-
-        var ptMatch =
-            false;
-
-
-        var historyEvidence =
-            [];
-
-
-        var caseNotesEvidence =
-            [];
-
-
-        /* ========================================================
-           SELF FUNDED KEYWORDS
-           ======================================================== */
-
-        var selfFundedKeywords = [
-
-            "N859",
-            "RARC code N859 is present, indicating NSA jurisdiction",
-            "self funded",
-            "self-funded",
-            "self insured",
-            "self-insured",
-            "unitedhealthcare choice plus",
-            "united healthcare choice",
-            "uhc choice plus",
-            "ucqn",
-            "umr",
-            "boon chapman",
-            "boon-chapman",
-            "allied benefit systems",
-            "oa managed choice pos",
-            "aso",
-            "erisa",
-            "ERISA/Self Funded",
-            "meritain",
-            "oos",
-            "uhss",
-            "commercial plans can have tiers with self funded",
-            "n859",
-            "n860",
-            "n862",
-            "n863",
-            "n864",
-            "n865",
-            "n866",
-            "n869",
-            "n870",
-            "n874",
-            "n875",
-            "n876",
-            "n877",
-            "ma44",
-            "n599",
-            "n858",
-            "n867",
-            "n871",
-            "n883"
-
-        ];
-
-
-        /* ========================================================
-           PT EVIDENCE LOGIC
-           ======================================================== */
-
-        if (
-            planType ===
-                "Self Funded" ||
-            planType ===
-                "Self Funded (Opt Out)"
-        ) {
-
-            selfFundedKeywords.forEach(
-                function (keyword) {
-
-                    var search =
-                        keyword.toLowerCase();
-
-
-                    if (
-                        historyText.indexOf(
-                            search
-                        ) > -1
-                    ) {
-
-                        ptMatch =
-                            true;
-
-
-                        if (
-                            historyEvidence.indexOf(
-                                keyword
-                            ) === -1
-                        ) {
-
-                            historyEvidence.push(
-                                keyword
-                            );
-
-                        }
-
-                    }
-
-
-                    if (
-                        caseNotesText.indexOf(
-                            search
-                        ) > -1
-                    ) {
-
-                        ptMatch =
-                            true;
-
-
-                        if (
-                            caseNotesEvidence.indexOf(
-                                keyword
-                            ) === -1
-                        ) {
-
-                            caseNotesEvidence.push(
-                                keyword
-                            );
-
-                        }
-
-                    }
-
-                }
-            );
-
-        } else {
-
-            var search =
-                planType.toLowerCase();
-
-
-            if (
-                historyText.indexOf(
-                    search
-                ) > -1
-            ) {
-
-                ptMatch =
-                    true;
-
-
-                historyEvidence.push(
-                    planType
+            if (selectedOption) {
+                console.log(
+                    "Selected ID:",
+                    selectedOption.textContent
                 );
-
             }
+        });
 
-
-            if (
-                caseNotesText.indexOf(
-                    search
-                ) > -1
-            ) {
-
-                ptMatch =
-                    true;
-
-
-                caseNotesEvidence.push(
-                    planType
-                );
-
-            }
-
-        }
-
-
-        /* ========================================================
-           PT INDICATOR
-           ======================================================== */
-
-        var redPlanTypeKeywords = [
-
-            "exchange/marketplace-state",
-            "other",
-            "unknown",
-            "government",
-            "state",
-            "federal",
-            "medicaid",
-            "medicare"
-
-        ];
-
-
-        var planTypeLower =
-            planType.toLowerCase();
-
-
-        var isRedPlanType =
-            redPlanTypeKeywords.some(
-                function (keyword) {
-
-                    return (
-                        planTypeLower.indexOf(
-                            keyword
-                        ) > -1
-                    );
-
-                }
-            );
-
-
-        var ptColor;
-
-
-        if (isRedPlanType) {
-
-            ptColor =
-                "#ff4d4f";
-
-        } else if (ptMatch) {
-
-            ptColor =
-                "#2ecc71";
-
-        } else {
-
-            ptColor =
-                "#f39c12";
-
-        }
-
-
-        /* ========================================================
-           AGE INDICATOR
-           ======================================================== */
-
-        var ageColor =
-            age >= 65
-                ? "#ff4d4f"
-                : "#2ecc71";
-
-
-        /* ========================================================
-           INELIGIBILITY INDICATOR
-           ======================================================== */
-
-        var ineligibilityColor =
-            ineligibilityReasonsText
-                ? "#2ecc71"
-                : "#ff4d4f";
-
-
-        /* ========================================================
-           FIND VOB BUTTONS
-           ======================================================== */
-
-        var vobs =
-            findVobButtons();
-
-
-        /* ========================================================
-           FIND DOCUMENT BUTTONS
-           ======================================================== */
-
-        var idrButtons =
-            findIdrButtons();
-
-
-        var insuranceButtons =
-            findInsuranceButtons();
-
-
-        var faceSheetButtons =
-            findFaceSheetButtons();
-
-
-        var eobButtons =
-            findEobButtons();
-
-
-        /* ========================================================
-           REMOVE OLD POPUP
-           ======================================================== */
-
-        var old =
-            document.getElementById(
-                "agePopupBookmarklet"
-            );
-
-
-        if (old) {
-
-            old.remove();
-
-        }
-
-
-        /* ========================================================
-           CREATE POPUP
-           ======================================================== */
-
-        var popup =
-            document.createElement(
-                "div"
-            );
-
-
-        popup.id =
-            "agePopupBookmarklet";
-
-
-        popup.style.cssText =
-
-            "position:fixed;" +
-            "top:100px;" +
-            "left:50%;" +
-            "transform:translateX(-50%);" +
-            "background:rgba(0,0,0,.94);" +
-            "color:#fff;" +
-            "padding:20px;" +
-            "border-radius:16px;" +
-            "z-index:99999999;" +
-            "font-family:Segoe UI,Arial,sans-serif;" +
-            "box-shadow:0 10px 30px rgba(0,0,0,.5);" +
-            "max-width:500px;" +
-            "width:calc(100% - 40px);" +
-            "max-height:80vh;" +
-            "overflow-y:auto;";
-
-
-        /* ========================================================
-           DOCUMENT HIERARCHY
-           
-           1. IDR FILE
-           2. VOB
-           3. INSURANCE CARD
-           4. FACE SHEET
-           5. EOB
-           ======================================================== */
-
-
-        /* ========================================================
-           IDR FILE HTML
-           ======================================================== */
-
-        var idrHtml =
-            createDocumentSection(
-                "IDR FILE",
-                "📄",
-                idrButtons,
-                "idr",
-                "No IDR files found."
-            );
-
-
-        /* ========================================================
-           VOB HTML
-           
-           EXISTING STYLE
-           ======================================================== */
-
-        var vobHtml =
-            "";
-
-
-        vobHtml +=
-
-            '<div style="' +
-
-            "margin-top:16px;" +
-            "padding-top:12px;" +
-            "border-top:1px solid #374151;" +
-
-            '">' +
-
-
-            '<div style="' +
-
-            "font-size:20px;" +
-            "font-weight:bold;" +
-            "display:flex;" +
-            "align-items:center;" +
-            "gap:8px;" +
-
-            '">' +
-
-            "VOB" +
-
-            '<span style="' +
-
-            "font-size:12px;" +
-            "color:#9ca3af;" +
-            "font-weight:normal;" +
-
-            '">' +
-
-            "(" +
-            vobs.length +
-            " found)" +
-
-            "</span>" +
-
-            "</div>" +
-
-
-            '<div style="margin-top:8px;">';
-
-
-        if (
-            vobs.length
-        ) {
-
-            vobs.forEach(
-                function (
-                    v,
-                    i
-                ) {
-
-                    var vobTitle =
-                        v.title ||
-                        v.textContent ||
-                        "View VOB";
-
-
-                    vobHtml +=
-
-                        '<button class="mainVobBtn" ' +
-
-                        'data-vob-index="' +
-                        i +
-                        '" ' +
-
-                        'style="' +
-
-                        "display:block;" +
-                        "width:100%;" +
-                        "padding:9px 10px;" +
-                        "margin-bottom:6px;" +
-                        "background:#2563eb;" +
-                        "color:#fff;" +
-                        "border:none;" +
-                        "border-radius:6px;" +
-                        "cursor:pointer;" +
-                        "font-weight:600;" +
-                        "font-size:13px;" +
-                        "text-align:left;" +
-                        "overflow:hidden;" +
-
-                        '">' +
-
-                        "📄 VOB " +
-                        (i + 1) +
-
-                        '<span style="' +
-
-                        "float:right;" +
-                        "color:#dbeafe;" +
-                        "font-size:11px;" +
-                        "margin-left:8px;" +
-                        "max-width:60%;" +
-                        "overflow:hidden;" +
-                        "text-overflow:ellipsis;" +
-                        "white-space:nowrap;" +
-
-                        '">' +
-
-                        escapeHtml(
-                            getButtonText(
-                                v
-                            )
-                        ) +
-
-                        "</span>" +
-
-                        "</button>";
-
-                }
-            );
-
-        } else {
-
-            vobHtml +=
-
-                '<div style="' +
-
-                "margin-top:6px;" +
-                "font-size:13px;" +
-                "color:#ff6b6b;" +
-
-                '">' +
-
-                "No VOB files found." +
-
-                "</div>";
-
-        }
-
-
-        vobHtml +=
-            "</div></div>";
-
-
-        /* ========================================================
-           INSURANCE CARD HTML
-           ======================================================== */
-
-        var insuranceHtml =
-            createDocumentSection(
-                "Insurance Card",
-                "🪪",
-                insuranceButtons,
-                "insurance",
-                "No Insurance Card files found."
-            );
-
-
-        /* ========================================================
-           FACE SHEET HTML
-           ======================================================== */
-
-        var faceSheetHtml =
-            createDocumentSection(
-                "Face Sheet",
-                "👤",
-                faceSheetButtons,
-                "facesheet",
-                "No Face Sheet files found."
-            );
-
-
-        /* ========================================================
-           EOB HTML
-           ======================================================== */
-
-        var eobHtml =
-            createDocumentSection(
-                "EOB",
-                "📋",
-                eobButtons,
-                "eob",
-                "No EOB files found."
-            );
-
-
-        /* ========================================================
-           POPUP HTML
-           ======================================================== */
-
-        popup.innerHTML =
-
-            /* CLOSE */
-
-            '<button class="mainCloseButton" style="' +
-
-            "position:absolute;" +
-            "top:5px;" +
-            "right:10px;" +
-            "background:none;" +
-            "border:none;" +
-            "color:#fff;" +
-            "font-size:20px;" +
-            "cursor:pointer;" +
-
-            '">×</button>' +
-
-
-            /* ====================================================
-               AGE
-               ==================================================== */
-
-            '<div style="' +
-
-            "font-size:24px;" +
-            "font-weight:bold;" +
-            "display:flex;" +
-            "align-items:center;" +
-            "gap:10px;" +
-
-            '">' +
-
-            "AGE: " +
-
-            age +
-
-            '<span style="' +
-
-            "width:14px;" +
-            "height:14px;" +
-            "border-radius:50%;" +
-            "background:" +
-            ageColor +
-            ";" +
-            "display:inline-block;" +
-
-            '"></span>' +
-
-            "</div>" +
-
-
-            /* ====================================================
-               PT
-               ==================================================== */
-
-            '<div style="' +
-
-            "margin-top:10px;" +
-            "font-size:24px;" +
-            "font-weight:bold;" +
-            "display:flex;" +
-            "align-items:center;" +
-            "gap:10px;" +
-
-            '">' +
-
-            "PT: " +
-
-            escapeHtml(
-                planType
-            ) +
-
-            '<span style="' +
-
-            "width:14px;" +
-            "height:14px;" +
-            "border-radius:50%;" +
-            "background:" +
-            ptColor +
-            ";" +
-            "display:inline-block;" +
-
-            '"></span>' +
-
-            "</div>" +
-
-
-            /* ====================================================
-               HISTORY EVIDENCE
-               ==================================================== */
-
-            (
-
-                historyEvidence.length
-
-                    ?
-
-                    '<div style="' +
-
-                    "margin-top:10px;" +
-                    "font-size:14px;" +
-                    "color:#90ee90;" +
-
-                    '">' +
-
-                    '<strong style="color:#ffffff;">' +
-
-                    "History Evidence:" +
-
-                    "</strong><br>" +
-
-                    historyEvidence
-                        .map(
-                            escapeHtml
-                        )
-                        .join(
-                            "<br>"
-                        ) +
-
-                    "</div>"
-
-                    :
-
-                    ""
-
-            ) +
-
-
-            /* ====================================================
-               CASE NOTES
-               ==================================================== */
-
-            (
-
-                caseNotesEvidence.length
-
-                    ?
-
-                    '<div style="' +
-
-                    "margin-top:10px;" +
-                    "font-size:14px;" +
-                    "color:#90ee90;" +
-
-                    '">' +
-
-                    '<strong style="color:#ffffff;">' +
-
-                    "Case Notes:" +
-
-                    "</strong><br>" +
-
-                    caseNotesEvidence
-                        .map(
-                            escapeHtml
-                        )
-                        .join(
-                            "<br>"
-                        ) +
-
-                    "</div>"
-
-                    :
-
-                    ""
-
-            ) +
-
-
-            /* ====================================================
-               INELIGIBILITY
-               ==================================================== */
-
-            '<div style="' +
-
-            "margin-top:14px;" +
-            "font-size:16px;" +
-            "font-weight:bold;" +
-            "display:flex;" +
-            "align-items:center;" +
-            "gap:8px;" +
-
-            '">' +
-
-            "Ineligibility Reasons:" +
-
-            '<span style="' +
-
-            "width:14px;" +
-            "height:14px;" +
-            "border-radius:50%;" +
-            "background:" +
-            ineligibilityColor +
-            ";" +
-            "display:inline-block;" +
-
-            '"></span>' +
-
-            "</div>" +
-
-
-            (
-
-                ineligibilityReasonsText
-
-                    ?
-
-                    '<div style="' +
-
-                    "margin-top:6px;" +
-                    "font-size:14px;" +
-                    "color:#90ee90;" +
-                    "white-space:pre-wrap;" +
-                    "word-break:break-word;" +
-
-                    '">' +
-
-                    escapeHtml(
-                        ineligibilityReasonsText
-                    ) +
-
-                    "</div>"
-
-                    :
-
-                    '<div style="' +
-
-                    "margin-top:6px;" +
-                    "font-size:14px;" +
-                    "color:#ff6b6b;" +
-
-                    '">' +
-
-                    "No evidence found / textarea is empty." +
-
-                    "</div>"
-
-            ) +
-
-
-            /* ====================================================
-               STATE
-               ==================================================== */
-
-            '<div style="' +
-
-            "margin-top:14px;" +
-            "font-size:20px;" +
-            "font-weight:bold;" +
-            "display:flex;" +
-            "align-items:center;" +
-            "gap:10px;" +
-
-            '">' +
-
-            "STATE: " +
-
-            '<span style="' +
-
-            "width:14px;" +
-            "height:14px;" +
-            "border-radius:50%;" +
-            "background:" +
-            stateColor +
-            ";" +
-            "display:inline-block;" +
-
-            '"></span>' +
-
-            "</div>" +
-
-
-            '<div style="' +
-
-            "margin-top:4px;" +
-            "font-size:16px;" +
-            "color:#fff;" +
-
-            '">' +
-
-            escapeHtml(
-                state
-            ) +
-
-            " (" +
-
-            stateStatus +
-
-            ")" +
-
-            "</div>" +
-
-
-            /* ====================================================
-               1. IDR FILE
-               ==================================================== */
-
-            idrHtml +
-
-
-            /* ====================================================
-               2. VOB
-               ==================================================== */
-
-            vobHtml +
-
-
-            /* ====================================================
-               3. INSURANCE CARD
-               ==================================================== */
-
-            insuranceHtml +
-
-
-            /* ====================================================
-               4. FACE SHEET
-               ==================================================== */
-
-            faceSheetHtml +
-
-
-            /* ====================================================
-               5. EOB
-               ==================================================== */
-
-            eobHtml;
-
-
-        /* ========================================================
-           ADD POPUP
-           ======================================================== */
-
-        document.body.appendChild(
-            popup
-        );
-
-
-        /* ========================================================
-           CLOSE BUTTON
-           ======================================================== */
-
-        var closeButton =
-            popup.querySelector(
-                ".mainCloseButton"
-            );
-
-
-        if (closeButton) {
-
-            closeButton.onclick =
-                function () {
-
-                    popup.remove();
-
-                };
-
-        }
-
-
-        /* ========================================================
-           VOB BUTTON EVENTS
-           
-           EXISTING BEHAVIOR PRESERVED:
-           
-           - Remove popup
-           - Wait 100ms
-           - Click original VOB button
-           - NO SCROLL
-           ======================================================== */
-
-        popup
-            .querySelectorAll(
-                ".mainVobBtn"
-            )
-            .forEach(
-                function (btn) {
-
-                    btn.onclick =
-                        function () {
-
-                            var index =
-                                parseInt(
-                                    btn.getAttribute(
-                                        "data-vob-index"
-                                    ),
-                                    10
-                                );
-
-
-                            var v =
-                                vobs[index];
-
-
-                            if (v) {
-
-                                popup.remove();
-
-
-                                setTimeout(
-                                    function () {
-
-                                        v.click();
-
-                                    },
-                                    100
-                                );
-
-                            }
-
-                        };
-
-                }
-            );
-
-
-        /* ========================================================
-           OTHER DOCUMENT BUTTON EVENTS
-           
-           IDR
-           INSURANCE CARD
-           FACE SHEET
-           EOB
-           
-           Same compact-button behavior.
-           No scrolling.
-           ======================================================== */
-
-        popup
-            .querySelectorAll(
-                ".mainDocumentBtn"
-            )
-            .forEach(
-                function (btn) {
-
-                    btn.onclick =
-                        function () {
-
-                            var type =
-                                btn.getAttribute(
-                                    "data-document-type"
-                                );
-
-
-                            var index =
-                                parseInt(
-                                    btn.getAttribute(
-                                        "data-document-index"
-                                    ),
-                                    10
-                                );
-
-
-                            var originalButton =
-                                null;
-
-
-                            /*
-                             * Find the corresponding original
-                             * button based on document type.
-                             */
-
-                            if (
-                                type === "idr"
-                            ) {
-
-                                originalButton =
-                                    idrButtons[index];
-
-                            }
-
-                            else if (
-                                type === "insurance"
-                            ) {
-
-                                originalButton =
-                                    insuranceButtons[index];
-
-                            }
-
-                            else if (
-                                type === "facesheet"
-                            ) {
-
-                                originalButton =
-                                    faceSheetButtons[index];
-
-                            }
-
-                            else if (
-                                type === "eob"
-                            ) {
-
-                                originalButton =
-                                    eobButtons[index];
-
-                            }
-
-
-                            if (
-                                originalButton
-                            ) {
-
-                                /*
-                                 * Remove popup first.
-                                 */
-
-                                popup.remove();
-
-
-                                /*
-                                 * Do not scroll.
-                                 */
-
-                                setTimeout(
-                                    function () {
-
-                                        originalButton.click();
-
-                                    },
-                                    100
-                                );
-
-                            }
-
-                        };
-
-                }
-            );
-
-
-        /* ========================================================
-           AUTO CLOSE AFTER 10 SECONDS
-           ======================================================== */
-
-        setTimeout(
-            function () {
-
-                var p =
-                    document.getElementById(
-                        "agePopupBookmarklet"
-                    );
-
-
-                if (p) {
-
-                    p.remove();
-
-                }
-
-            },
-            10000
-        );
-
+    } catch (err) {
+        console.error("Something went wrong!", err);
     }
-
-
-    /* ============================================================
-       CHECK HISTORY
-       ============================================================ */
-
-    const historyIsOpen =
-        document.querySelector(
-            openContentSelector
-        );
-
-
-    /* ============================================================
-       CHECK CASE NOTES
-       ============================================================ */
-
-    const caseNotesIsOpen =
-        document.querySelector(
-            caseNotesSelector
-        );
-
-
-    /* ============================================================
-       FIND HISTORY BUTTON
-       ============================================================ */
-
-    const historyButton =
-        document.querySelector(
-            openerSelector
-        );
-
-
-    /* ============================================================
-       FIND CASE NOTES BUTTON
-       ============================================================ */
-
-    const caseNotesButton =
-        document.querySelector(
-            caseNotesButtonSelector
-        );
-
-
-    /* ============================================================
-       OPEN HISTORY
-       ============================================================ */
-
-    if (
-        !historyIsOpen &&
-        historyButton
-    ) {
-
-        /*
-         * No scrolling.
-         */
-
-        historyButton.click();
-
-    }
-
-
-    /* ============================================================
-       OPEN CASE NOTES
-       ============================================================ */
-
-    if (
-        !caseNotesIsOpen &&
-        caseNotesButton
-    ) {
-
-        /*
-         * No scrolling.
-         */
-
-        caseNotesButton.click();
-
-    }
-
-
-    /* ============================================================
-       OPEN VOB SECTION
-       ============================================================ */
-
-    openVobSection();
-
-
-    /* ============================================================
-       OPEN FILES
-       ============================================================ */
-
-    openFilesSection();
-
-
-    /* ============================================================
-       OPEN NOTES
-       ============================================================ */
-
-    openNotesSection();
-
-
-    /* ============================================================
-       RUN MAIN LOGIC
-       ============================================================ */
-
-    setTimeout(
-        function () {
-
-            runLogic();
-
-        },
-        500
-    );
-
 })();
