@@ -69,21 +69,11 @@
                 "aria-expanded"
             );
 
-        /*
-         * If aria-expanded exists and is false,
-         * open the section.
-         */
-
         if (ariaExpanded === "false") {
 
             vobSectionButton.click();
 
         }
-
-        /*
-         * If aria-expanded does not exist,
-         * click the button.
-         */
 
         else if (ariaExpanded === null) {
 
@@ -152,6 +142,8 @@
 
     /* ============================================================
        FIND VOB BUTTONS
+       
+       EXISTING VOB LOGIC PRESERVED
        ============================================================ */
 
     function findVobButtons() {
@@ -180,6 +172,69 @@
             );
 
         });
+
+    }
+
+
+    /* ============================================================
+       FIND IDR FILES
+       
+       Exact bookmarklet logic:
+       View proofofidrinitiation
+       ============================================================ */
+
+    function findIdrButtons() {
+
+        return [
+            ...document.querySelectorAll(
+                'button.btn-modal[title="View proofofidrinitiation"]'
+            )
+        ];
+
+    }
+
+
+    /* ============================================================
+       FIND INSURANCE CARD
+       ============================================================ */
+
+    function findInsuranceButtons() {
+
+        return [
+            ...document.querySelectorAll(
+                'button.btn-modal[title="View insurancecard"]'
+            )
+        ];
+
+    }
+
+
+    /* ============================================================
+       FIND FACE SHEET
+       ============================================================ */
+
+    function findFaceSheetButtons() {
+
+        return [
+            ...document.querySelectorAll(
+                'button.btn-modal[title="View facesheet"]'
+            )
+        ];
+
+    }
+
+
+    /* ============================================================
+       FIND EOB
+       ============================================================ */
+
+    function findEobButtons() {
+
+        return [
+            ...document.querySelectorAll(
+                'button.btn-modal[title="View eob"]'
+            )
+        ];
 
     }
 
@@ -216,6 +271,257 @@
 
 
     /* ============================================================
+       GET BUTTON TITLE / TEXT
+       ============================================================ */
+
+    function getButtonText(btn) {
+
+        return (
+            btn.title ||
+            btn.textContent ||
+            btn.innerText ||
+            ""
+        )
+            .trim()
+            .replace(
+                /\s+/g,
+                " "
+            );
+
+    }
+
+
+    /* ============================================================
+       CREATE COMPACT DOCUMENT BUTTON
+       
+       SAME STYLE AS VOB
+       ============================================================ */
+
+    function createDocumentButton(
+        btn,
+        label,
+        icon,
+        index,
+        total,
+        type
+    ) {
+
+        const buttonText =
+            getButtonText(
+                btn
+            );
+
+
+        let displayLabel =
+            label;
+
+
+        /*
+         * Number documents only when there
+         * are multiple of the same type.
+         */
+
+        if (total > 1) {
+
+            displayLabel =
+                label +
+                " " +
+                (index + 1);
+
+        }
+
+
+        return (
+
+            '<button class="mainDocumentBtn" ' +
+
+            'data-document-type="' +
+            escapeHtml(
+                type
+            ) +
+            '" ' +
+
+            'data-document-index="' +
+            index +
+            '" ' +
+
+            'style="' +
+
+            "display:block;" +
+            "width:100%;" +
+            "padding:9px 10px;" +
+            "margin-bottom:6px;" +
+            "background:#2563eb;" +
+            "color:#fff;" +
+            "border:none;" +
+            "border-radius:6px;" +
+            "cursor:pointer;" +
+            "font-weight:600;" +
+            "font-size:13px;" +
+            "text-align:left;" +
+            "overflow:hidden;" +
+
+            '">' +
+
+            icon +
+            " " +
+            escapeHtml(
+                displayLabel
+            ) +
+
+            (
+                buttonText
+
+                    ?
+
+                    '<span style="' +
+
+                    "float:right;" +
+                    "color:#dbeafe;" +
+                    "font-size:11px;" +
+                    "margin-left:8px;" +
+                    "max-width:60%;" +
+                    "overflow:hidden;" +
+                    "text-overflow:ellipsis;" +
+                    "white-space:nowrap;" +
+
+                    '">' +
+
+                    escapeHtml(
+                        buttonText
+                    ) +
+
+                    "</span>"
+
+                    :
+
+                    ""
+
+            ) +
+
+            "</button>"
+
+        );
+
+    }
+
+
+    /* ============================================================
+       CREATE DOCUMENT SECTION
+       
+       Compact section matching VOB
+       ============================================================ */
+
+    function createDocumentSection(
+        title,
+        icon,
+        buttons,
+        type,
+        emptyText
+    ) {
+
+        let html = "";
+
+
+        html +=
+
+            '<div style="' +
+
+            "margin-top:16px;" +
+            "padding-top:12px;" +
+            "border-top:1px solid #374151;" +
+
+            '">' +
+
+
+            '<div style="' +
+
+            "font-size:20px;" +
+            "font-weight:bold;" +
+            "display:flex;" +
+            "align-items:center;" +
+            "gap:8px;" +
+
+            '">' +
+
+            escapeHtml(
+                title
+            ) +
+
+            '<span style="' +
+
+            "font-size:12px;" +
+            "color:#9ca3af;" +
+            "font-weight:normal;" +
+
+            '">' +
+
+            "(" +
+            buttons.length +
+            " found)" +
+
+            "</span>" +
+
+            "</div>" +
+
+
+            '<div style="margin-top:8px;">';
+
+
+        if (
+            buttons.length
+        ) {
+
+            buttons.forEach(
+                function (
+                    btn,
+                    index
+                ) {
+
+                    html +=
+                        createDocumentButton(
+                            btn,
+                            title,
+                            icon,
+                            index,
+                            buttons.length,
+                            type
+                        );
+
+                }
+            );
+
+        } else {
+
+            html +=
+
+                '<div style="' +
+
+                "margin-top:6px;" +
+                "font-size:13px;" +
+                "color:#ff6b6b;" +
+
+                '">' +
+
+                escapeHtml(
+                    emptyText
+                ) +
+
+                "</div>";
+
+        }
+
+
+        html +=
+            "</div></div>";
+
+
+        return html;
+
+    }
+
+
+    /* ============================================================
        MAIN LOGIC
        ============================================================ */
 
@@ -229,6 +535,7 @@
             document.querySelector(
                 "#DOB"
             );
+
 
         if (!dob) {
 
@@ -579,7 +886,7 @@
             "n858",
             "n867",
             "n871",
-            "n883",
+            "n883"
 
         ];
 
@@ -782,6 +1089,26 @@
 
 
         /* ========================================================
+           FIND DOCUMENT BUTTONS
+           ======================================================== */
+
+        var idrButtons =
+            findIdrButtons();
+
+
+        var insuranceButtons =
+            findInsuranceButtons();
+
+
+        var faceSheetButtons =
+            findFaceSheetButtons();
+
+
+        var eobButtons =
+            findEobButtons();
+
+
+        /* ========================================================
            REMOVE OLD POPUP
            ======================================================== */
 
@@ -832,37 +1159,86 @@
 
 
         /* ========================================================
+           DOCUMENT HIERARCHY
+           
+           1. IDR FILE
+           2. VOB
+           3. INSURANCE CARD
+           4. FACE SHEET
+           5. EOB
+           ======================================================== */
+
+
+        /* ========================================================
+           IDR FILE HTML
+           ======================================================== */
+
+        var idrHtml =
+            createDocumentSection(
+                "IDR FILE",
+                "📄",
+                idrButtons,
+                "idr",
+                "No IDR files found."
+            );
+
+
+        /* ========================================================
            VOB HTML
+           
+           EXISTING STYLE
            ======================================================== */
 
         var vobHtml =
             "";
 
 
+        vobHtml +=
+
+            '<div style="' +
+
+            "margin-top:16px;" +
+            "padding-top:12px;" +
+            "border-top:1px solid #374151;" +
+
+            '">' +
+
+
+            '<div style="' +
+
+            "font-size:20px;" +
+            "font-weight:bold;" +
+            "display:flex;" +
+            "align-items:center;" +
+            "gap:8px;" +
+
+            '">' +
+
+            "VOB" +
+
+            '<span style="' +
+
+            "font-size:12px;" +
+            "color:#9ca3af;" +
+            "font-weight:normal;" +
+
+            '">' +
+
+            "(" +
+            vobs.length +
+            " found)" +
+
+            "</span>" +
+
+            "</div>" +
+
+
+            '<div style="margin-top:8px;">';
+
+
         if (
             vobs.length
         ) {
-
-            vobHtml +=
-
-                '<div style="margin-top:16px;padding-top:12px;border-top:1px solid #374151;">' +
-
-                '<div style="font-size:20px;font-weight:bold;display:flex;align-items:center;gap:8px;">' +
-
-                "VOB" +
-
-                '<span style="font-size:12px;color:#9ca3af;font-weight:normal;">' +
-
-                "(" +
-                vobs.length +
-                " found)" +
-
-                "</span>" +
-
-                "</div>" +
-
-                '<div style="margin-top:8px;">';
-
 
             vobs.forEach(
                 function (
@@ -878,9 +1254,14 @@
 
                     vobHtml +=
 
-                        '<button class="mainVobBtn" data-vob-index="' +
+                        '<button class="mainVobBtn" ' +
+
+                        'data-vob-index="' +
                         i +
-                        '" style="' +
+                        '" ' +
+
+                        'style="' +
+
                         "display:block;" +
                         "width:100%;" +
                         "padding:9px 10px;" +
@@ -893,15 +1274,30 @@
                         "font-weight:600;" +
                         "font-size:13px;" +
                         "text-align:left;" +
+                        "overflow:hidden;" +
+
                         '">' +
 
                         "📄 VOB " +
                         (i + 1) +
 
-                        '<span style="float:right;color:#dbeafe;font-size:11px;">' +
+                        '<span style="' +
+
+                        "float:right;" +
+                        "color:#dbeafe;" +
+                        "font-size:11px;" +
+                        "margin-left:8px;" +
+                        "max-width:60%;" +
+                        "overflow:hidden;" +
+                        "text-overflow:ellipsis;" +
+                        "white-space:nowrap;" +
+
+                        '">' +
 
                         escapeHtml(
-                            vobTitle
+                            getButtonText(
+                                v
+                            )
                         ) +
 
                         "</span>" +
@@ -911,31 +1307,69 @@
                 }
             );
 
-
-            vobHtml +=
-                "</div></div>";
-
         } else {
 
-            vobHtml =
+            vobHtml +=
 
-                '<div style="margin-top:16px;padding-top:12px;border-top:1px solid #374151;">' +
+                '<div style="' +
 
-                '<div style="font-size:18px;font-weight:bold;">' +
+                "margin-top:6px;" +
+                "font-size:13px;" +
+                "color:#ff6b6b;" +
 
-                "VOB" +
-
-                "</div>" +
-
-                '<div style="margin-top:6px;font-size:13px;color:#ff6b6b;">' +
+                '">' +
 
                 "No VOB files found." +
-
-                "</div>" +
 
                 "</div>";
 
         }
+
+
+        vobHtml +=
+            "</div></div>";
+
+
+        /* ========================================================
+           INSURANCE CARD HTML
+           ======================================================== */
+
+        var insuranceHtml =
+            createDocumentSection(
+                "Insurance Card",
+                "🪪",
+                insuranceButtons,
+                "insurance",
+                "No Insurance Card files found."
+            );
+
+
+        /* ========================================================
+           FACE SHEET HTML
+           ======================================================== */
+
+        var faceSheetHtml =
+            createDocumentSection(
+                "Face Sheet",
+                "👤",
+                faceSheetButtons,
+                "facesheet",
+                "No Face Sheet files found."
+            );
+
+
+        /* ========================================================
+           EOB HTML
+           ======================================================== */
+
+        var eobHtml =
+            createDocumentSection(
+                "EOB",
+                "📋",
+                eobButtons,
+                "eob",
+                "No EOB files found."
+            );
 
 
         /* ========================================================
@@ -946,29 +1380,67 @@
 
             /* CLOSE */
 
-            '<button style="position:absolute;top:5px;right:10px;background:none;border:none;color:#fff;font-size:20px;cursor:pointer;">×</button>' +
+            '<button class="mainCloseButton" style="' +
+
+            "position:absolute;" +
+            "top:5px;" +
+            "right:10px;" +
+            "background:none;" +
+            "border:none;" +
+            "color:#fff;" +
+            "font-size:20px;" +
+            "cursor:pointer;" +
+
+            '">×</button>' +
 
 
-            /* AGE */
+            /* ====================================================
+               AGE
+               ==================================================== */
 
-            '<div style="font-size:24px;font-weight:bold;display:flex;align-items:center;gap:10px;">' +
+            '<div style="' +
+
+            "font-size:24px;" +
+            "font-weight:bold;" +
+            "display:flex;" +
+            "align-items:center;" +
+            "gap:10px;" +
+
+            '">' +
 
             "AGE: " +
 
             age +
 
-            ' <span style="width:14px;height:14px;border-radius:50%;background:' +
+            '<span style="' +
 
+            "width:14px;" +
+            "height:14px;" +
+            "border-radius:50%;" +
+            "background:" +
             ageColor +
+            ";" +
+            "display:inline-block;" +
 
-            ';display:inline-block;"></span>' +
+            '"></span>' +
 
             "</div>" +
 
 
-            /* PT */
+            /* ====================================================
+               PT
+               ==================================================== */
 
-            '<div style="margin-top:10px;font-size:24px;font-weight:bold;display:flex;align-items:center;gap:10px;">' +
+            '<div style="' +
+
+            "margin-top:10px;" +
+            "font-size:24px;" +
+            "font-weight:bold;" +
+            "display:flex;" +
+            "align-items:center;" +
+            "gap:10px;" +
+
+            '">' +
 
             "PT: " +
 
@@ -976,16 +1448,24 @@
                 planType
             ) +
 
-            ' <span style="width:14px;height:14px;border-radius:50%;background:' +
+            '<span style="' +
 
+            "width:14px;" +
+            "height:14px;" +
+            "border-radius:50%;" +
+            "background:" +
             ptColor +
+            ";" +
+            "display:inline-block;" +
 
-            ';display:inline-block;"></span>' +
+            '"></span>' +
 
             "</div>" +
 
 
-            /* HISTORY EVIDENCE */
+            /* ====================================================
+               HISTORY EVIDENCE
+               ==================================================== */
 
             (
 
@@ -993,9 +1473,19 @@
 
                     ?
 
-                    '<div style="margin-top:10px;font-size:14px;color:#90ee90;">' +
+                    '<div style="' +
 
-                    '<strong style="color:#ffffff;">History Evidence:</strong><br>' +
+                    "margin-top:10px;" +
+                    "font-size:14px;" +
+                    "color:#90ee90;" +
+
+                    '">' +
+
+                    '<strong style="color:#ffffff;">' +
+
+                    "History Evidence:" +
+
+                    "</strong><br>" +
 
                     historyEvidence
                         .map(
@@ -1014,7 +1504,9 @@
             ) +
 
 
-            /* CASE NOTES */
+            /* ====================================================
+               CASE NOTES
+               ==================================================== */
 
             (
 
@@ -1022,9 +1514,19 @@
 
                     ?
 
-                    '<div style="margin-top:10px;font-size:14px;color:#90ee90;">' +
+                    '<div style="' +
 
-                    '<strong style="color:#ffffff;">Case Notes:</strong><br>' +
+                    "margin-top:10px;" +
+                    "font-size:14px;" +
+                    "color:#90ee90;" +
+
+                    '">' +
+
+                    '<strong style="color:#ffffff;">' +
+
+                    "Case Notes:" +
+
+                    "</strong><br>" +
 
                     caseNotesEvidence
                         .map(
@@ -1043,17 +1545,34 @@
             ) +
 
 
-            /* INELIGIBILITY */
+            /* ====================================================
+               INELIGIBILITY
+               ==================================================== */
 
-            '<div style="margin-top:14px;font-size:16px;font-weight:bold;display:flex;align-items:center;gap:8px;">' +
+            '<div style="' +
+
+            "margin-top:14px;" +
+            "font-size:16px;" +
+            "font-weight:bold;" +
+            "display:flex;" +
+            "align-items:center;" +
+            "gap:8px;" +
+
+            '">' +
 
             "Ineligibility Reasons:" +
 
-            '<span style="width:14px;height:14px;border-radius:50%;background:' +
+            '<span style="' +
 
+            "width:14px;" +
+            "height:14px;" +
+            "border-radius:50%;" +
+            "background:" +
             ineligibilityColor +
+            ";" +
+            "display:inline-block;" +
 
-            ';display:inline-block;"></span>' +
+            '"></span>' +
 
             "</div>" +
 
@@ -1064,7 +1583,15 @@
 
                     ?
 
-                    '<div style="margin-top:6px;font-size:14px;color:#90ee90;white-space:pre-wrap;word-break:break-word;">' +
+                    '<div style="' +
+
+                    "margin-top:6px;" +
+                    "font-size:14px;" +
+                    "color:#90ee90;" +
+                    "white-space:pre-wrap;" +
+                    "word-break:break-word;" +
+
+                    '">' +
 
                     escapeHtml(
                         ineligibilityReasonsText
@@ -1074,7 +1601,17 @@
 
                     :
 
-                    '<div style="margin-top:6px;font-size:14px;color:#ff6b6b;">No evidence found / textarea is empty.</div>'
+                    '<div style="' +
+
+                    "margin-top:6px;" +
+                    "font-size:14px;" +
+                    "color:#ff6b6b;" +
+
+                    '">' +
+
+                    "No evidence found / textarea is empty." +
+
+                    "</div>"
 
             ) +
 
@@ -1083,20 +1620,41 @@
                STATE
                ==================================================== */
 
-            '<div style="margin-top:14px;font-size:20px;font-weight:bold;display:flex;align-items:center;gap:10px;">' +
+            '<div style="' +
+
+            "margin-top:14px;" +
+            "font-size:20px;" +
+            "font-weight:bold;" +
+            "display:flex;" +
+            "align-items:center;" +
+            "gap:10px;" +
+
+            '">' +
 
             "STATE: " +
 
-            '<span style="width:14px;height:14px;border-radius:50%;background:' +
+            '<span style="' +
 
+            "width:14px;" +
+            "height:14px;" +
+            "border-radius:50%;" +
+            "background:" +
             stateColor +
+            ";" +
+            "display:inline-block;" +
 
-            ';display:inline-block;"></span>' +
+            '"></span>' +
 
             "</div>" +
 
 
-            '<div style="margin-top:4px;font-size:16px;color:#fff;">' +
+            '<div style="' +
+
+            "margin-top:4px;" +
+            "font-size:16px;" +
+            "color:#fff;" +
+
+            '">' +
 
             escapeHtml(
                 state
@@ -1112,10 +1670,38 @@
 
 
             /* ====================================================
-               VOB SECTION BELOW STATE
+               1. IDR FILE
                ==================================================== */
 
-            vobHtml;
+            idrHtml +
+
+
+            /* ====================================================
+               2. VOB
+               ==================================================== */
+
+            vobHtml +
+
+
+            /* ====================================================
+               3. INSURANCE CARD
+               ==================================================== */
+
+            insuranceHtml +
+
+
+            /* ====================================================
+               4. FACE SHEET
+               ==================================================== */
+
+            faceSheetHtml +
+
+
+            /* ====================================================
+               5. EOB
+               ==================================================== */
+
+            eobHtml;
 
 
         /* ========================================================
@@ -1133,7 +1719,7 @@
 
         var closeButton =
             popup.querySelector(
-                "button"
+                ".mainCloseButton"
             );
 
 
@@ -1151,6 +1737,13 @@
 
         /* ========================================================
            VOB BUTTON EVENTS
+           
+           EXISTING BEHAVIOR PRESERVED:
+           
+           - Remove popup
+           - Wait 100ms
+           - Click original VOB button
+           - NO SCROLL
            ======================================================== */
 
         popup
@@ -1178,16 +1771,8 @@
 
                             if (v) {
 
-                                /*
-                                 * Remove popup first.
-                                 */
-
                                 popup.remove();
 
-
-                                /*
-                                 * DO NOT SCROLL.
-                                 */
 
                                 setTimeout(
                                     function () {
@@ -1207,7 +1792,122 @@
 
 
         /* ========================================================
-           AUTO CLOSE AFTER 7 SECONDS
+           OTHER DOCUMENT BUTTON EVENTS
+           
+           IDR
+           INSURANCE CARD
+           FACE SHEET
+           EOB
+           
+           Same compact-button behavior.
+           No scrolling.
+           ======================================================== */
+
+        popup
+            .querySelectorAll(
+                ".mainDocumentBtn"
+            )
+            .forEach(
+                function (btn) {
+
+                    btn.onclick =
+                        function () {
+
+                            var type =
+                                btn.getAttribute(
+                                    "data-document-type"
+                                );
+
+
+                            var index =
+                                parseInt(
+                                    btn.getAttribute(
+                                        "data-document-index"
+                                    ),
+                                    10
+                                );
+
+
+                            var originalButton =
+                                null;
+
+
+                            /*
+                             * Find the corresponding original
+                             * button based on document type.
+                             */
+
+                            if (
+                                type === "idr"
+                            ) {
+
+                                originalButton =
+                                    idrButtons[index];
+
+                            }
+
+                            else if (
+                                type === "insurance"
+                            ) {
+
+                                originalButton =
+                                    insuranceButtons[index];
+
+                            }
+
+                            else if (
+                                type === "facesheet"
+                            ) {
+
+                                originalButton =
+                                    faceSheetButtons[index];
+
+                            }
+
+                            else if (
+                                type === "eob"
+                            ) {
+
+                                originalButton =
+                                    eobButtons[index];
+
+                            }
+
+
+                            if (
+                                originalButton
+                            ) {
+
+                                /*
+                                 * Remove popup first.
+                                 */
+
+                                popup.remove();
+
+
+                                /*
+                                 * Do not scroll.
+                                 */
+
+                                setTimeout(
+                                    function () {
+
+                                        originalButton.click();
+
+                                    },
+                                    100
+                                );
+
+                            }
+
+                        };
+
+                }
+            );
+
+
+        /* ========================================================
+           AUTO CLOSE AFTER 10 SECONDS
            ======================================================== */
 
         setTimeout(
