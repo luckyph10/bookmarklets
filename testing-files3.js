@@ -34,11 +34,21 @@
 
 
     /* ============================================================
-       IDR BUTTON
+       IDR BUTTONS
        ============================================================ */
 
-    const idrButtonSelector =
-        "#ngForm > fieldset > div:nth-child(22) > div.collapse.show > div.card.card-body > div > div > table > tbody > tr:nth-child(2) > td:nth-child(2) > button";
+    /*
+     * IMPORTANT:
+     *
+     * Your original selector pointed specifically to:
+     *
+     * tr:nth-child(2)
+     *
+     * We remove nth-child(2) so ALL rows are checked.
+     */
+
+    const idrButtonsSelector =
+        "#ngForm > fieldset > div:nth-child(22) > div.collapse.show > div.card.card-body > div > div > table > tbody > tr > td:nth-child(2) > button";
 
 
     /* ============================================================
@@ -77,21 +87,11 @@
                 "aria-expanded"
             );
 
-        /*
-         * If aria-expanded exists and is false,
-         * open the section.
-         */
-
         if (ariaExpanded === "false") {
 
             vobSectionButton.click();
 
         }
-
-        /*
-         * If aria-expanded does not exist,
-         * click the button.
-         */
 
         else if (ariaExpanded === null) {
 
@@ -103,13 +103,33 @@
 
 
     /* ============================================================
-       FIND IDR BUTTON
+       FIND ALL IDR BUTTONS
        ============================================================ */
 
-    function findIdrButton() {
+    function findIdrButtons() {
 
-        return document.querySelector(
-            idrButtonSelector
+        const buttons = [
+
+            ...document.querySelectorAll(
+                idrButtonsSelector
+            )
+
+        ];
+
+        /*
+         * Remove duplicates while preserving order.
+         */
+
+        return buttons.filter(
+            function (button, index, array) {
+
+                return (
+                    array.indexOf(
+                        button
+                    ) === index
+                );
+
+            }
         );
 
     }
@@ -232,6 +252,65 @@
                 /'/g,
                 "&#039;"
             );
+
+    }
+
+
+    /* ============================================================
+       GET IDR TITLE
+       ============================================================ */
+
+    function getIdrTitle(
+        button,
+        index
+    ) {
+
+        if (!button) {
+
+            return (
+                "IDR " +
+                (index + 1)
+            );
+
+        }
+
+        const title =
+            button.title ||
+            button.getAttribute(
+                "aria-label"
+            ) ||
+            button.getAttribute(
+                "data-title"
+            ) ||
+            button.getAttribute(
+                "data-name"
+            ) ||
+            button.textContent ||
+            "";
+
+
+        const cleanTitle =
+            String(title)
+                .replace(
+                    /\s+/g,
+                    " "
+                )
+                .trim();
+
+
+        if (
+            !cleanTitle
+        ) {
+
+            return (
+                "IDR " +
+                (index + 1)
+            );
+
+        }
+
+
+        return cleanTitle;
 
     }
 
@@ -600,7 +679,7 @@
             "n858",
             "n867",
             "n871",
-            "n883",
+            "n883"
 
         ];
 
@@ -795,11 +874,11 @@
 
 
         /* ========================================================
-           FIND IDR
+           FIND ALL IDR BUTTONS
            ======================================================== */
 
-        var idrButton =
-            findIdrButton();
+        var idrs =
+            findIdrButtons();
 
 
         /* ========================================================
@@ -868,18 +947,9 @@
             "";
 
 
-        if (idrButton) {
+        if (idrs.length) {
 
-            var idrTitle =
-                idrButton.title ||
-                idrButton.getAttribute(
-                    "aria-label"
-                ) ||
-                idrButton.textContent ||
-                "IDR";
-
-
-            idrHtml =
+            idrHtml +=
 
                 '<div style="margin-top:16px;padding-top:12px;border-top:1px solid #374151;">' +
 
@@ -887,39 +957,71 @@
 
                 "IDR" +
 
-                "</div>" +
+                '<span style="font-size:12px;color:#9ca3af;font-weight:normal;">' +
 
-                '<div style="margin-top:8px;">' +
-
-                '<button class="mainIdrBtn" style="' +
-
-                "display:block;" +
-                "width:100%;" +
-                "padding:9px 10px;" +
-                "margin-bottom:6px;" +
-                "background:#7c3aed;" +
-                "color:#fff;" +
-                "border:none;" +
-                "border-radius:6px;" +
-                "cursor:pointer;" +
-                "font-weight:600;" +
-                "font-size:13px;" +
-                "text-align:left;" +
-
-                '">' +
-
-                "🪪 IDR" +
-
-                '<span style="float:right;color:#ede9fe;font-size:11px;">' +
-
-                escapeHtml(
-                    idrTitle
-                ) +
+                "(" +
+                idrs.length +
+                " found)" +
 
                 "</span>" +
 
-                "</button>" +
+                "</div>" +
 
+                '<div style="margin-top:8px;">';
+
+
+            idrs.forEach(
+                function (
+                    idr,
+                    i
+                ) {
+
+                    var idrTitle =
+                        getIdrTitle(
+                            idr,
+                            i
+                        );
+
+
+                    idrHtml +=
+
+                        '<button class="mainIdrBtn" data-idr-index="' +
+                        i +
+                        '" style="' +
+
+                        "display:block;" +
+                        "width:100%;" +
+                        "padding:9px 10px;" +
+                        "margin-bottom:6px;" +
+                        "background:#7c3aed;" +
+                        "color:#fff;" +
+                        "border:none;" +
+                        "border-radius:6px;" +
+                        "cursor:pointer;" +
+                        "font-weight:600;" +
+                        "font-size:13px;" +
+                        "text-align:left;" +
+
+                        '">' +
+
+                        "🪪 IDR " +
+                        (i + 1) +
+
+                        '<span style="float:right;color:#ede9fe;font-size:11px;max-width:45%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' +
+
+                        escapeHtml(
+                            idrTitle
+                        ) +
+
+                        "</span>" +
+
+                        "</button>";
+
+                }
+            );
+
+
+            idrHtml +=
                 "</div></div>";
 
         } else {
@@ -928,11 +1030,15 @@
 
                 '<div style="margin-top:16px;padding-top:12px;border-top:1px solid #374151;">' +
 
-                '<div style="font-size:18px;font-weight:bold;">IDR</div>' +
+                '<div style="font-size:18px;font-weight:bold;">' +
+
+                "IDR" +
+
+                "</div>" +
 
                 '<div style="margin-top:6px;font-size:13px;color:#ff6b6b;">' +
 
-                "IDR file not found." +
+                "No IDR files found." +
 
                 "</div>" +
 
@@ -1008,7 +1114,7 @@
                         "📄 VOB " +
                         (i + 1) +
 
-                        '<span style="float:right;color:#dbeafe;font-size:11px;">' +
+                        '<span style="float:right;color:#dbeafe;font-size:11px;max-width:45%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' +
 
                         escapeHtml(
                             vobTitle
@@ -1265,54 +1371,64 @@
 
 
         /* ========================================================
-           IDR BUTTON EVENT
+           IDR BUTTON EVENTS
            ======================================================== */
 
-        var idrPopupButton =
-            popup.querySelector(
+        popup
+            .querySelectorAll(
                 ".mainIdrBtn"
-            );
+            )
+            .forEach(
+                function (btn) {
 
-
-        if (
-            idrPopupButton &&
-            idrButton
-        ) {
-
-            idrPopupButton.onclick =
-                function () {
-
-                    /*
-                     * Keep the original application button.
-                     */
-
-                    var originalIdrButton =
-                        idrButton;
-
-
-                    /*
-                     * Close popup first.
-                     */
-
-                    popup.remove();
-
-
-                    /*
-                     * Click the real IDR button.
-                     */
-
-                    setTimeout(
+                    btn.onclick =
                         function () {
 
-                            originalIdrButton.click();
+                            var index =
+                                parseInt(
+                                    btn.getAttribute(
+                                        "data-idr-index"
+                                    ),
+                                    10
+                                );
 
-                        },
-                        100
-                    );
 
-                };
+                            var idr =
+                                idrs[index];
 
-        }
+
+                            if (!idr) {
+                                return;
+                            }
+
+
+                            /*
+                             * Remove popup first.
+                             */
+
+                            popup.remove();
+
+
+                            /*
+                             * DO NOT SCROLL.
+                             *
+                             * Click the actual application
+                             * IDR button.
+                             */
+
+                            setTimeout(
+                                function () {
+
+                                    idr.click();
+
+                                },
+                                100
+                            );
+
+                        };
+
+                }
+            );
 
 
         /* ========================================================
