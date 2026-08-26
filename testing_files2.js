@@ -30,12 +30,14 @@ const saveName=n=>{
    ========================================================= */
 
 const normalizeValue=value=>{
+
     return String(value??"")
         .replace(/\u00A0/g," ")
         .replace(/\r?\n/g," ")
         .replace(/\s+/g," ")
         .trim()
         .toLowerCase();
+
 };
 
 
@@ -132,63 +134,50 @@ const columnKPageValue=
 
 /* =========================================================
    GET IDS
+   =========================================================
+
+   UPDATED:
+   The old code depended on:
+
+   #table-body tr td:nth-child(2)
+
+   The new page has:
+
+   <td>
+       <a title="Open Arbit"
+          target="_blank"
+          href="calculator/2184012">
+          2184012
+       </a>
+   </td>
+
+   We now get the ID directly from the
+   "Open Arbit" calculator links.
    ========================================================= */
 
-const ids=[
+const arbitIdLinks=[
     ...document.querySelectorAll(
-        "#table-body tr td:nth-child(2)"
+        'a[title="Open Arbit"][href*="calculator/"]'
     )
-]
-.map(td=>
-    td.textContent
-        .replace(/\u00A0/g," ")
-        .replace(/\r?\n/g," ")
-        .replace(/\s+/g," ")
-        .trim()
-)
-.filter(Boolean);
+];
 
 
 /* =========================================================
-   GET ALL ARBIT / APP ID LINKS
-   UPDATED FOR NEW ARBIT ELEMENT
+   GET IDS
    ========================================================= */
 
-const arbitLinks=[
-    ...document.querySelectorAll(
-        'a[title="Open Arbit"]'
-    )
+const ids=[
+    ...arbitIdLinks
 ]
-.map((link,index)=>{
+.map(link=>{
 
-    const href=
-        link.href||
-        link.getAttribute("href")||
-        "";
+    const td=
+        link.closest("td");
 
-    /*
-     * NEW ELEMENT:
-     *
-     * <a
-     *     title="Open Arbit"
-     *     target="_blank"
-     *     href="calculator/2207838"
-     * >
-     *     2207838
-     * </a>
-     *
-     * Extract ARBIT ID from the calculator URL.
-     */
-
-    const hrefMatch=
-        href.match(
-            /(?:^|\/)calculator\/([^/?#]+)/i
-        );
-
-    const linkText=
+    const value=
         (
-            link.innerText||
             link.textContent||
+            td?.textContent||
             ""
         )
         .replace(/\u00A0/g," ")
@@ -196,24 +185,72 @@ const arbitLinks=[
         .replace(/\s+/g," ")
         .trim();
 
+    return value;
+
+})
+.filter(Boolean);
+
+
+/* =========================================================
+   GET ALL ARBIT / APP ID LINKS
+   =========================================================
+
+   UPDATED SELECTOR:
+
+   OLD:
+   #table-body tr td:nth-child(2) a
+
+   NEW:
+   a[title="Open Arbit"][href*="calculator/"]
+
+   This matches:
+
+   <a
+       title="Open Arbit"
+       target="_blank"
+       href="calculator/2184012"
+   >
+       2184012
+   </a>
+
+   No dependency on table ID, row position,
+   td:nth-child(), Angular generated attributes,
+   or other changing selectors.
+   ========================================================= */
+
+const arbitLinks=[
+    ...document.querySelectorAll(
+        'a[title="Open Arbit"][href*="calculator/"]'
+    )
+]
+.map((link,index)=>{
+
+    const td=
+        link.closest("td");
+
     const id=
-        hrefMatch?.[1]||
-        linkText||
-        ids[index]||
+        (
+            link.textContent||
+            td?.textContent||
+            ""
+        )
+        .replace(/\u00A0/g," ")
+        .replace(/\r?\n/g," ")
+        .replace(/\s+/g," ")
+        .trim()
+        ||
+        ids[index]
+        ||
         "";
 
     return{
         id:id,
-        href:href,
+        href:link.href,
         index:index
     };
 
 })
-.filter(
-    item=>
-        item.id &&
-        item.href
-);
+.filter(item=>item.id && item.href);
 
 
 /* =========================================================
@@ -234,6 +271,7 @@ for(const item of arbitLinks){
     seenArbitLinks.add(key);
 
     uniqueArbitLinks.push(item);
+
 }
 
 
@@ -263,38 +301,24 @@ const planTypes=[
 
 /* =========================================================
    GET FIRST ARBIT ID NUMBER
-   UPDATED FOR NEW ARBIT ELEMENT
+   =========================================================
+
+   UPDATED:
+   Instead of:
+
+   #table-body > tr > td:nth-child(2)
+
+   we use the new Open Arbit link.
    ========================================================= */
 
-const firstArbitLink=
+const arbitIdNumber =
     document.querySelector(
-        'a[title="Open Arbit"]'
-    );
-
-const firstArbitHref=
-    firstArbitLink?.href||
-    firstArbitLink?.getAttribute("href")||
-    "";
-
-const firstArbitHrefMatch=
-    firstArbitHref.match(
-        /(?:^|\/)calculator\/([^/?#]+)/i
-    );
-
-const arbitIdNumber=
-    firstArbitHrefMatch?.[1]
-    ||
-    (
-        firstArbitLink?.innerText||
-        firstArbitLink?.textContent||
-        ""
-    )
-        .replace(/\u00A0/g," ")
+        'a[title="Open Arbit"][href*="calculator/"]'
+    )?.textContent
+        ?.replace(/\u00A0/g," ")
         .replace(/\r?\n/g," ")
         .replace(/\s+/g," ")
-        .trim()
-    ||
-    "";
+        .trim() || "";
 
 
 /* =========================================================
@@ -312,7 +336,8 @@ if(
         {
             disputeNumber,
             disputeStatus,
-            ids
+            ids,
+            arbitLinks
         }
     );
 
@@ -363,7 +388,7 @@ console.log(
 );
 
 console.log(
-    "IDs:",
+    "IDS FOUND FROM OPEN ARBIT LINKS:",
     ids
 );
 
@@ -604,7 +629,6 @@ const copyText=async text=>{
             await navigator.clipboard.writeText(text);
 
             return true;
-
         }
 
     }catch(e){
@@ -687,11 +711,13 @@ const showCopyMessage=(message,clipboardText)=>{
 
 
     toast.innerHTML=`
+
         <div id="dct-message"></div>
 
         <button id="dct-copy">
             COPY AGAIN
         </button>
+
     `;
 
 
@@ -990,6 +1016,7 @@ const openVobViewer=url=>{
 
 
     viewer.innerHTML=`
+
         <div id="vob-file-viewer-window">
 
             <div id="vob-file-viewer-header">
@@ -1018,6 +1045,7 @@ const openVobViewer=url=>{
             ></iframe>
 
         </div>
+
     `;
 
 
@@ -1060,10 +1088,224 @@ const openVobViewer=url=>{
 
 
 /* =========================================================
+   INSTALL VOB IFRAME HANDLERS
+   ========================================================= */
+
+const installVobIframeHandlers=iframe=>{
+
+    const install=()=>{
+
+        try{
+
+            const win=
+                iframe.contentWindow;
+
+
+            const doc=
+                iframe.contentDocument||
+                win?.document;
+
+
+            if(!win||!doc)
+                return;
+
+
+            /* -------------------------------------------------
+               CATCH window.open FROM VOB FILE ACTIONS
+               ------------------------------------------------- */
+
+            if(
+                !win.__disputeVobOpenPatched
+            ){
+
+                const originalOpen=
+                    win.open.bind(win);
+
+
+                win.open=function(
+                    url,
+                    target,
+                    features
+                ){
+
+                    const value=
+                        String(url||"");
+
+
+                    if(value){
+
+                        openVobViewer(
+                            value
+                        );
+
+                        return null;
+
+                    }
+
+
+                    return originalOpen(
+                        url,
+                        target,
+                        features
+                    );
+
+                };
+
+
+                win.__disputeVobOpenPatched=
+                    true;
+
+            }
+
+
+            /* -------------------------------------------------
+               CATCH VOB LINKS
+               ------------------------------------------------- */
+
+            if(
+                !doc.__disputeVobClickHandler
+            ){
+
+                doc.addEventListener(
+                    "click",
+                    e=>{
+
+                        const el=
+                            e.target instanceof Element
+                                ?e.target
+                                :null;
+
+
+                        if(!el)
+                            return;
+
+
+                        const link=
+                            el.closest("a");
+
+
+                        if(link){
+
+                            const text=
+                                (
+                                    link.innerText||
+                                    link.textContent||
+                                    link.title||
+                                    ""
+                                )
+                                .toLowerCase();
+
+
+                            const href=
+                                link.href||
+                                link.getAttribute(
+                                    "href"
+                                )||
+                                "";
+
+
+                            const isVob=
+                                /vob/.test(text)||
+                                /vob/.test(
+                                    String(
+                                        link.className||
+                                        ""
+                                    ).toLowerCase()
+                                );
+
+
+                            const isFile=
+                                /\.(pdf|docx?|xlsx?|csv|txt|png|jpe?g|gif|tiff?|bmp|webp)(?:[?#]|$)/i
+                                    .test(href);
+
+
+                            const opensOutside=
+                                link.target==="_blank"||
+                                link.target==="_new";
+
+
+                            if(
+                                (
+                                    isVob||
+                                    (
+                                        opensOutside&&
+                                        isFile
+                                    )
+                                )&&
+                                href
+                            ){
+
+                                e.preventDefault();
+                                e.stopPropagation();
+
+
+                                openVobViewer(
+                                    href
+                                );
+
+
+                                return;
+
+                            }
+
+                        }
+
+                    },
+                    true
+                );
+
+
+                doc.__disputeVobClickHandler=
+                    true;
+
+            }
+
+        }catch(e){
+
+            console.warn(
+                "Unable to install iframe VOB handlers:",
+                e
+            );
+
+        }
+
+    };
+
+
+    iframe.addEventListener(
+        "load",
+        install,
+        {
+            passive:true
+        }
+    );
+
+
+    try{
+
+        if(
+            iframe.contentDocument?.readyState===
+            "complete"
+        ){
+
+            install();
+
+        }
+
+    }catch(e){}
+
+};
+
+
+/* =========================================================
    OPEN ARBIT / APP ID IFRAME
    ========================================================= */
 
 const openArbitIframe=()=>{
+
+    /*
+     * RESTORE EXISTING MINIMIZED IFRAME
+     */
 
     const existingOverlay=
         document.getElementById(
@@ -1119,7 +1361,16 @@ const openArbitIframe=()=>{
 
 
     /*
-     * USE THE NEW ARBIT LINKS
+     * Get ALL available ARBIT / APP ID links.
+     *
+     * UPDATED:
+     * The new page uses:
+     *
+     * <a title="Open Arbit"
+     *    target="_blank"
+     *    href="calculator/2184012">
+     *    2184012
+     * </a>
      */
 
     let appLinks=[
@@ -1128,53 +1379,32 @@ const openArbitIframe=()=>{
 
 
     /*
-     * FALLBACK TO THE NEW SELECTOR
+     * Fallback using the NEW selector.
      */
 
     if(!appLinks.length){
 
         const fallbackLink=
             document.querySelector(
-                'a[title="Open Arbit"]'
+                'a[title="Open Arbit"][href*="calculator/"]'
             );
 
 
         if(fallbackLink){
 
-            const fallbackHref=
-                fallbackLink.href||
-                fallbackLink.getAttribute("href")||
-                "";
-
-
-            const fallbackMatch=
-                fallbackHref.match(
-                    /(?:^|\/)calculator\/([^/?#]+)/i
-                );
-
-
-            const fallbackText=
-                (
-                    fallbackLink.innerText||
-                    fallbackLink.textContent||
-                    ""
-                )
-                .replace(/\u00A0/g," ")
-                .replace(/\r?\n/g," ")
-                .replace(/\s+/g," ")
-                .trim();
-
-
             appLinks=[
                 {
                     id:
-                        fallbackMatch?.[1]||
-                        fallbackText||
+                        fallbackLink.textContent
+                            ?.replace(/\u00A0/g," ")
+                            .replace(/\r?\n/g," ")
+                            .replace(/\s+/g," ")
+                            .trim()||
                         arbitIdNumber||
                         "UNKNOWN",
 
                     href:
-                        fallbackHref,
+                        fallbackLink.href,
 
                     index:0
                 }
@@ -1196,6 +1426,10 @@ const openArbitIframe=()=>{
     }
 
 
+    /* =====================================================
+       REMOVE OLD IFRAME
+       ===================================================== */
+
     const old=
         document.getElementById(
             "arbit-iframe-overlay"
@@ -1216,11 +1450,19 @@ const openArbitIframe=()=>{
         oldStyle.remove();
 
 
+    /* =====================================================
+       CURRENT OPEN APP
+       ===================================================== */
+
     let currentAppIndex=0;
 
     let currentApp=
         appLinks[currentAppIndex];
 
+
+    /* =====================================================
+       CREATE OVERLAY
+       ===================================================== */
 
     const overlay=
         document.createElement("div");
@@ -1230,95 +1472,119 @@ const openArbitIframe=()=>{
         "arbit-iframe-overlay";
 
 
+    overlay.dataset.minimized=
+        "false";
+
+
     overlay.innerHTML=`
 
-        <div
-            id="arbit-iframe-window"
-        >
+        <div id="arbit-iframe-window">
 
-            <div
-                id="arbit-iframe-header"
-            >
+            <div id="arbit-iframe-header">
 
-                <div
-                    id="arbit-iframe-title"
-                >
-                    ARBIT / APP ID
-                </div>
+                <div id="arbit-iframe-left">
 
+                    <div id="arbit-iframe-title">
 
-                <div
-                    id="arbit-iframe-current-id"
-                >
-                    ${String(currentApp.id).replace(/</g,"&lt;")}
-                </div>
+                        ARBIT ID:
 
-
-                ${
-                    appLinks.length>1
-                    ?`
-
-                    <div
-                        id="arbit-app-selector-wrap"
-                    >
-
-                        <select
-                            id="arbit-app-selector"
-                            title="Select another ARBIT / APP ID"
-                        >
-
-                            ${appLinks.map((item,index)=>`
-
-                                <option
-                                    value="${index}"
-                                    ${index===0?"selected":""}
-                                >
-                                    ${String(item.id).replace(/</g,"&lt;")}
-                                </option>
-
-                            `).join("")}
-
-                        </select>
+                        <span id="arbit-iframe-number">
+                            ${String(currentApp.id||"UNKNOWN")
+                                .replace(/&/g,"&amp;")
+                                .replace(/</g,"&lt;")
+                                .replace(/>/g,"&gt;")
+                                .replace(/"/g,"&quot;")}
+                        </span>
 
                     </div>
 
-                    `
-                    :""
-                }
+
+                    ${
+                        appLinks.length>1
+                        ?`
+
+                        <div
+                            id="arbit-app-selector-wrap"
+                        >
+
+                            <select
+                                id="arbit-app-selector"
+                                title="Select another ARBIT / APP ID"
+                            >
+
+                                ${appLinks.map((item,index)=>`
+
+                                    <option
+                                        value="${index}"
+                                        ${index===0?"selected":""}
+                                    >
+                                        ${String(item.id||"UNKNOWN")
+                                            .replace(/&/g,"&amp;")
+                                            .replace(/</g,"&lt;")
+                                            .replace(/>/g,"&gt;")
+                                            .replace(/"/g,"&quot;")}
+                                    </option>
+
+                                `).join("")}
+
+                            </select>
 
 
-                <button
-                    id="arbit-iframe-rush"
-                    type="button"
-                >
-                    RUSH VERIFY
-                </button>
+                            <button
+                                id="arbit-app-open"
+                                type="button"
+                                style="display:none"
+                            >
+                                OPEN
+                            </button>
+
+                        </div>
+
+                        `
+                        :""
+                    }
+
+                </div>
 
 
-                <button
-                    id="arbit-iframe-pull"
-                    type="button"
-                >
-                    PULL EVIDENCE
-                </button>
+                <div id="arbit-iframe-actions">
+
+                    <button
+                        id="arbit-rush-verify"
+                        type="button"
+                    >
+                        RUSH VERIFY
+                    </button>
 
 
-                <button
-                    id="arbit-iframe-minimize"
-                    type="button"
-                    aria-label="Minimize"
-                >
-                    −
-                </button>
+                    <button
+                        id="arbit-pull-evidence"
+                        type="button"
+                    >
+                        Pull Case/History Evidence
+                    </button>
 
 
-                <button
-                    id="arbit-iframe-close"
-                    type="button"
-                    aria-label="Close"
-                >
-                    ×
-                </button>
+                    <button
+                        id="arbit-iframe-minimize"
+                        type="button"
+                        aria-label="Minimize ARBIT ID"
+                        title="Minimize"
+                    >
+                        −
+                    </button>
+
+
+                    <button
+                        id="arbit-iframe-close"
+                        type="button"
+                        aria-label="Close ARBIT ID"
+                        title="Close"
+                    >
+                        ×
+                    </button>
+
+                </div>
 
             </div>
 
@@ -1335,10 +1601,990 @@ const openArbitIframe=()=>{
     `;
 
 
+    /* =====================================================
+       STYLE
+       ===================================================== */
+
+    const iframeStyle=
+        document.createElement("style");
+
+
+    iframeStyle.id=
+        "arbit-iframe-style";
+
+
+    iframeStyle.textContent=`
+
+        #arbit-iframe-overlay{
+
+            position:fixed!important;
+            inset:0!important;
+            width:100vw!important;
+            height:100vh!important;
+
+            background:
+                rgba(0,0,0,.80)!important;
+
+            backdrop-filter:
+                blur(6px)!important;
+
+            -webkit-backdrop-filter:
+                blur(6px)!important;
+
+            z-index:
+                2147483647!important;
+
+            display:flex!important;
+
+            align-items:center!important;
+
+            justify-content:center!important;
+
+            padding:
+                8px!important;
+
+            box-sizing:
+                border-box!important;
+
+            isolation:
+                isolate!important;
+
+        }
+
+
+        #arbit-iframe-window{
+
+            position:relative!important;
+
+            z-index:
+                2147483647!important;
+
+            width:
+                98vw!important;
+
+            height:
+                96vh!important;
+
+            max-width:
+                1900px!important;
+
+            background:#111!important;
+
+            border:
+                2px solid
+                rgba(255,255,255,.22)!important;
+
+            border-radius:
+                14px!important;
+
+            overflow:hidden!important;
+
+            box-shadow:
+                0 25px 90px
+                rgba(0,0,0,.85)!important;
+
+            display:flex!important;
+
+            flex-direction:
+                column!important;
+
+        }
+
+
+        #arbit-iframe-header{
+
+            position:relative!important;
+
+            z-index:
+                3!important;
+
+            height:
+                54px!important;
+
+            min-height:
+                54px!important;
+
+            background:
+                #151515!important;
+
+            border-bottom:
+                1px solid
+                rgba(255,255,255,.18)!important;
+
+            display:flex!important;
+
+            align-items:center!important;
+
+            justify-content:space-between!important;
+
+            gap:
+                10px!important;
+
+            padding:
+                0 10px 0 16px!important;
+
+            box-sizing:
+                border-box!important;
+
+        }
+
+
+        #arbit-iframe-left{
+
+            display:flex!important;
+
+            align-items:center!important;
+
+            gap:10px!important;
+
+            min-width:0!important;
+
+            flex:1!important;
+
+        }
+
+
+        #arbit-iframe-title{
+
+            color:#fff!important;
+
+            font-family:
+                Arial,sans-serif!important;
+
+            font-size:
+                14px!important;
+
+            font-weight:
+                800!important;
+
+            letter-spacing:
+                .3px!important;
+
+            white-space:
+                nowrap!important;
+
+            display:flex!important;
+
+            align-items:center!important;
+
+            gap:
+                4px!important;
+
+            flex-shrink:0!important;
+
+        }
+
+
+        #arbit-iframe-number{
+
+            color:
+                #facc15!important;
+
+            font-weight:
+                900!important;
+
+            margin-left:
+                2px!important;
+
+            text-shadow:
+                0 1px 4px
+                rgba(0,0,0,.4)!important;
+
+        }
+
+
+        #arbit-app-selector-wrap{
+
+            display:flex!important;
+
+            align-items:center!important;
+
+            gap:6px!important;
+
+            min-width:0!important;
+
+        }
+
+
+        #arbit-app-selector{
+
+            height:
+                38px!important;
+
+            min-width:
+                150px!important;
+
+            max-width:
+                260px!important;
+
+            padding:
+                0 32px 0 11px!important;
+
+            border:
+                1px solid
+                rgba(255,255,255,.25)!important;
+
+            border-radius:
+                8px!important;
+
+            background:
+                #222!important;
+
+            color:#fff!important;
+
+            font-family:
+                Arial,sans-serif!important;
+
+            font-size:
+                12px!important;
+
+            font-weight:
+                700!important;
+
+            outline:none!important;
+
+            cursor:pointer!important;
+
+            box-sizing:border-box!important;
+
+        }
+
+
+        #arbit-app-selector:hover{
+
+            border-color:
+                rgba(255,255,255,.45)!important;
+
+        }
+
+
+        #arbit-app-selector:focus{
+
+            border-color:
+                #facc15!important;
+
+            box-shadow:
+                0 0 0 3px
+                rgba(250,204,21,.12)!important;
+
+        }
+
+
+        #arbit-app-selector option{
+
+            background:
+                #222!important;
+
+            color:#fff!important;
+
+        }
+
+
+        #arbit-app-open{
+
+            height:
+                38px!important;
+
+            padding:
+                0 14px!important;
+
+            border:
+                1px solid
+                rgba(255,255,255,.2)!important;
+
+            border-radius:
+                8px!important;
+
+            background:
+                #f59e0b!important;
+
+            color:#111!important;
+
+            font-family:
+                Arial,sans-serif!important;
+
+            font-size:
+                12px!important;
+
+            font-weight:
+                900!important;
+
+            letter-spacing:
+                .3px!important;
+
+            cursor:pointer!important;
+
+            white-space:
+                nowrap!important;
+
+            box-shadow:
+                0 4px 14px
+                rgba(0,0,0,.3)!important;
+
+        }
+
+
+        #arbit-app-open:hover{
+
+            background:
+                #fbbf24!important;
+
+            transform:
+                translateY(-1px)!important;
+
+        }
+
+
+        #arbit-app-open:active{
+
+            transform:
+                translateY(0)!important;
+
+        }
+
+
+        #arbit-iframe-actions{
+
+            display:flex!important;
+
+            align-items:center!important;
+
+            justify-content:flex-end!important;
+
+            gap:
+                8px!important;
+
+            flex-wrap:
+                nowrap!important;
+
+            flex-shrink:
+                0!important;
+
+        }
+
+
+        #arbit-rush-verify{
+
+            height:
+                38px!important;
+
+            padding:
+                0 16px!important;
+
+            border:
+                1px solid
+                rgba(255,255,255,.2)!important;
+
+            border-radius:
+                8px!important;
+
+            background:
+                #16a34a!important;
+
+            color:#fff!important;
+
+            font-family:
+                Arial,sans-serif!important;
+
+            font-size:
+                12px!important;
+
+            font-weight:
+                800!important;
+
+            letter-spacing:
+                .35px!important;
+
+            cursor:pointer!important;
+
+            white-space:
+                nowrap!important;
+
+            box-shadow:
+                0 4px 14px
+                rgba(0,0,0,.3)!important;
+
+        }
+
+
+        #arbit-rush-verify:hover{
+
+            background:
+                #22c55e!important;
+
+            box-shadow:
+                0 5px 18px
+                rgba(34,197,94,.4)!important;
+
+        }
+
+
+        #arbit-pull-evidence{
+
+            height:
+                38px!important;
+
+            padding:
+                0 16px!important;
+
+            border:
+                1px solid
+                rgba(255,255,255,.2)!important;
+
+            border-radius:
+                8px!important;
+
+            background:
+                #2563eb!important;
+
+            color:#fff!important;
+
+            font-family:
+                Arial,sans-serif!important;
+
+            font-size:
+                12px!important;
+
+            font-weight:
+                800!important;
+
+            letter-spacing:
+                .2px!important;
+
+            cursor:pointer!important;
+
+            white-space:
+                nowrap!important;
+
+            box-shadow:
+                0 4px 14px
+                rgba(0,0,0,.3)!important;
+
+        }
+
+
+        #arbit-pull-evidence:hover{
+
+            background:
+                #3b82f6!important;
+
+            box-shadow:
+                0 5px 18px
+                rgba(59,130,246,.4)!important;
+
+        }
+
+
+        #arbit-iframe-minimize{
+
+            width:
+                38px!important;
+
+            height:
+                38px!important;
+
+            border:
+                0!important;
+
+            border-radius:
+                50%!important;
+
+            background:
+                rgba(250,204,21,.18)!important;
+
+            color:
+                #facc15!important;
+
+            font-size:
+                25px!important;
+
+            font-weight:
+                900!important;
+
+            line-height:
+                1!important;
+
+            cursor:pointer!important;
+
+            display:flex!important;
+
+            align-items:center!important;
+
+            justify-content:center!important;
+
+            flex-shrink:
+                0!important;
+
+            padding:
+                0!important;
+
+        }
+
+
+        #arbit-iframe-minimize:hover{
+
+            background:
+                rgba(250,204,21,.32)!important;
+
+        }
+
+
+        #arbit-iframe-close{
+
+            width:
+                38px!important;
+
+            height:
+                38px!important;
+
+            border:
+                0!important;
+
+            border-radius:
+                50%!important;
+
+            background:
+                #dc2626!important;
+
+            color:#fff!important;
+
+            font-size:
+                27px!important;
+
+            line-height:
+                1!important;
+
+            cursor:pointer!important;
+
+            display:flex!important;
+
+            align-items:center!important;
+
+            justify-content:center!important;
+
+            flex-shrink:
+                0!important;
+
+            padding:
+                0!important;
+
+        }
+
+
+        #arbit-iframe-close:hover{
+
+            background:
+                #ef4444!important;
+
+        }
+
+
+        #arbit-iframe{
+
+            position:relative!important;
+
+            z-index:
+                1!important;
+
+            width:
+                100%!important;
+
+            height:
+                calc(100% - 54px)!important;
+
+            flex:
+                1!important;
+
+            border:0!important;
+
+            background:#fff!important;
+
+        }
+
+
+        #vob-file-viewer-overlay{
+
+            position:fixed!important;
+
+            inset:0!important;
+
+            width:100vw!important;
+
+            height:100vh!important;
+
+            background:
+                rgba(0,0,0,.84)!important;
+
+            backdrop-filter:
+                blur(6px)!important;
+
+            -webkit-backdrop-filter:
+                blur(6px)!important;
+
+            z-index:
+                2147483647!important;
+
+            display:flex!important;
+
+            align-items:center!important;
+
+            justify-content:center!important;
+
+            padding:
+                10px!important;
+
+            box-sizing:
+                border-box!important;
+
+            isolation:
+                isolate!important;
+
+        }
+
+
+        #vob-file-viewer-window{
+
+            width:
+                96vw!important;
+
+            height:
+                94vh!important;
+
+            max-width:
+                1800px!important;
+
+            background:#111!important;
+
+            border:
+                1px solid
+                rgba(255,255,255,.25)!important;
+
+            border-radius:
+                14px!important;
+
+            overflow:hidden!important;
+
+            box-shadow:
+                0 25px 100px
+                rgba(0,0,0,.9)!important;
+
+            display:flex!important;
+
+            flex-direction:
+                column!important;
+
+        }
+
+
+        #vob-file-viewer-header{
+
+            height:
+                48px!important;
+
+            min-height:
+                48px!important;
+
+            background:
+                #151515!important;
+
+            border-bottom:
+                1px solid
+                rgba(255,255,255,.18)!important;
+
+            display:flex!important;
+
+            align-items:center!important;
+
+            justify-content:space-between!important;
+
+            padding:
+                0 10px 0 16px!important;
+
+        }
+
+
+        #vob-file-viewer-title{
+
+            color:#fff!important;
+
+            font:
+                800 13px Arial,sans-serif!important;
+
+        }
+
+
+        #vob-file-viewer-close{
+
+            width:
+                36px!important;
+
+            height:
+                36px!important;
+
+            border:0!important;
+
+            border-radius:
+                50%!important;
+
+            background:
+                rgba(255,255,255,.08)!important;
+
+            color:#fff!important;
+
+            font-size:
+                26px!important;
+
+            cursor:pointer!important;
+
+        }
+
+
+        #vob-file-viewer-close:hover{
+
+            background:
+                rgba(220,40,40,.95)!important;
+
+        }
+
+
+        #vob-file-viewer-frame{
+
+            width:
+                100%!important;
+
+            height:
+                calc(100% - 48px)!important;
+
+            flex:
+                1!important;
+
+            border:0!important;
+
+            background:#fff!important;
+
+        }
+
+
+        @media(max-width:1250px){
+
+            #arbit-iframe-header{
+
+                gap:
+                    5px!important;
+
+            }
+
+
+            #arbit-iframe-left{
+
+                gap:
+                    6px!important;
+
+            }
+
+
+            #arbit-app-selector{
+
+                min-width:
+                    125px!important;
+
+                max-width:
+                    180px!important;
+
+            }
+
+
+            #arbit-rush-verify,
+            #arbit-pull-evidence{
+
+                padding:
+                    0 10px!important;
+
+                font-size:
+                    10px!important;
+
+            }
+
+        }
+
+
+        @media(max-width:950px){
+
+            #arbit-iframe-title{
+
+                font-size:
+                    12px!important;
+
+            }
+
+
+            #arbit-app-selector{
+
+                min-width:
+                    110px!important;
+
+                max-width:
+                    145px!important;
+
+            }
+
+
+            #arbit-app-open{
+
+                padding:
+                    0 10px!important;
+
+            }
+
+
+            #arbit-rush-verify,
+            #arbit-pull-evidence{
+
+                padding:
+                    0 7px!important;
+
+                font-size:
+                    9px!important;
+
+            }
+
+        }
+
+
+        @media(max-width:700px){
+
+            #arbit-iframe-overlay{
+
+                padding:
+                    4px!important;
+
+            }
+
+
+            #arbit-iframe-window{
+
+                width:
+                    100vw!important;
+
+                height:
+                    98vh!important;
+
+                border-radius:
+                    10px!important;
+
+            }
+
+
+            #arbit-iframe-header{
+
+                padding-left:
+                    8px!important;
+
+                gap:
+                    4px!important;
+
+            }
+
+
+            #arbit-iframe-left{
+
+                gap:
+                    4px!important;
+
+            }
+
+
+            #arbit-iframe-title{
+
+                font-size:
+                    10px!important;
+
+            }
+
+
+            #arbit-iframe-number{
+
+                font-size:
+                    10px!important;
+
+            }
+
+
+            #arbit-app-selector{
+
+                min-width:
+                    85px!important;
+
+                max-width:
+                    120px!important;
+
+                height:
+                    34px!important;
+
+                font-size:
+                    9px!important;
+
+            }
+
+
+            #arbit-app-open{
+
+                height:
+                    34px!important;
+
+                padding:
+                    0 8px!important;
+
+                font-size:
+                    9px!important;
+
+            }
+
+
+            #arbit-rush-verify,
+            #arbit-pull-evidence{
+
+                height:
+                    34px!important;
+
+                padding:
+                    0 5px!important;
+
+                font-size:
+                    8px!important;
+
+            }
+
+
+            #arbit-iframe-minimize,
+            #arbit-iframe-close{
+
+                width:
+                    34px!important;
+
+                height:
+                    34px!important;
+
+            }
+
+        }
+
+    `;
+
+
+    document.head.appendChild(
+        iframeStyle
+    );
+
+
     document.body.appendChild(
         overlay
     );
 
+
+    /* =====================================================
+       ELEMENTS
+       ===================================================== */
 
     const iframe=
         document.getElementById(
@@ -1346,118 +2592,16 @@ const openArbitIframe=()=>{
         );
 
 
-    const currentIdDisplay=
-        document.getElementById(
-            "arbit-iframe-current-id"
-        );
-
-
-    const updateCurrentIdDisplay=()=>{
-
-        if(currentIdDisplay){
-
-            currentIdDisplay.textContent=
-                currentApp?.id||
-                "";
-
-        }
-
-    };
-
-
-    const selector=
-        document.getElementById(
-            "arbit-app-selector"
-        );
-
-
-    if(selector){
-
-        selector.onchange=()=>{
-
-            const selectedIndex=
-                Number(
-                    selector.value
-                );
-
-
-            if(
-                !Number.isInteger(
-                    selectedIndex
-                )||
-                !appLinks[selectedIndex]
-            ){
-
-                return;
-
-            }
-
-
-            const selectedApp=
-                appLinks[selectedIndex];
-
-
-            console.log(
-                "Opening selected APP / ARBIT ID in SAME iframe:",
-                selectedApp
-            );
-
-
-            currentAppIndex=
-                selectedIndex;
-
-
-            currentApp=
-                selectedApp;
-
-
-            iframe.src=
-                selectedApp.href;
-
-
-            updateCurrentIdDisplay();
-
-        };
-
-    }
-
-
     const rushBtn=
         document.getElementById(
-            "arbit-iframe-rush"
+            "arbit-rush-verify"
         );
 
 
-    if(rushBtn){
-
-        rushBtn.onclick=()=>{
-
-            runRushVerify(
-                iframe
-            );
-
-        };
-
-    }
-
-
-    const pullBtn=
+    const pullEvidenceBtn=
         document.getElementById(
-            "arbit-iframe-pull"
+            "arbit-pull-evidence"
         );
-
-
-    if(pullBtn){
-
-        pullBtn.onclick=()=>{
-
-            runPullEvidence(
-                iframe
-            );
-
-        };
-
-    }
 
 
     const minimizeBtn=
@@ -1466,229 +2610,1053 @@ const openArbitIframe=()=>{
         );
 
 
-    if(minimizeBtn){
-
-        minimizeBtn.onclick=()=>{
-
-            overlay.dataset.minimized=
-                "true";
-
-
-            overlay.style.setProperty(
-                "display",
-                "none",
-                "important"
-            );
-
-
-            const vobViewer=
-                document.getElementById(
-                    "vob-file-viewer-overlay"
-                );
-
-
-            if(vobViewer){
-
-                vobViewer.style.setProperty(
-                    "display",
-                    "none",
-                    "important"
-                );
-
-            }
-
-        };
-
-    }
-
-
     const closeBtn=
         document.getElementById(
             "arbit-iframe-close"
         );
 
 
-    if(closeBtn){
+    const iframeNumberElement=
+        document.getElementById(
+            "arbit-iframe-number"
+        );
 
-        closeBtn.onclick=()=>{
 
-            overlay.remove();
+    const appSelector=
+        document.getElementById(
+            "arbit-app-selector"
+        );
 
-        };
+
+    const appOpenBtn=
+        document.getElementById(
+            "arbit-app-open"
+        );
+
+
+    /* =====================================================
+       UPDATE CURRENT ID DISPLAY
+       ===================================================== */
+
+    const updateCurrentIdDisplay=()=>{
+
+        if(!iframeNumberElement)
+            return;
+
+
+        iframeNumberElement.textContent=
+            currentApp?.id||
+            "UNKNOWN";
+
+    };
+
+
+    /* =====================================================
+       APP DROPDOWN CHANGE
+       ===================================================== */
+
+    if(appSelector){
+
+        appSelector.addEventListener(
+            "change",
+            ()=>{
+
+                const selectedIndex=
+                    Number(
+                        appSelector.value
+                    );
+
+
+                if(
+                    !Number.isInteger(
+                        selectedIndex
+                    )||
+                    !appLinks[selectedIndex]
+                ){
+
+                    return;
+
+                }
+
+
+                if(
+                    selectedIndex===
+                    currentAppIndex
+                ){
+
+                    if(appOpenBtn)
+                        appOpenBtn.style.display=
+                            "none";
+
+                }else{
+
+                    if(appOpenBtn)
+                        appOpenBtn.style.display=
+                            "inline-flex";
+
+                }
+
+            }
+
+        );
 
     }
 
 
+    /* =====================================================
+       OPEN SELECTED APP IN SAME IFRAME
+       ===================================================== */
+
+    if(appOpenBtn){
+
+        appOpenBtn.addEventListener(
+            "click",
+            ()=>{
+
+                if(!appSelector)
+                    return;
+
+
+                const selectedIndex=
+                    Number(
+                        appSelector.value
+                    );
+
+
+                if(
+                    !Number.isInteger(
+                        selectedIndex
+                    )||
+                    !appLinks[selectedIndex]
+                ){
+
+                    return;
+
+                }
+
+
+                if(
+                    selectedIndex===
+                    currentAppIndex
+                ){
+
+                    appOpenBtn.style.display=
+                        "none";
+
+                    return;
+
+                }
+
+
+                const selectedApp=
+                    appLinks[selectedIndex];
+
+
+                console.log(
+                    "Opening selected APP / ARBIT ID in SAME iframe:",
+                    selectedApp
+                );
+
+
+                currentAppIndex=
+                    selectedIndex;
+
+
+                currentApp=
+                    selectedApp;
+
+
+                iframe.src=
+                    selectedApp.href;
+
+
+                updateCurrentIdDisplay();
+
+
+                appOpenBtn.style.display=
+                    "none";
+
+
+                appSelector.value=
+                    String(
+                        currentAppIndex
+                    );
+
+            }
+
+        );
+
+    }
+
+
+    /* =====================================================
+       UPDATE IFRAME ARBIT NUMBER
+       ===================================================== */
+
     updateCurrentIdDisplay();
+
+
+    /* =====================================================
+       FORCE IFRAME TO FRONT
+       ===================================================== */
+
+    try{
+
+        overlay.style.setProperty(
+            "z-index",
+            "2147483647",
+            "important"
+        );
+
+        overlay.style.setProperty(
+            "position",
+            "fixed",
+            "important"
+        );
+
+        overlay.style.setProperty(
+            "inset",
+            "0",
+            "important"
+        );
+
+        overlay.style.setProperty(
+            "isolation",
+            "isolate",
+            "important"
+        );
+
+    }catch(e){
+
+        console.warn(
+            "Could not force iframe stacking:",
+            e
+        );
+
+    }
+
+
+    /* =====================================================
+       RUSH VERIFY
+       ===================================================== */
+
+    rushBtn.onclick=()=>{
+
+        runRushVerify(
+            iframe
+        );
+
+    };
+
+
+    /* =====================================================
+       PULL CASE / HISTORY EVIDENCE
+       ===================================================== */
+
+    pullEvidenceBtn.onclick=()=>{
+
+        runPullEvidence(
+            iframe
+        );
+
+    };
+
+
+    /* =====================================================
+       INSTALL VOB HANDLERS
+       ===================================================== */
+
+    installVobIframeHandlers(
+        iframe
+    );
+
+
+    /* =====================================================
+       MINIMIZE IFRAME
+       ===================================================== */
+
+    const minimizeIframe=()=>{
+
+        overlay.dataset.minimized=
+            "true";
+
+
+        overlay.style.setProperty(
+            "display",
+            "none",
+            "important"
+        );
+
+    };
+
+
+    minimizeBtn.onclick=
+        minimizeIframe;
+
+
+    /* =====================================================
+       CLOSE IFRAME
+       ===================================================== */
+
+    const closeIframe=()=>{
+
+        const vobViewer=
+            document.getElementById(
+                "vob-file-viewer-overlay"
+            );
+
+
+        if(vobViewer)
+            vobViewer.remove();
+
+
+        overlay.remove();
+        iframeStyle.remove();
+
+    };
+
+
+    closeBtn.onclick=
+        closeIframe;
+
+
+    /* =====================================================
+       CLICK OUTSIDE
+       ===================================================== */
+
+    overlay.addEventListener(
+        "mousedown",
+        e=>{
+
+            if(
+                e.target===overlay
+            ){
+
+                closeIframe();
+
+            }
+
+        }
+    );
+
+
+    /* =====================================================
+       ESC
+       ===================================================== */
+
+    overlay.addEventListener(
+        "keydown",
+        e=>{
+
+            if(
+                e.key==="Escape"
+            ){
+
+                e.preventDefault();
+
+
+                const vobViewer=
+                    document.getElementById(
+                        "vob-file-viewer-overlay"
+                    );
+
+
+                if(vobViewer){
+
+                    vobViewer.remove();
+
+                }else{
+
+                    closeIframe();
+
+                }
+
+            }
+
+        },
+        true
+    );
+
+
+    /* =====================================================
+       FOCUS
+       ===================================================== */
+
+    setTimeout(()=>{
+
+        try{
+
+            closeBtn.focus();
+
+        }catch(e){}
+
+    },50);
 
 };
 
 
 /* =========================================================
-   ORIGINAL UI / POPUP
-   ========================================================= */
-
-/*
- * The original popup/UI logic remains unchanged.
- * The important output change is in buildRow() below:
- *
- * COLUMN F = arbitIdNumber
- */
-
-
-/* =========================================================
-   MAIN POPUP
+   MAIN DISPUTE POPUP
    ========================================================= */
 
 const popup=()=>new Promise(resolve=>{
 
     const old=
         document.getElementById(
-            "dispute-auto-fill-overlay"
+            "dispute-popup-overlay"
         );
+
 
     if(old)
         old.remove();
 
 
+    const overlay=
+        document.createElement("div");
+
+
+    overlay.id=
+        "dispute-popup-overlay";
+
+
+    overlay.innerHTML=`
+
+        <div id="dispute-popup">
+
+            <button id="dp-close">
+                ×
+            </button>
+
+
+            <div id="dp-title-row">
+
+                <div id="dp-title">
+                    Dispute Information
+                </div>
+
+
+                <button
+                    id="dp-arbit-id"
+                    type="button"
+                >
+                    ARBIT ID
+                </button>
+
+            </div>
+
+
+            <div id="dp-label-name">
+                Dispute User Name
+            </div>
+
+
+            <div id="dp-name-row">
+
+                <input
+                    id="dp-name"
+                    type="text"
+                    placeholder="Enter Dispute User Name"
+                    autocomplete="off"
+                >
+
+
+                <button id="dp-edit">
+                    Edit
+                </button>
+
+
+                <span id="dp-saved">
+                    Saved ✓
+                </span>
+
+
+                <button id="dp-save">
+                    Save
+                </button>
+
+            </div>
+
+
+            <div id="dp-label-state">
+                State + Duplicate Comments
+            </div>
+
+
+            <div id="dp-state-row">
+
+                <input
+                    id="dp-state"
+                    type="text"
+                    placeholder="Enter State"
+                    autocomplete="off"
+                >
+
+
+                <select id="dp-duplicate-comments">
+
+                    <option
+                        value=""
+                        selected
+                        disabled
+                    >
+                        Select Duplicate Dispute Comments
+                    </option>
+
+
+                    <option value="Duplicate Dispute Reviewed">
+                        Duplicate Dispute Reviewed
+                    </option>
+
+
+                    <option value="N/A">
+                        N/A
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <div id="dp-label-mismatch">
+                Plantype Mismatch
+            </div>
+
+
+            <select id="dp-mismatch">
+
+                <option
+                    value=""
+                    selected
+                    disabled
+                >
+                    Select Yes or No
+                </option>
+
+
+                <option value="Yes">
+                    Yes
+                </option>
+
+
+                <option value="No">
+                    No
+                </option>
+
+            </select>
+
+
+            <button id="dp-go">
+                Go
+            </button>
+
+
+            <div id="dp-status"></div>
+
+
+            <div
+                id="dp-eligible"
+                style="display:none"
+            >
+
+                <div id="dp-eligible-title">
+                    Eligible updated today?
+                </div>
+
+
+                <div id="dp-eligible-buttons">
+
+                    <button id="dp-no">
+                        NO
+                    </button>
+
+
+                    <button id="dp-yes">
+                        YES
+                    </button>
+
+                </div>
+
+
+                <div
+                    id="dp-yes-extra"
+                    style="display:none"
+                >
+
+                    <div id="dp-label-email">
+                        PLANTYPE_IDRE_EMAIL
+                    </div>
+
+
+                    <input
+                        id="dp-email"
+                        type="text"
+                        placeholder="Enter PLANTYPE_IDRE_EMAIL"
+                        autocomplete="off"
+                    >
+
+
+                    <div id="dp-label-arbit-notes">
+                        Arbit Case Notes
+                    </div>
+
+
+                    <input
+                        id="dp-arbit-notes"
+                        type="text"
+                        placeholder="Enter Arbit Case Notes"
+                        autocomplete="off"
+                    >
+
+
+                    <div id="dp-label-plan-evidence">
+                        Plan Type Evidence?
+                    </div>
+
+
+                    <select id="dp-plan-evidence">
+
+                        <option
+                            value=""
+                            selected
+                            disabled
+                        >
+                            Select Plan Type Evidence
+                        </option>
+
+
+                        <option value="Yes - VOB">
+                            Yes - VOB
+                        </option>
+
+
+                        <option value="Yes - VOB Team">
+                            Yes - VOB Team
+                        </option>
+
+
+                        <option value="Yes - Insurance Card">
+                            Yes - Insurance Card
+                        </option>
+
+
+                        <option value="Yes - State Authority">
+                            Yes - State Authority
+                        </option>
+
+
+                        <option value="Yes - EOB">
+                            Yes - EOB
+                        </option>
+
+                    </select>
+
+
+                    <div id="dp-label-verified">
+                        Verified?
+                    </div>
+
+
+                    <select id="dp-verified">
+
+                        <option value="">
+                            Select Yes or No
+                        </option>
+
+
+                        <option value="Yes">
+                            Yes
+                        </option>
+
+
+                        <option value="No">
+                            No
+                        </option>
+
+                    </select>
+
+
+                    <div id="dp-label-non-bifurcated">
+                        Non-Bifurcated state/Federal.
+                    </div>
+
+
+                    <select id="dp-non-bifurcated">
+
+                        <option
+                            value=""
+                            selected
+                            disabled
+                        >
+                            Select N/A or Yes
+                        </option>
+
+
+                        <option value="N/A">
+                            N/A
+                        </option>
+
+
+                        <option value="Yes">
+                            Yes
+                        </option>
+
+                    </select>
+
+
+                    <button
+                        id="dp-continue"
+                        disabled
+                    >
+                        Continue
+                    </button>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    `;
+
+
+    /* =====================================================
+       STYLE
+       ===================================================== */
+
     const style=
         document.createElement("style");
 
+
     style.id=
-        "dispute-auto-fill-style";
+        "dispute-popup-style";
 
 
     style.textContent=`
 
-        #dispute-auto-fill-overlay{
+        #dispute-popup-overlay{
 
             position:fixed;
 
             inset:0;
 
-            z-index:2147483640;
+            width:100%;
 
-            display:flex;
+            height:100%;
 
-            align-items:center;
+            z-index:2147483646;
 
-            justify-content:center;
+            pointer-events:none;
 
-            background:rgba(0,0,0,.72);
-
-            backdrop-filter:blur(8px);
-
-            -webkit-backdrop-filter:blur(8px);
-
-            font-family:Arial,sans-serif;
+            isolation:isolate;
 
         }
 
 
-        #dispute-auto-fill-box{
+        #dispute-popup{
 
-            width:min(680px,94vw);
+            pointer-events:auto;
 
-            max-height:92vh;
+            position:absolute;
 
-            overflow:auto;
+            top:20px;
 
-            background:#111;
+            left:50%;
 
-            color:#fff;
+            transform:translateX(-50%);
 
-            border:1px solid rgba(255,255,255,.15);
+            width:620px;
+
+            max-width:
+                calc(100vw - 30px);
+
+            max-height:
+                calc(100vh - 40px);
+
+            overflow-y:auto;
+
+            padding:24px;
 
             border-radius:18px;
 
-            box-shadow:
-                0 25px 80px rgba(0,0,0,.55);
+            background:
+                rgba(0,0,0,.78);
 
-            padding:22px;
+            border:
+                1px solid
+                rgba(255,255,255,.18);
+
+            box-shadow:
+                0 15px 45px
+                rgba(0,0,0,.45);
+
+            backdrop-filter:
+                blur(14px);
+
+            -webkit-backdrop-filter:
+                blur(14px);
+
+            font-family:
+                Arial,sans-serif;
+
+            color:#fff;
 
             box-sizing:border-box;
 
         }
 
 
-        #dispute-auto-fill-title{
-
-            font-size:20px;
-
-            font-weight:800;
-
-            margin-bottom:18px;
-
-        }
-
-
-        .daf-row{
+        #dp-title-row{
 
             display:flex;
 
             align-items:center;
 
-            gap:10px;
+            justify-content:space-between;
 
-            margin-bottom:12px;
+            gap:12px;
+
+            margin-bottom:20px;
+
+            padding-right:34px;
 
         }
 
 
-        .daf-row label{
+        #dp-title{
 
-            width:190px;
-
-            flex:0 0 190px;
-
-            font-size:13px;
+            font-size:20px;
 
             font-weight:700;
 
+            margin:0;
+
         }
 
 
-        .daf-row input,
-        .daf-row select,
-        .daf-row textarea{
+        #dp-arbit-id{
+
+            height:38px;
+
+            padding:0 16px;
+
+            border:
+                1px solid
+                rgba(255,255,255,.25);
+
+            border-radius:9px;
+
+            background:#d92828;
+
+            color:#fff;
+
+            font-size:13px;
+
+            font-weight:800;
+
+            letter-spacing:.4px;
+
+            cursor:pointer;
+
+            white-space:nowrap;
+
+            box-shadow:
+                0 4px 12px
+                rgba(0,0,0,.3);
+
+        }
+
+
+        #dp-arbit-id:hover{
+
+            background:#ef3333;
+
+            transform:translateY(-1px);
+
+        }
+
+
+        #dp-close{
+
+            position:absolute;
+
+            top:8px;
+
+            right:10px;
+
+            width:34px;
+
+            height:34px;
+
+            border:0;
+
+            border-radius:50%;
+
+            background:transparent;
+
+            color:#fff;
+
+            font-size:27px;
+
+            cursor:pointer;
+
+        }
+
+
+        #dp-close:hover{
+
+            background:
+                rgba(255,255,255,.14);
+
+        }
+
+
+        #dp-label-name,
+        #dp-label-state,
+        #dp-label-mismatch,
+        #dp-label-email,
+        #dp-label-arbit-notes,
+        #dp-label-plan-evidence,
+        #dp-label-verified,
+        #dp-label-non-bifurcated{
+
+            font-size:13px;
+
+            font-weight:600;
+
+            color:
+                rgba(255,255,255,.9);
+
+            margin:
+                10px 0 7px;
+
+        }
+
+
+        #dp-name-row,
+        #dp-state-row{
+
+            display:flex;
+
+            gap:8px;
+
+            width:100%;
+
+            align-items:center;
+
+        }
+
+
+        #dp-name,
+        #dp-state,
+        #dp-email,
+        #dp-arbit-notes,
+        #dp-mismatch,
+        #dp-plan-evidence,
+        #dp-verified,
+        #dp-non-bifurcated,
+        #dp-duplicate-comments{
+
+            height:42px;
+
+            box-sizing:border-box;
+
+            border:
+                1px solid
+                rgba(255,255,255,.25);
+
+            border-radius:10px;
+
+            background:
+                rgba(255,255,255,.09);
+
+            color:#fff;
+
+            outline:none;
+
+            padding:
+                0 12px;
+
+            font-size:14px;
+
+        }
+
+
+        #dp-name,
+        #dp-state{
 
             flex:1;
 
             min-width:0;
 
-            box-sizing:border-box;
+        }
 
-            border:1px solid rgba(255,255,255,.25);
 
-            border-radius:10px;
+        #dp-duplicate-comments{
+
+            width:220px;
+
+            flex-shrink:0;
+
+            cursor:pointer;
+
+        }
+
+
+        #dp-mismatch,
+        #dp-email,
+        #dp-arbit-notes,
+        #dp-plan-evidence,
+        #dp-verified,
+        #dp-non-bifurcated{
+
+            width:100%;
+
+        }
+
+
+        #dp-mismatch,
+        #dp-plan-evidence,
+        #dp-verified,
+        #dp-non-bifurcated{
+
+            cursor:pointer;
+
+        }
+
+
+        #dp-mismatch option,
+        #dp-plan-evidence option,
+        #dp-verified option,
+        #dp-non-bifurcated option,
+        #dp-duplicate-comments option{
 
             background:#222;
 
             color:#fff;
 
-            padding:0 12px;
+        }
 
-            height:42px;
 
-            outline:none;
+        #dp-name::placeholder,
+        #dp-state::placeholder,
+        #dp-email::placeholder,
+        #dp-arbit-notes::placeholder{
+
+            color:
+                rgba(255,255,255,.5);
 
         }
 
 
-        .daf-row textarea{
-
-            height:90px;
-
-            padding-top:10px;
-
-            resize:vertical;
-
-        }
-
-
-        .daf-row input:focus,
-        .daf-row select:focus,
-        .daf-row textarea:focus{
+        #dp-name:focus,
+        #dp-state:focus,
+        #dp-email:focus,
+        #dp-arbit-notes:focus,
+        #dp-mismatch:focus,
+        #dp-plan-evidence:focus,
+        #dp-verified:focus,
+        #dp-non-bifurcated:focus,
+        #dp-duplicate-comments:focus{
 
             border-color:
                 rgba(255,255,255,.65);
@@ -1700,22 +3668,14 @@ const popup=()=>new Promise(resolve=>{
         }
 
 
-        #daf-buttons{
+        #dp-edit,
+        #dp-save,
+        #dp-go{
 
-            display:flex;
+            height:42px;
 
-            gap:10px;
-
-            margin-top:18px;
-
-        }
-
-
-        #daf-buttons button{
-
-            flex:1;
-
-            height:44px;
+            padding:
+                0 15px;
 
             border:
                 1px solid
@@ -1730,195 +3690,299 @@ const popup=()=>new Promise(resolve=>{
 
             font-weight:700;
 
+            font-size:14px;
+
             cursor:pointer;
 
+            white-space:nowrap;
+
         }
 
 
-        #daf-buttons button:hover{
+        #dp-edit:hover,
+        #dp-save:hover{
 
             background:
-                rgba(255,255,255,.22);
+                rgba(255,255,255,.24);
 
         }
 
 
-        #daf-go{
+        #dp-go{
 
-            background:#166534 !important;
-
-        }
-
-
-        #daf-close{
-
-            background:#991b1b !important;
-
-        }
-
-
-        #daf-eligible{
-
-            display:none;
-
-            margin-top:18px;
-
-            padding-top:18px;
-
-            border-top:
-                1px solid
-                rgba(255,255,255,.15);
-
-        }
-
-
-        #daf-eligible-buttons{
-
-            display:flex;
-
-            gap:10px;
+            width:100%;
 
             margin-top:10px;
 
+            background:
+                rgba(35,150,70,.9);
+
+            border-color:
+                rgba(35,150,70,.65);
+
         }
 
 
-        #daf-eligible-buttons button{
+        #dp-go:hover{
 
-            flex:1;
+            background:
+                rgba(45,175,80,.98);
+
+        }
+
+
+        #dp-save{
+
+            display:none;
+
+        }
+
+
+        #dp-saved{
+
+            display:none;
 
             height:42px;
 
-            border:0;
-
-            border-radius:10px;
-
-            color:#fff;
-
-            font-weight:800;
-
-            cursor:pointer;
-
-        }
-
-
-        #daf-no{
-
-            background:#991b1b;
-
-        }
-
-
-        #daf-yes{
-
-            background:#166534;
-
-        }
-
-
-        #daf-yes-fields{
-
-            display:none;
-
-            margin-top:14px;
-
-        }
-
-
-        #daf-continue{
-
-            width:100%;
-
-            height:44px;
-
-            border:0;
-
-            border-radius:10px;
-
-            background:#166534;
-
-            color:#fff;
-
-            font-weight:800;
-
-            cursor:pointer;
-
-        }
-
-
-        #daf-continue:disabled{
-
-            opacity:.45;
-
-            cursor:not-allowed;
-
-        }
-
-
-        #daf-arbit{
-
-            width:100%;
-
-            height:44px;
-
-            margin-top:10px;
-
-            border:
-                1px solid
-                rgba(255,255,255,.25);
+            padding:
+                0 12px;
 
             border-radius:10px;
 
             background:
-                rgba(255,255,255,.14);
+                rgba(35,140,65,.8);
 
             color:#fff;
 
-            font-weight:800;
+            font-weight:700;
 
-            cursor:pointer;
+            font-size:13px;
+
+            align-items:center;
+
+            justify-content:center;
+
+            white-space:nowrap;
 
         }
 
 
-        #daf-status{
+        #dp-status{
 
-            margin-top:12px;
+            margin-top:9px;
 
             font-size:12px;
 
-            color:rgba(255,255,255,.7);
+            color:
+                rgba(255,255,255,.65);
 
             min-height:16px;
 
         }
 
 
-        @media(max-width:600px){
+        #dp-eligible{
 
-            #dispute-auto-fill-box{
+            margin-top:16px;
 
-                width:96vw;
+            padding-top:14px;
 
-                padding:16px;
+            border-top:
+                1px solid
+                rgba(255,255,255,.14);
+
+        }
+
+
+        #dp-eligible-title{
+
+            font-size:13px;
+
+            font-weight:600;
+
+            margin-bottom:9px;
+
+        }
+
+
+        #dp-eligible-buttons{
+
+            display:flex;
+
+            gap:8px;
+
+        }
+
+
+        #dp-no,
+        #dp-yes{
+
+            flex:1;
+
+            height:42px;
+
+            border-radius:10px;
+
+            border:
+                1px solid
+                rgba(255,255,255,.2);
+
+            color:#fff;
+
+            font-size:14px;
+
+            font-weight:700;
+
+            cursor:pointer;
+
+        }
+
+
+        #dp-no{
+
+            background:
+                rgba(190,35,35,.88);
+
+        }
+
+
+        #dp-no:hover{
+
+            background:
+                rgba(220,45,45,.95);
+
+        }
+
+
+        #dp-yes{
+
+            background:
+                rgba(30,95,190,.9);
+
+        }
+
+
+        #dp-yes:hover{
+
+            background:
+                rgba(40,115,220,.98);
+
+        }
+
+
+        #dp-yes-extra{
+
+            margin-top:14px;
+
+            padding-top:14px;
+
+            border-top:
+                1px solid
+                rgba(255,255,255,.14);
+
+        }
+
+
+        #dp-continue{
+
+            width:100%;
+
+            height:42px;
+
+            margin-top:10px;
+
+            border-radius:10px;
+
+            border:
+                1px solid
+                rgba(35,140,65,.45);
+
+            background:
+                rgba(35,150,70,.9);
+
+            color:#fff;
+
+            font-size:14px;
+
+            font-weight:700;
+
+            cursor:pointer;
+
+        }
+
+
+        #dp-continue:hover:not(:disabled){
+
+            background:
+                rgba(45,175,80,.98);
+
+        }
+
+
+        #dp-continue:disabled{
+
+            background:
+                rgba(100,100,100,.45);
+
+            border-color:
+                rgba(255,255,255,.12);
+
+            color:
+                rgba(255,255,255,.45);
+
+            cursor:not-allowed;
+
+            opacity:.65;
+
+        }
+
+
+        @media(max-width:650px){
+
+            #dp-title-row{
+
+                padding-right:34px;
 
             }
 
 
-            .daf-row{
+            #dp-title{
 
-                display:block;
+                font-size:18px;
 
             }
 
 
-            .daf-row label{
+            #dp-arbit-id{
 
-                display:block;
+                padding:
+                    0 11px;
 
-                width:auto;
+                font-size:
+                    12px;
 
-                margin-bottom:5px;
+            }
+
+
+            #dp-state-row{
+
+                flex-wrap:wrap;
+
+            }
+
+
+            #dp-state{
+
+                width:100%;
+
+                flex:none;
+
+            }
+
+
+            #dp-duplicate-comments{
+
+                width:100%;
 
             }
 
@@ -1932,402 +3996,100 @@ const popup=()=>new Promise(resolve=>{
     );
 
 
-    const overlay=
-        document.createElement("div");
-
-
-    overlay.id=
-        "dispute-auto-fill-overlay";
-
-
-    overlay.innerHTML=`
-
-        <div id="dispute-auto-fill-box">
-
-            <div id="dispute-auto-fill-title">
-                DISPUTE INFORMATION
-            </div>
-
-
-            <div class="daf-row">
-
-                <label>
-                    Dispute User Name
-                </label>
-
-                <input
-                    id="daf-name"
-                    type="text"
-                    autocomplete="off"
-                >
-
-            </div>
-
-
-            <div class="daf-row">
-
-                <label>
-                    State
-                </label>
-
-                <input
-                    id="daf-state"
-                    type="text"
-                    maxlength="2"
-                    autocomplete="off"
-                >
-
-            </div>
-
-
-            <div class="daf-row">
-
-                <label>
-                    Duplicate Dispute Comments
-                </label>
-
-                <select
-                    id="daf-duplicate"
-                >
-
-                    <option value="">
-                        Select
-                    </option>
-
-                    <option value="Yes">
-                        Yes
-                    </option>
-
-                    <option value="No">
-                        No
-                    </option>
-
-                </select>
-
-            </div>
-
-
-            <div class="daf-row">
-
-                <label>
-                    Plantype Mismatch
-                </label>
-
-                <select
-                    id="daf-mismatch"
-                >
-
-                    <option value="">
-                        Select
-                    </option>
-
-                    <option value="Yes">
-                        Yes
-                    </option>
-
-                    <option value="No">
-                        No
-                    </option>
-
-                </select>
-
-            </div>
-
-
-            <div id="daf-buttons">
-
-                <button
-                    id="daf-go"
-                    type="button"
-                >
-                    GO
-                </button>
-
-
-                <button
-                    id="daf-close"
-                    type="button"
-                >
-                    CLOSE
-                </button>
-
-            </div>
-
-
-            <div id="daf-eligible">
-
-                <div>
-                    Is this dispute eligible?
-                </div>
-
-
-                <div id="daf-eligible-buttons">
-
-                    <button
-                        id="daf-no"
-                        type="button"
-                    >
-                        NO
-                    </button>
-
-
-                    <button
-                        id="daf-yes"
-                        type="button"
-                    >
-                        YES
-                    </button>
-
-                </div>
-
-
-                <div id="daf-yes-fields">
-
-                    <div class="daf-row">
-
-                        <label>
-                            Email
-                        </label>
-
-                        <input
-                            id="daf-email"
-                            type="email"
-                        >
-
-                    </div>
-
-
-                    <div class="daf-row">
-
-                        <label>
-                            Arbit Case Notes
-                        </label>
-
-                        <textarea
-                            id="daf-notes"
-                        ></textarea>
-
-                    </div>
-
-
-                    <div class="daf-row">
-
-                        <label>
-                            Plan Type Evidence
-                        </label>
-
-                        <select
-                            id="daf-plan-evidence"
-                        >
-
-                            <option value="">
-                                Select
-                            </option>
-
-                            <option value="Yes">
-                                Yes
-                            </option>
-
-                            <option value="No">
-                                No
-                            </option>
-
-                        </select>
-
-                    </div>
-
-
-                    <div class="daf-row">
-
-                        <label>
-                            Verification Status
-                        </label>
-
-                        <select
-                            id="daf-verified"
-                        >
-
-                            <option value="">
-                                Select
-                            </option>
-
-                            <option value="Verified">
-                                Verified
-                            </option>
-
-                            <option value="Not Verified">
-                                Not Verified
-                            </option>
-
-                        </select>
-
-                    </div>
-
-
-                    <div class="daf-row">
-
-                        <label>
-                            Non-Bifurcated
-                        </label>
-
-                        <select
-                            id="daf-non-bifurcated"
-                        >
-
-                            <option value="">
-                                Select
-                            </option>
-
-                            <option value="Yes">
-                                Yes
-                            </option>
-
-                            <option value="No">
-                                No
-                            </option>
-
-                        </select>
-
-                    </div>
-
-
-                    <button
-                        id="daf-continue"
-                        type="button"
-                        disabled
-                    >
-                        CONTINUE
-                    </button>
-
-                </div>
-
-            </div>
-
-
-            <button
-                id="daf-arbit"
-                type="button"
-            >
-                OPEN ARBIT ID
-            </button>
-
-
-            <div id="daf-status"></div>
-
-        </div>
-
-    `;
-
-
     document.body.appendChild(
         overlay
     );
 
 
+    /* =====================================================
+       ELEMENTS
+       ===================================================== */
+
     const nameInput=
-        document.getElementById(
-            "daf-name"
-        );
+        document.getElementById("dp-name");
 
     const stateInput=
-        document.getElementById(
-            "daf-state"
-        );
+        document.getElementById("dp-state");
 
-    const duplicateInput=
+    const duplicateCommentsInput=
         document.getElementById(
-            "daf-duplicate"
+            "dp-duplicate-comments"
         );
 
     const mismatchInput=
         document.getElementById(
-            "daf-mismatch"
+            "dp-mismatch"
         );
+
+    const editBtn=
+        document.getElementById("dp-edit");
+
+    const saveBtn=
+        document.getElementById("dp-save");
+
+    const savedLabel=
+        document.getElementById("dp-saved");
 
     const goBtn=
-        document.getElementById(
-            "daf-go"
-        );
+        document.getElementById("dp-go");
 
     const closeBtn=
-        document.getElementById(
-            "daf-close"
-        );
+        document.getElementById("dp-close");
 
-    const eligibleBox=
-        document.getElementById(
-            "daf-eligible"
-        );
+    const status=
+        document.getElementById("dp-status");
+
+    const eligible=
+        document.getElementById("dp-eligible");
 
     const noBtn=
-        document.getElementById(
-            "daf-no"
-        );
+        document.getElementById("dp-no");
 
     const yesBtn=
-        document.getElementById(
-            "daf-yes"
-        );
+        document.getElementById("dp-yes");
 
-    const yesFields=
-        document.getElementById(
-            "daf-yes-fields"
-        );
+    const yesExtra=
+        document.getElementById("dp-yes-extra");
 
     const emailInput=
-        document.getElementById(
-            "daf-email"
-        );
+        document.getElementById("dp-email");
 
-    const notesInput=
+    const arbitNotesInput=
         document.getElementById(
-            "daf-notes"
+            "dp-arbit-notes"
         );
 
     const planEvidenceInput=
         document.getElementById(
-            "daf-plan-evidence"
+            "dp-plan-evidence"
         );
 
     const verifiedInput=
         document.getElementById(
-            "daf-verified"
+            "dp-verified"
         );
 
     const nonBifurcatedInput=
         document.getElementById(
-            "daf-non-bifurcated"
+            "dp-non-bifurcated"
         );
 
     const continueBtn=
         document.getElementById(
-            "daf-continue"
+            "dp-continue"
         );
 
-    const arbitBtn=
+    const arbitIdBtn=
         document.getElementById(
-            "daf-arbit"
-        );
-
-    const status=
-        document.getElementById(
-            "daf-status"
+            "dp-arbit-id"
         );
 
 
     /* =====================================================
-       USER NAME
+       ARBIT ID BUTTON
        ===================================================== */
 
-    nameInput.value=
-        getName();
-
-
-    /* =====================================================
-       ARBIT BUTTON
-       ===================================================== */
-
-    arbitBtn.onclick=()=>{
+    arbitIdBtn.onclick=()=>{
 
         openArbitIframe();
 
@@ -2335,49 +4097,344 @@ const popup=()=>new Promise(resolve=>{
 
 
     /* =====================================================
-       YES VALIDATION
+       USER NAME
        ===================================================== */
 
-    const updateContinue=()=>{
+    let currentName=
+        getName();
+
+
+    nameInput.value=
+        currentName;
+
+
+    if(currentName){
+
+        nameInput.readOnly=true;
+
+        editBtn.style.display=
+            "inline-block";
+
+        saveBtn.style.display=
+            "none";
+
+        savedLabel.style.display=
+            "inline-flex";
+
+        status.textContent=
+            "Saved username: "+currentName;
+
+    }else{
+
+        nameInput.readOnly=false;
+
+        editBtn.style.display=
+            "none";
+
+        saveBtn.style.display=
+            "inline-block";
+
+        savedLabel.style.display=
+            "none";
+
+        status.textContent=
+            "Please enter and save your Dispute User Name.";
+
+        nameInput.focus();
+
+    }
+
+
+    /* =====================================================
+       EDIT
+       ===================================================== */
+
+    editBtn.onclick=()=>{
+
+        nameInput.readOnly=false;
+
+        nameInput.focus();
+
+        nameInput.select();
+
+        editBtn.style.display=
+            "none";
+
+        saveBtn.style.display=
+            "inline-block";
+
+        savedLabel.style.display=
+            "none";
+
+        status.textContent=
+            "Editing username...";
+
+    };
+
+
+    /* =====================================================
+       SAVE
+       ===================================================== */
+
+    saveBtn.onclick=()=>{
+
+        const n=
+            nameInput.value.trim();
+
+
+        if(!n){
+
+            status.textContent=
+                "Enter a Dispute User Name first.";
+
+            nameInput.focus();
+
+            return;
+
+        }
+
+
+        if(!saveName(n)){
+
+            status.textContent=
+                "Could not save the username.";
+
+            return;
+
+        }
+
+
+        currentName=n;
+
+        nameInput.value=n;
+
+        nameInput.readOnly=true;
+
+        editBtn.style.display=
+            "inline-block";
+
+        saveBtn.style.display=
+            "none";
+
+        savedLabel.style.display=
+            "inline-flex";
+
+        status.textContent=
+            "Username saved.";
+
+        stateInput.focus();
+
+    };
+
+
+    /* =====================================================
+       VALIDATE MAIN FORM
+       ===================================================== */
+
+    const validate=()=>{
+
+        if(!currentName){
+
+            status.textContent=
+                "Please save your Dispute User Name first.";
+
+            nameInput.focus();
+
+            return false;
+
+        }
+
+
+        if(!stateInput.value.trim()){
+
+            status.textContent=
+                "Enter a State.";
+
+            stateInput.focus();
+
+            return false;
+
+        }
+
+
+        if(!duplicateCommentsInput.value){
+
+            status.textContent=
+                "Please select Duplicate Dispute Comments.";
+
+            duplicateCommentsInput.focus();
+
+            return false;
+
+        }
+
+
+        if(!mismatchInput.value){
+
+            status.textContent=
+                "Please select Plantype Mismatch: Yes or No.";
+
+            mismatchInput.focus();
+
+            return false;
+
+        }
+
+
+        return true;
+
+    };
+
+
+    /* =====================================================
+       VALIDATE YES FORM
+       ===================================================== */
+
+    const validateYesFields=()=>{
+
+        const email=
+            emailInput.value.trim();
+
+        const arbitNotes=
+            arbitNotesInput.value.trim();
+
+        const planEvidence=
+            planEvidenceInput.value;
+
+        const verificationStatus=
+            verifiedInput.value;
+
+        const nonBifurcated=
+            nonBifurcatedInput.value;
+
+
+        return(
+            !!email &&
+            !!arbitNotes &&
+            !!planEvidence &&
+            !!verificationStatus &&
+            !!nonBifurcated
+        );
+
+    };
+
+
+    /* =====================================================
+       UPDATE CONTINUE
+       ===================================================== */
+
+    const updateContinueButton=()=>{
 
         const complete=
-            !!emailInput.value.trim() &&
-            !!notesInput.value.trim() &&
-            !!planEvidenceInput.value &&
-            !!verifiedInput.value &&
-            !!nonBifurcatedInput.value;
+            validateYesFields();
 
 
         continueBtn.disabled=
             !complete;
 
+
+        if(complete){
+
+            continueBtn.title=
+                "All required fields are complete.";
+
+        }else{
+
+            continueBtn.title=
+                "Complete all required fields before continuing.";
+
+        }
+
     };
 
 
+    /* =====================================================
+       YES FIELD LISTENERS
+       ===================================================== */
+
     emailInput.addEventListener(
         "input",
-        updateContinue
+        updateContinueButton
     );
 
-    notesInput.addEventListener(
+    arbitNotesInput.addEventListener(
         "input",
-        updateContinue
+        updateContinueButton
     );
 
     planEvidenceInput.addEventListener(
         "change",
-        updateContinue
+        updateContinueButton
     );
 
     verifiedInput.addEventListener(
         "change",
-        updateContinue
+        updateContinueButton
     );
 
     nonBifurcatedInput.addEventListener(
         "change",
-        updateContinue
+        updateContinueButton
     );
+
+
+    /* =====================================================
+       GO
+       ===================================================== */
+
+    const processGo=()=>{
+
+        if(!validate())
+            return;
+
+
+        stateInput.value=
+            stateInput.value
+                .trim()
+                .toUpperCase();
+
+
+        eligible.style.display=
+            "block";
+
+
+        yesExtra.style.display=
+            "none";
+
+
+        emailInput.value="";
+        arbitNotesInput.value="";
+        planEvidenceInput.value="";
+        verifiedInput.value="";
+        nonBifurcatedInput.value="";
+
+
+        updateContinueButton();
+
+
+        status.textContent=
+            "Choose eligibility to continue.";
+
+        noBtn.focus();
+
+    };
+
+
+    goBtn.onclick=
+        processGo;
+
+
+    stateInput.onkeydown=e=>{
+
+        if(e.key==="Enter"){
+
+            e.preventDefault();
+
+            processGo();
+
+        }
+
+    };
 
 
     /* =====================================================
@@ -2414,15 +4471,6 @@ const popup=()=>new Promise(resolve=>{
             );
 
 
-        /*
-         * IMPORTANT:
-         *
-         * COLUMN F = ARBIT ID NUMBER
-         *
-         * The old row structure is preserved.
-         * Only the value going into Column F is updated.
-         */
-
         const row=[
 
             isYes
@@ -2437,7 +4485,7 @@ const popup=()=>new Promise(resolve=>{
 
             disputeNumber,
 
-            arbitIdNumber,
+            id,
 
             actualG,
 
@@ -2493,12 +4541,6 @@ const popup=()=>new Promise(resolve=>{
         console.log(
             "FINAL 18-COLUMN ROW",
             row
-        );
-
-
-        console.log(
-            "COLUMN F / ARBIT ID:",
-            row[5]
         );
 
 
@@ -2576,142 +4618,70 @@ const popup=()=>new Promise(resolve=>{
 
 
     /* =====================================================
-       VALIDATE MAIN FORM
-       ===================================================== */
-
-    const validate=()=>{
-
-        const username=
-            nameInput.value.trim();
-
-
-        if(!username){
-
-            status.textContent=
-                "Please enter your Dispute User Name.";
-
-            nameInput.focus();
-
-            return false;
-
-        }
-
-
-        if(!stateInput.value.trim()){
-
-            status.textContent=
-                "Enter a State.";
-
-            stateInput.focus();
-
-            return false;
-
-        }
-
-
-        if(!duplicateInput.value){
-
-            status.textContent=
-                "Please select Duplicate Dispute Comments.";
-
-            duplicateInput.focus();
-
-            return false;
-
-        }
-
-
-        if(!mismatchInput.value){
-
-            status.textContent=
-                "Please select Plantype Mismatch.";
-
-            mismatchInput.focus();
-
-            return false;
-
-        }
-
-
-        saveName(
-            username
-        );
-
-
-        return true;
-
-    };
-
-
-    /* =====================================================
-       GO
-       ===================================================== */
-
-    goBtn.onclick=()=>{
-
-        if(!validate())
-            return;
-
-
-        stateInput.value=
-            stateInput.value
-                .trim()
-                .toUpperCase();
-
-
-        eligibleBox.style.display=
-            "block";
-
-
-        yesFields.style.display=
-            "none";
-
-
-        status.textContent=
-            "Choose eligibility.";
-
-    };
-
-
-    /* =====================================================
        NO
        ===================================================== */
 
     noBtn.onclick=async()=>{
 
+        if(!validate())
+            return;
+
+
+        const stateValue=
+            stateInput.value
+                .trim()
+                .toUpperCase();
+
+
+        const duplicateComments=
+            duplicateCommentsInput.value;
+
+
+        const plantypeMismatch=
+            mismatchInput.value;
+
+
         const output=
             buildOutput(
-                stateInput.value.trim().toUpperCase(),
-                duplicateInput.value,
+                stateValue,
+                duplicateComments,
                 false,
-                nameInput.value.trim(),
                 "",
                 "",
                 "",
                 "",
                 "",
-                mismatchInput.value
+                "",
+                plantypeMismatch
             );
 
 
-        const ok=
-            await copyText(
-                output
-            );
+        const copied=
+            await copyText(output);
+
+
+        overlay.remove();
+        style.remove();
+
+
+        const rowCount=
+            sameId
+            ?1
+            :ids.length;
 
 
         showCopyMessage(
-            ok
-                ?"Copied 18-column output."
-                :"Copy failed.",
+
+            copied
+            ?`✅ COPIED ${rowCount} ROW${rowCount!==1?"S":""} — COLUMN C UPDATED`
+            :`❌ COPY FAILED — CLICK COPY AGAIN`,
+
             output
+
         );
 
 
-        status.textContent=
-            ok
-                ?"Output copied."
-                :"Unable to copy output.";
+        resolve(null);
 
     };
 
@@ -2722,11 +4692,20 @@ const popup=()=>new Promise(resolve=>{
 
     yesBtn.onclick=()=>{
 
-        yesFields.style.display=
+        if(!validate())
+            return;
+
+
+        yesExtra.style.display=
             "block";
 
 
-        updateContinue();
+        status.textContent=
+            "Complete all required YES fields.";
+
+
+        updateContinueButton();
+
 
         emailInput.focus();
 
@@ -2734,50 +4713,382 @@ const popup=()=>new Promise(resolve=>{
 
 
     /* =====================================================
-       CONTINUE
+       CONTINUE YES
        ===================================================== */
 
     continueBtn.onclick=async()=>{
 
-        if(continueBtn.disabled)
+        if(continueBtn.disabled){
+
+            status.textContent=
+                "Please complete all required fields before continuing.";
+
             return;
+
+        }
+
+
+        if(!validate())
+            return;
+
+
+        if(!validateYesFields()){
+
+            status.textContent=
+                "Please complete all required YES fields.";
+
+            updateContinueButton();
+
+            return;
+
+        }
+
+
+        const email=
+            emailInput.value.trim();
+
+
+        const arbitCaseNotes=
+            arbitNotesInput.value.trim();
+
+
+        const planTypeEvidence=
+            planEvidenceInput.value;
+
+
+        const verificationStatus=
+            verifiedInput.value;
+
+
+        const nonBifurcated=
+            nonBifurcatedInput.value;
+
+
+        const plantypeMismatch=
+            mismatchInput.value;
+
+
+        if(!email){
+
+            status.textContent=
+                "Enter PLANTYPE_IDRE_EMAIL.";
+
+            emailInput.focus();
+
+            return;
+
+        }
+
+
+        if(!arbitCaseNotes){
+
+            status.textContent=
+                "Enter Arbit Case Notes.";
+
+            arbitNotesInput.focus();
+
+            return;
+
+        }
+
+
+        if(!planTypeEvidence){
+
+            status.textContent=
+                "Select Plan Type Evidence.";
+
+            planEvidenceInput.focus();
+
+            return;
+
+        }
+
+
+        if(!verificationStatus){
+
+            status.textContent=
+                "Select Yes or No for Verified.";
+
+            verifiedInput.focus();
+
+            return;
+
+        }
+
+
+        if(!nonBifurcated){
+
+            status.textContent=
+                "Select N/A or Yes for Non-Bifurcated state/Federal.";
+
+            nonBifurcatedInput.focus();
+
+            return;
+
+        }
+
+
+        if(!plantypeMismatch){
+
+            status.textContent=
+                "Select Yes or No for Plantype Mismatch.";
+
+            mismatchInput.focus();
+
+            return;
+
+        }
+
+
+        const stateValue=
+            stateInput.value
+                .trim()
+                .toUpperCase();
+
+
+        const duplicateComments=
+            duplicateCommentsInput.value;
 
 
         const output=
             buildOutput(
-                stateInput.value.trim().toUpperCase(),
-                duplicateInput.value,
+                stateValue,
+                duplicateComments,
                 true,
-                nameInput.value.trim(),
-                emailInput.value.trim(),
-                verifiedInput.value,
-                notesInput.value.trim(),
-                planEvidenceInput.value,
-                nonBifurcatedInput.value,
-                mismatchInput.value
+                currentName,
+                email,
+                verificationStatus,
+                arbitCaseNotes,
+                planTypeEvidence,
+                nonBifurcated,
+                plantypeMismatch
             );
 
 
-        const ok=
-            await copyText(
-                output
-            );
+        const copied=
+            await copyText(output);
+
+
+        overlay.remove();
+        style.remove();
+
+
+        const rowCount=
+            sameId
+            ?1
+            :ids.length;
 
 
         showCopyMessage(
-            ok
-                ?"Copied 18-column output."
-                :"Copy failed.",
+
+            copied
+            ?`✅ COPIED ${rowCount} ROW${rowCount!==1?"S":""} — COLUMNS A:R`
+            :`❌ COPY FAILED — CLICK COPY AGAIN`,
+
             output
+
         );
 
 
-        status.textContent=
-            ok
-                ?"Output copied."
-                :"Unable to copy output.";
+        resolve(null);
 
     };
+
+
+    /* =====================================================
+       KEYBOARD SHORTCUTS
+       ===================================================== */
+
+    overlay.addEventListener(
+        "keydown",
+        e=>{
+
+            if(
+                e.ctrlKey &&
+                !e.altKey &&
+                !e.metaKey &&
+                !e.shiftKey &&
+                e.key==="2"
+            ){
+
+                e.preventDefault();
+                e.stopPropagation();
+
+                duplicateCommentsInput.value=
+                    "N/A";
+
+
+                duplicateCommentsInput.dispatchEvent(
+                    new Event(
+                        "change",
+                        {
+                            bubbles:true
+                        }
+                    )
+                );
+
+
+                status.textContent=
+                    "Duplicate Dispute Comments: N/A";
+
+                return;
+
+            }
+
+
+            if(
+                e.ctrlKey &&
+                !e.altKey &&
+                !e.metaKey &&
+                !e.shiftKey &&
+                e.key==="3"
+            ){
+
+                e.preventDefault();
+                e.stopPropagation();
+
+                duplicateCommentsInput.value=
+                    "Duplicate Dispute Reviewed";
+
+
+                duplicateCommentsInput.dispatchEvent(
+                    new Event(
+                        "change",
+                        {
+                            bubbles:true
+                        }
+                    )
+                );
+
+
+                status.textContent=
+                    "Duplicate Dispute Comments: Duplicate Dispute Reviewed";
+
+                return;
+
+            }
+
+
+            if(
+                e.ctrlKey &&
+                !e.altKey &&
+                !e.metaKey &&
+                !e.shiftKey &&
+                e.key==="4"
+            ){
+
+                e.preventDefault();
+                e.stopPropagation();
+
+                mismatchInput.value=
+                    "No";
+
+
+                mismatchInput.dispatchEvent(
+                    new Event(
+                        "change",
+                        {
+                            bubbles:true
+                        }
+                    )
+                );
+
+
+                status.textContent=
+                    "Plantype Mismatch: No";
+
+                return;
+
+            }
+
+
+            if(
+                e.ctrlKey &&
+                !e.altKey &&
+                !e.metaKey &&
+                !e.shiftKey &&
+                e.key==="5"
+            ){
+
+                e.preventDefault();
+                e.stopPropagation();
+
+                mismatchInput.value=
+                    "Yes";
+
+
+                mismatchInput.dispatchEvent(
+                    new Event(
+                        "change",
+                        {
+                            bubbles:true
+                        }
+                    )
+                );
+
+
+                status.textContent=
+                    "Plantype Mismatch: Yes";
+
+                return;
+
+            }
+
+
+            if(e.key==="Escape"){
+
+                e.preventDefault();
+
+                overlay.remove();
+                style.remove();
+
+                resolve(null);
+
+                return;
+
+            }
+
+
+            if(
+                e.ctrlKey &&
+                !e.altKey &&
+                !e.metaKey &&
+                !e.shiftKey &&
+                e.key==="0" &&
+                eligible.style.display==="block"
+            ){
+
+                e.preventDefault();
+                e.stopPropagation();
+
+                noBtn.click();
+
+                return;
+
+            }
+
+
+            if(
+                e.ctrlKey &&
+                !e.altKey &&
+                !e.metaKey &&
+                !e.shiftKey &&
+                e.key==="1" &&
+                eligible.style.display==="block"
+            ){
+
+                e.preventDefault();
+                e.stopPropagation();
+
+                yesBtn.click();
+
+                return;
+
+            }
+
+        },
+        true
+    );
 
 
     /* =====================================================
@@ -2787,7 +5098,6 @@ const popup=()=>new Promise(resolve=>{
     closeBtn.onclick=()=>{
 
         overlay.remove();
-
         style.remove();
 
         resolve(null);
@@ -2795,14 +5105,14 @@ const popup=()=>new Promise(resolve=>{
     };
 
 
-    /* =====================================================
-       START
-       ===================================================== */
-
-    nameInput.focus();
+    stateInput.focus();
 
 });
 
+
+/* =========================================================
+   START
+   ========================================================= */
 
 await popup();
 
