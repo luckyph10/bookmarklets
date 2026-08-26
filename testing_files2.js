@@ -152,6 +152,61 @@ const ids=[
 
 
 /* =========================================================
+   GET ALL ARBIT / APP ID LINKS
+   ========================================================= */
+
+const arbitLinks=[
+    ...document.querySelectorAll(
+        "#table-body tr td:nth-child(2) a"
+    )
+]
+.map((link,index)=>{
+
+    const id=
+        link.closest("td")
+            ?.textContent
+            ?.replace(/\u00A0/g," ")
+            .replace(/\r?\n/g," ")
+            .replace(/\s+/g," ")
+            .trim()
+        ||
+        ids[index]
+        ||
+        "";
+
+    return{
+        id:id,
+        href:link.href,
+        index:index
+    };
+
+})
+.filter(item=>item.id && item.href);
+
+
+/* =========================================================
+   REMOVE DUPLICATE APP / ARBIT LINKS
+   ========================================================= */
+
+const uniqueArbitLinks=[];
+const seenArbitLinks=new Set();
+
+for(const item of arbitLinks){
+
+    const key=
+        `${item.id}|||${item.href}`;
+
+    if(seenArbitLinks.has(key))
+        continue;
+
+    seenArbitLinks.add(key);
+
+    uniqueArbitLinks.push(item);
+
+}
+
+
+/* =========================================================
    GET PLAN TYPES
    ========================================================= */
 
@@ -173,6 +228,20 @@ const planTypes=[
     .trim()
 )
 .filter(Boolean);
+
+
+/* =========================================================
+   GET FIRST ARBIT ID NUMBER
+   ========================================================= */
+
+const arbitIdNumber =
+    document.querySelector(
+        "#table-body > tr > td:nth-child(2)"
+    )?.textContent
+        ?.replace(/\u00A0/g," ")
+        .replace(/\r?\n/g," ")
+        .replace(/\s+/g," ")
+        .trim() || "";
 
 
 /* =========================================================
@@ -236,8 +305,18 @@ console.log(
 );
 
 console.log(
+    "ARBIT ID:",
+    arbitIdNumber
+);
+
+console.log(
     "IDs:",
     ids
+);
+
+console.log(
+    "ARBIT / APP LINKS:",
+    uniqueArbitLinks
 );
 
 console.log(
@@ -312,10 +391,18 @@ const getColumnRValue=(actualG,actualL)=>{
     );
 
 
+    /* =====================================================
+       COLUMN L = CLOSED
+       ===================================================== */
+
     if(
         l==="closed"||
         l.includes("closed")
     ){
+
+        console.log(
+            "R RULE MATCH: L = CLOSED"
+        );
 
         return(
             "Completed. Dispute is Closed Due to Receiving Payment Determination."
@@ -324,11 +411,19 @@ const getColumnRValue=(actualG,actualL)=>{
     }
 
 
+    /* =====================================================
+       COLUMN G = PLAN TYPE VALIDATED
+       ===================================================== */
+
     if(
         g.includes(
             "plan type validated post idr initiation"
         )
     ){
+
+        console.log(
+            "R RULE MATCH: PLAN TYPE VALIDATED"
+        );
 
         return(
             "VOB verified, Plan Type Validated Post IDR Initiation – Eligible (Federal NSA)."
@@ -337,11 +432,19 @@ const getColumnRValue=(actualG,actualL)=>{
     }
 
 
+    /* =====================================================
+       COLUMN G = PLAN TYPE OBJECTION SUBMITTED
+       ===================================================== */
+
     if(
         g.includes(
             "plan type objection submitted"
         )
     ){
+
+        console.log(
+            "R RULE MATCH: PLAN TYPE OBJECTION SUBMITTED"
+        );
 
         return(
             "Already completed by Onshore."
@@ -349,6 +452,10 @@ const getColumnRValue=(actualG,actualL)=>{
 
     }
 
+
+    /* =====================================================
+       COLUMN G = TIMELINE ENFORCEMENT SUBMITTED TO IDRE
+       ===================================================== */
 
     if(
         g.includes(
@@ -356,6 +463,10 @@ const getColumnRValue=(actualG,actualL)=>{
         )
     ){
 
+        console.log(
+            "R RULE MATCH: TIMELINE ENFORCEMENT SUBMITTED TO IDRE"
+        );
+
         return(
             "Already completed by Onshore."
         );
@@ -363,11 +474,20 @@ const getColumnRValue=(actualG,actualL)=>{
     }
 
 
+    /* =====================================================
+       COLUMN G = ADDITIONAL INFO PROVIDED TO IDRE
+       THROUGH EMAIL
+       ===================================================== */
+
     if(
         g.includes(
             "additional info provided to idre through email"
         )
     ){
+
+        console.log(
+            "R RULE MATCH: ADDITIONAL INFO EMAIL"
+        );
 
         return(
             "VOB verified, evidence uploaded, Additional info requested, Arbit updated."
@@ -375,6 +495,11 @@ const getColumnRValue=(actualG,actualL)=>{
 
     }
 
+
+    /* =====================================================
+       COLUMN G = ADDITIONAL INFO PROVIDED TO IDRE
+       THROUGH PORTAL
+       ===================================================== */
 
     if(
         g.includes(
@@ -382,12 +507,20 @@ const getColumnRValue=(actualG,actualL)=>{
         )
     ){
 
+        console.log(
+            "R RULE MATCH: ADDITIONAL INFO PORTAL"
+        );
+
         return(
             "VOB verified, evidence uploaded, Additional info requested, Arbit updated."
         );
 
     }
 
+
+    /* =====================================================
+       NO MATCH
+       ===================================================== */
 
     console.warn(
         "NO G/L -> R RULE MATCHED",
@@ -685,6 +818,98 @@ const runRushVerify=iframe=>{
 
 
 /* =========================================================
+   ALL IN ONE
+   ========================================================= */
+
+const runAllInOne=iframe=>{
+
+    const scriptUrl=
+        "https://luckyph10.github.io/bookmarklets/wfaspreadsheet_copy.js?" +
+        Date.now();
+
+
+    try{
+
+        const doc=
+            iframe.contentDocument ||
+            iframe.contentWindow?.document;
+
+
+        if(!doc){
+
+            throw new Error(
+                "Unable to access iframe document."
+            );
+
+        }
+
+
+        const oldScript=
+            doc.getElementById(
+                "all-in-one-script"
+            );
+
+
+        if(oldScript)
+            oldScript.remove();
+
+
+        const script=
+            doc.createElement("script");
+
+
+        script.id=
+            "all-in-one-script";
+
+
+        script.src=
+            scriptUrl;
+
+
+        script.onload=()=>{
+
+            console.log(
+                "ALL IN ONE loaded inside ARBIT iframe."
+            );
+
+        };
+
+
+        script.onerror=()=>{
+
+            alert(
+                "ALL IN ONE: Load failed."
+            );
+
+        };
+
+
+        (
+            doc.head||
+            doc.documentElement
+        ).appendChild(
+            script
+        );
+
+
+    }catch(e){
+
+        console.error(
+            "ALL IN ONE iframe error:",
+            e
+        );
+
+        alert(
+            "ALL IN ONE could not run inside the ARBIT iframe.\n\n"+
+            "The iframe page may block cross-origin script injection."
+        );
+
+    }
+
+};
+
+
+/* =========================================================
    PULL CASE / HISTORY EVIDENCE
    ========================================================= */
 
@@ -899,10 +1124,6 @@ const installVobIframeHandlers=iframe=>{
                 return;
 
 
-            /* -------------------------------------------------
-               CATCH window.open FROM VOB FILE ACTIONS
-               ------------------------------------------------- */
-
             if(
                 !win.__disputeVobOpenPatched
             ){
@@ -946,10 +1167,6 @@ const installVobIframeHandlers=iframe=>{
 
             }
 
-
-            /* -------------------------------------------------
-               CATCH VOB LINKS
-               ------------------------------------------------- */
 
             if(
                 !doc.__disputeVobClickHandler
@@ -1087,18 +1304,43 @@ const installVobIframeHandlers=iframe=>{
 
 
 /* =========================================================
-   OPEN ARBIT ID IFRAME
+   OPEN ARBIT / APP ID IFRAME
    ========================================================= */
 
 const openArbitIframe=()=>{
 
-    const arbitLink=
-        document.querySelector(
-            "#table-body > tr > td:nth-child(2) > a"
-        );
+    let appLinks=[
+        ...uniqueArbitLinks
+    ];
 
 
-    if(!arbitLink){
+    if(!appLinks.length){
+
+        const fallbackLink=
+            document.querySelector(
+                "#table-body > tr > td:nth-child(2) > a"
+            );
+
+
+        if(fallbackLink){
+
+            appLinks=[
+                {
+                    id:
+                        arbitIdNumber||
+                        "UNKNOWN",
+                    href:
+                        fallbackLink.href,
+                    index:0
+                }
+            ];
+
+        }
+
+    }
+
+
+    if(!appLinks.length){
 
         alert(
             "ARBIT ID link not found."
@@ -1129,6 +1371,12 @@ const openArbitIframe=()=>{
         oldStyle.remove();
 
 
+    let currentAppIndex=0;
+
+    let currentApp=
+        appLinks[currentAppIndex];
+
+
     const overlay=
         document.createElement("div");
 
@@ -1143,8 +1391,75 @@ const openArbitIframe=()=>{
 
             <div id="arbit-iframe-header">
 
-                <div id="arbit-iframe-title">
-                    ARBIT ID
+                <div id="arbit-iframe-left">
+
+                    <div id="arbit-iframe-title">
+
+                        ARBIT ID:
+
+                        <span id="arbit-iframe-number">
+                            ${String(currentApp.id||"UNKNOWN")
+                                .replace(/&/g,"&amp;")
+                                .replace(/</g,"&lt;")
+                                .replace(/>/g,"&gt;")
+                                .replace(/"/g,"&quot;")}
+                        </span>
+
+                    </div>
+
+
+                    <div id="arbit-app-selector-wrap">
+
+                        ${
+                            appLinks.length>1
+                            ?`
+
+                            <select
+                                id="arbit-app-selector"
+                                title="Select another App ID"
+                            >
+
+                                ${appLinks.map((item,index)=>`
+
+                                    <option
+                                        value="${index}"
+                                        ${index===0?"selected":""}
+                                    >
+                                        ${String(item.id||"UNKNOWN")
+                                            .replace(/&/g,"&amp;")
+                                            .replace(/</g,"&lt;")
+                                            .replace(/>/g,"&gt;")
+                                            .replace(/"/g,"&quot;")}
+                                    </option>
+
+                                `).join("")}
+
+                            </select>
+
+
+                            <button
+                                id="arbit-app-open"
+                                type="button"
+                                style="display:none"
+                            >
+                                OPEN
+                            </button>
+
+                            `
+                            :""
+                        }
+
+
+                        <button
+                            id="arbit-all-in-one"
+                            type="button"
+                            title="Run All In One"
+                        >
+                            ALL IN ONE
+                        </button>
+
+                    </div>
+
                 </div>
 
 
@@ -1181,7 +1496,7 @@ const openArbitIframe=()=>{
 
             <iframe
                 id="arbit-iframe"
-                src="${arbitLink.href}"
+                src="${String(currentApp.href).replace(/"/g,"&quot;")}"
                 frameborder="0"
                 allowfullscreen
             ></iframe>
@@ -1190,6 +1505,10 @@ const openArbitIframe=()=>{
 
     `;
 
+
+    /* =====================================================
+       STYLE
+       ===================================================== */
 
     const iframeStyle=
         document.createElement("style");
@@ -1307,13 +1626,30 @@ const openArbitIframe=()=>{
             justify-content:space-between!important;
 
             gap:
-                8px!important;
+                10px!important;
 
             padding:
                 0 10px 0 16px!important;
 
             box-sizing:
                 border-box!important;
+
+        }
+
+
+        #arbit-iframe-left{
+
+            display:flex!important;
+
+            align-items:center!important;
+
+            gap:
+                10px!important;
+
+            min-width:
+                0!important;
+
+            flex:1!important;
 
         }
 
@@ -1337,6 +1673,262 @@ const openArbitIframe=()=>{
             white-space:
                 nowrap!important;
 
+            display:flex!important;
+
+            align-items:center!important;
+
+            gap:
+                4px!important;
+
+            flex-shrink:
+                0!important;
+
+        }
+
+
+        #arbit-iframe-number{
+
+            color:
+                #facc15!important;
+
+            font-weight:
+                900!important;
+
+            margin-left:
+                2px!important;
+
+            text-shadow:
+                0 1px 4px
+                rgba(0,0,0,.4)!important;
+
+        }
+
+
+        #arbit-app-selector-wrap{
+
+            display:flex!important;
+
+            align-items:center!important;
+
+            gap:
+                6px!important;
+
+            min-width:
+                0!important;
+
+        }
+
+
+        #arbit-app-selector{
+
+            height:
+                38px!important;
+
+            min-width:
+                150px!important;
+
+            max-width:
+                260px!important;
+
+            padding:
+                0 32px 0 11px!important;
+
+            border:
+                1px solid
+                rgba(255,255,255,.25)!important;
+
+            border-radius:
+                8px!important;
+
+            background:
+                #222!important;
+
+            color:#fff!important;
+
+            font-family:
+                Arial,sans-serif!important;
+
+            font-size:
+                12px!important;
+
+            font-weight:
+                700!important;
+
+            outline:none!important;
+
+            cursor:pointer!important;
+
+            box-sizing:
+                border-box!important;
+
+        }
+
+
+        #arbit-app-selector:hover{
+
+            border-color:
+                rgba(255,255,255,.45)!important;
+
+        }
+
+
+        #arbit-app-selector:focus{
+
+            border-color:
+                #facc15!important;
+
+            box-shadow:
+                0 0 0 3px
+                rgba(250,204,21,.12)!important;
+
+        }
+
+
+        #arbit-app-selector option{
+
+            background:
+                #222!important;
+
+            color:#fff!important;
+
+        }
+
+
+        #arbit-app-open{
+
+            height:
+                38px!important;
+
+            padding:
+                0 14px!important;
+
+            border:
+                1px solid
+                rgba(255,255,255,.2)!important;
+
+            border-radius:
+                8px!important;
+
+            background:
+                #f59e0b!important;
+
+            color:#111!important;
+
+            font-family:
+                Arial,sans-serif!important;
+
+            font-size:
+                12px!important;
+
+            font-weight:
+                900!important;
+
+            letter-spacing:
+                .3px!important;
+
+            cursor:pointer!important;
+
+            white-space:
+                nowrap!important;
+
+            box-shadow:
+                0 4px 14px
+                rgba(0,0,0,.3)!important;
+
+            display:inline-flex!important;
+
+            align-items:center!important;
+
+            justify-content:center!important;
+
+        }
+
+
+        #arbit-app-open:hover{
+
+            background:
+                #fbbf24!important;
+
+            transform:
+                translateY(-1px)!important;
+
+        }
+
+
+        /* =====================================================
+           ALL IN ONE BUTTON
+           ===================================================== */
+
+        #arbit-all-in-one{
+
+            height:
+                38px!important;
+
+            padding:
+                0 14px!important;
+
+            border:
+                1px solid
+                rgba(255,255,255,.20)!important;
+
+            border-radius:
+                8px!important;
+
+            background:
+                #16a34a!important;
+
+            color:#fff!important;
+
+            font-family:
+                Arial,sans-serif!important;
+
+            font-size:
+                11px!important;
+
+            font-weight:
+                900!important;
+
+            letter-spacing:
+                .3px!important;
+
+            cursor:pointer!important;
+
+            white-space:
+                nowrap!important;
+
+            box-shadow:
+                0 4px 14px
+                rgba(0,0,0,.30)!important;
+
+            display:inline-flex!important;
+
+            align-items:center!important;
+
+            justify-content:center!important;
+
+        }
+
+
+        #arbit-all-in-one:hover{
+
+            background:
+                #22c55e!important;
+
+            box-shadow:
+                0 5px 18px
+                rgba(34,197,94,.40)!important;
+
+            transform:
+                translateY(-1px)!important;
+
+        }
+
+
+        #arbit-all-in-one:active{
+
+            transform:
+                translateY(0)!important;
+
         }
 
 
@@ -1353,6 +1945,9 @@ const openArbitIframe=()=>{
 
             flex-wrap:
                 nowrap!important;
+
+            flex-shrink:
+                0!important;
 
         }
 
@@ -1705,7 +2300,30 @@ const openArbitIframe=()=>{
         }
 
 
-        @media(max-width:900px){
+        /* =====================================================
+           RESPONSIVE
+           ===================================================== */
+
+        @media(max-width:1400px){
+
+            #arbit-iframe-left{
+
+                gap:
+                    6px!important;
+
+            }
+
+
+            #arbit-all-in-one{
+
+                padding:
+                    0 10px!important;
+
+                font-size:
+                    10px!important;
+
+            }
+
 
             #arbit-rush-verify,
             #arbit-pull-evidence{
@@ -1721,41 +2339,160 @@ const openArbitIframe=()=>{
         }
 
 
-        @media(max-width:700px){
+        @media(max-width:1100px){
 
-            #arbit-iframe-overlay{
+            #arbit-iframe-title{
+
+                font-size:
+                    12px!important;
+
+            }
+
+
+            #arbit-app-selector{
+
+                min-width:
+                    120px!important;
+
+                max-width:
+                    170px!important;
+
+            }
+
+
+            #arbit-app-open,
+            #arbit-all-in-one{
 
                 padding:
+                    0 8px!important;
+
+                font-size:
+                    9px!important;
+
+            }
+
+
+            #arbit-rush-verify,
+            #arbit-pull-evidence{
+
+                padding:
+                    0 7px!important;
+
+                font-size:
+                    9px!important;
+
+            }
+
+        }
+
+
+        @media(max-width:800px){
+
+            #arbit-iframe-header{
+
+                gap:
                     4px!important;
 
             }
 
 
-            #arbit-iframe-window{
+            #arbit-iframe-left{
 
-                width:
-                    100vw!important;
-
-                height:
-                    98vh!important;
-
-                border-radius:
-                    10px!important;
+                gap:
+                    4px!important;
 
             }
 
 
             #arbit-iframe-title{
 
+                font-size:
+                    10px!important;
+
+            }
+
+
+            #arbit-iframe-number{
+
+                font-size:
+                    10px!important;
+
+            }
+
+
+            #arbit-app-selector{
+
+                min-width:
+                    90px!important;
+
+                max-width:
+                    120px!important;
+
+                height:
+                    34px!important;
+
+                font-size:
+                    9px!important;
+
+            }
+
+
+            #arbit-app-open,
+            #arbit-all-in-one{
+
+                height:
+                    34px!important;
+
+                padding:
+                    0 7px!important;
+
+                font-size:
+                    8px!important;
+
+            }
+
+
+            #arbit-rush-verify,
+            #arbit-pull-evidence{
+
+                height:
+                    34px!important;
+
+                padding:
+                    0 5px!important;
+
+                font-size:
+                    8px!important;
+
+            }
+
+
+            #arbit-iframe-close{
+
+                width:
+                    34px!important;
+
+                height:
+                    34px!important;
+
+            }
+
+        }
+
+
+        @media(max-width:600px){
+
+            #arbit-pull-evidence{
+
                 display:none!important;
 
             }
 
 
-            #arbit-iframe-header{
+            #arbit-all-in-one{
 
-                padding-left:
-                    8px!important;
+                padding:
+                    0 6px!important;
 
             }
 
@@ -1773,6 +2510,10 @@ const openArbitIframe=()=>{
         overlay
     );
 
+
+    /* =====================================================
+       ELEMENTS
+       ===================================================== */
 
     const iframe=
         document.getElementById(
@@ -1792,29 +2533,262 @@ const openArbitIframe=()=>{
         );
 
 
+    const allInOneBtn=
+        document.getElementById(
+            "arbit-all-in-one"
+        );
+
+
     const closeBtn=
         document.getElementById(
             "arbit-iframe-close"
         );
 
 
-    const closeIframe=()=>{
-
-        const vobViewer=
-            document.getElementById(
-                "vob-file-viewer-overlay"
-            );
+    const iframeNumberElement=
+        document.getElementById(
+            "arbit-iframe-number"
+        );
 
 
-        if(vobViewer)
-            vobViewer.remove();
+    const appSelector=
+        document.getElementById(
+            "arbit-app-selector"
+        );
 
 
-        overlay.remove();
-        iframeStyle.remove();
+    const appOpenBtn=
+        document.getElementById(
+            "arbit-app-open"
+        );
+
+
+    /* =====================================================
+       UPDATE CURRENT ID DISPLAY
+       ===================================================== */
+
+    const updateCurrentIdDisplay=()=>{
+
+        if(!iframeNumberElement)
+            return;
+
+
+        iframeNumberElement.textContent=
+            currentApp?.id||
+            "UNKNOWN";
 
     };
 
+
+    /* =====================================================
+       APP DROPDOWN CHANGE
+       ===================================================== */
+
+    if(appSelector){
+
+        appSelector.addEventListener(
+            "change",
+            ()=>{
+
+                const selectedIndex=
+                    Number(
+                        appSelector.value
+                    );
+
+
+                if(
+                    !Number.isInteger(
+                        selectedIndex
+                    )||
+                    !appLinks[selectedIndex]
+                ){
+
+                    return;
+
+                }
+
+
+                if(
+                    selectedIndex===
+                    currentAppIndex
+                ){
+
+                    if(appOpenBtn)
+                        appOpenBtn.style.display=
+                            "none";
+
+                }else{
+
+                    if(appOpenBtn)
+                        appOpenBtn.style.display=
+                            "inline-flex";
+
+                }
+
+            }
+
+        );
+
+    }
+
+
+    /* =====================================================
+       OPEN SELECTED APP IN SAME IFRAME
+       ===================================================== */
+
+    if(appOpenBtn){
+
+        appOpenBtn.addEventListener(
+            "click",
+            ()=>{
+
+                if(!appSelector)
+                    return;
+
+
+                const selectedIndex=
+                    Number(
+                        appSelector.value
+                    );
+
+
+                if(
+                    !Number.isInteger(
+                        selectedIndex
+                    )||
+                    !appLinks[selectedIndex]
+                ){
+
+                    return;
+
+                }
+
+
+                if(
+                    selectedIndex===
+                    currentAppIndex
+                ){
+
+                    appOpenBtn.style.display=
+                        "none";
+
+                    return;
+
+                }
+
+
+                const selectedApp=
+                    appLinks[selectedIndex];
+
+
+                console.log(
+                    "Opening selected APP / ARBIT ID in SAME iframe:",
+                    selectedApp
+                );
+
+
+                currentAppIndex=
+                    selectedIndex;
+
+
+                currentApp=
+                    selectedApp;
+
+
+                iframe.src=
+                    selectedApp.href;
+
+
+                updateCurrentIdDisplay();
+
+
+                appOpenBtn.style.display=
+                    "none";
+
+
+                appSelector.value=
+                    String(
+                        currentAppIndex
+                    );
+
+            }
+
+        );
+
+    }
+
+
+    /* =====================================================
+       ALL IN ONE BUTTON
+       ===================================================== */
+
+    if(allInOneBtn){
+
+        allInOneBtn.addEventListener(
+            "click",
+            ()=>{
+
+                runAllInOne(
+                    iframe
+                );
+
+            }
+
+        );
+
+    }
+
+
+    /* =====================================================
+       UPDATE CURRENT ID
+       ===================================================== */
+
+    updateCurrentIdDisplay();
+
+
+    /* =====================================================
+       FORCE IFRAME TO FRONT
+       ===================================================== */
+
+    try{
+
+        overlay.style.setProperty(
+            "z-index",
+            "2147483647",
+            "important"
+        );
+
+        overlay.style.setProperty(
+            "position",
+            "fixed",
+            "important"
+        );
+
+        overlay.style.setProperty(
+            "inset",
+            "0",
+            "important"
+        );
+
+        overlay.style.setProperty(
+            "isolation",
+            "isolate",
+            "important"
+        );
+
+    }catch(e){
+
+        console.warn(
+            "Could not force iframe stacking:",
+            e
+        );
+
+    }
+
+
+    /* =====================================================
+       RUSH VERIFY
+       ===================================================== */
 
     rushBtn.onclick=()=>{
 
@@ -1824,6 +2798,10 @@ const openArbitIframe=()=>{
 
     };
 
+
+    /* =====================================================
+       PULL CASE / HISTORY EVIDENCE
+       ===================================================== */
 
     pullEvidenceBtn.onclick=()=>{
 
@@ -1843,9 +2821,35 @@ const openArbitIframe=()=>{
     );
 
 
+    /* =====================================================
+       CLOSE IFRAME
+       ===================================================== */
+
+    const closeIframe=()=>{
+
+        const vobViewer=
+            document.getElementById(
+                "vob-file-viewer-overlay"
+            );
+
+
+        if(vobViewer)
+            vobViewer.remove();
+
+
+        overlay.remove();
+        iframeStyle.remove();
+
+    };
+
+
     closeBtn.onclick=
         closeIframe;
 
+
+    /* =====================================================
+       CLICK OUTSIDE
+       ===================================================== */
 
     overlay.addEventListener(
         "mousedown",
@@ -1863,6 +2867,10 @@ const openArbitIframe=()=>{
     );
 
 
+    /* =====================================================
+       ESC
+       ===================================================== */
+
     overlay.addEventListener(
         "keydown",
         e=>{
@@ -1872,6 +2880,7 @@ const openArbitIframe=()=>{
             ){
 
                 e.preventDefault();
+
 
                 const vobViewer=
                     document.getElementById(
@@ -1894,6 +2903,21 @@ const openArbitIframe=()=>{
         },
         true
     );
+
+
+    /* =====================================================
+       FOCUS
+       ===================================================== */
+
+    setTimeout(()=>{
+
+        try{
+
+            closeBtn.focus();
+
+        }catch(e){}
+
+    },50);
 
 };
 
@@ -2223,7 +3247,7 @@ const popup=()=>new Promise(resolve=>{
 
 
     /* =====================================================
-       MAIN POPUP STYLE
+       STYLE
        ===================================================== */
 
     const style=
@@ -3358,7 +4382,6 @@ const popup=()=>new Promise(resolve=>{
         nonBifurcated="",
         plantypeMismatch=""
     )=>{
-
 
         const actualG=
             disputeStatus;
