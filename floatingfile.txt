@@ -176,20 +176,6 @@ const planTypes=[
 
 
 /* =========================================================
-   GET FIRST ARBIT ID NUMBER
-   ========================================================= */
-
-const arbitIdNumber =
-    document.querySelector(
-        "#table-body > tr > td:nth-child(2)"
-    )?.textContent
-        ?.replace(/\u00A0/g," ")
-        .replace(/\r?\n/g," ")
-        .replace(/\s+/g," ")
-        .trim() || "";
-
-
-/* =========================================================
    VALIDATION
    ========================================================= */
 
@@ -247,11 +233,6 @@ console.log(
 console.log(
     "Page K value:",
     columnKPageValue
-);
-
-console.log(
-    "ARBIT ID:",
-    arbitIdNumber
 );
 
 console.log(
@@ -331,18 +312,10 @@ const getColumnRValue=(actualG,actualL)=>{
     );
 
 
-    /* =====================================================
-       COLUMN L = CLOSED
-       ===================================================== */
-
     if(
         l==="closed"||
         l.includes("closed")
     ){
-
-        console.log(
-            "R RULE MATCH: L = CLOSED"
-        );
 
         return(
             "Completed. Dispute is Closed Due to Receiving Payment Determination."
@@ -351,19 +324,11 @@ const getColumnRValue=(actualG,actualL)=>{
     }
 
 
-    /* =====================================================
-       COLUMN G = PLAN TYPE VALIDATED
-       ===================================================== */
-
     if(
         g.includes(
             "plan type validated post idr initiation"
         )
     ){
-
-        console.log(
-            "R RULE MATCH: PLAN TYPE VALIDATED"
-        );
 
         return(
             "VOB verified, Plan Type Validated Post IDR Initiation – Eligible (Federal NSA)."
@@ -372,19 +337,11 @@ const getColumnRValue=(actualG,actualL)=>{
     }
 
 
-    /* =====================================================
-       COLUMN G = PLAN TYPE OBJECTION SUBMITTED
-       ===================================================== */
-
     if(
         g.includes(
             "plan type objection submitted"
         )
     ){
-
-        console.log(
-            "R RULE MATCH: PLAN TYPE OBJECTION SUBMITTED"
-        );
 
         return(
             "Already completed by Onshore."
@@ -392,10 +349,6 @@ const getColumnRValue=(actualG,actualL)=>{
 
     }
 
-
-    /* =====================================================
-       COLUMN G = TIMELINE ENFORCEMENT SUBMITTED TO IDRE
-       ===================================================== */
 
     if(
         g.includes(
@@ -403,10 +356,6 @@ const getColumnRValue=(actualG,actualL)=>{
         )
     ){
 
-        console.log(
-            "R RULE MATCH: TIMELINE ENFORCEMENT SUBMITTED TO IDRE"
-        );
-
         return(
             "Already completed by Onshore."
         );
@@ -414,20 +363,11 @@ const getColumnRValue=(actualG,actualL)=>{
     }
 
 
-    /* =====================================================
-       COLUMN G = ADDITIONAL INFO PROVIDED TO IDRE
-       THROUGH EMAIL
-       ===================================================== */
-
     if(
         g.includes(
             "additional info provided to idre through email"
         )
     ){
-
-        console.log(
-            "R RULE MATCH: ADDITIONAL INFO EMAIL"
-        );
 
         return(
             "VOB verified, evidence uploaded, Additional info requested, Arbit updated."
@@ -435,11 +375,6 @@ const getColumnRValue=(actualG,actualL)=>{
 
     }
 
-
-    /* =====================================================
-       COLUMN G = ADDITIONAL INFO PROVIDED TO IDRE
-       THROUGH PORTAL
-       ===================================================== */
 
     if(
         g.includes(
@@ -447,20 +382,12 @@ const getColumnRValue=(actualG,actualL)=>{
         )
     ){
 
-        console.log(
-            "R RULE MATCH: ADDITIONAL INFO PORTAL"
-        );
-
         return(
             "VOB verified, evidence uploaded, Additional info requested, Arbit updated."
         );
 
     }
 
-
-    /* =====================================================
-       NO MATCH
-       ===================================================== */
 
     console.warn(
         "NO G/L -> R RULE MATCHED",
@@ -1217,19 +1144,7 @@ const openArbitIframe=()=>{
             <div id="arbit-iframe-header">
 
                 <div id="arbit-iframe-title">
-
-                    ARBIT ID:
-
-                    <span id="arbit-iframe-number">
-                        ${arbitIdNumber
-                            ?String(arbitIdNumber)
-                                .replace(/&/g,"&amp;")
-                                .replace(/</g,"&lt;")
-                                .replace(/>/g,"&gt;")
-                                .replace(/"/g,"&quot;")
-                            :"UNKNOWN"}
-                    </span>
-
+                    ARBIT ID
                 </div>
 
 
@@ -1421,31 +1336,6 @@ const openArbitIframe=()=>{
 
             white-space:
                 nowrap!important;
-
-            display:flex!important;
-
-            align-items:center!important;
-
-            gap:
-                4px!important;
-
-        }
-
-
-        #arbit-iframe-number{
-
-            color:
-                #facc15!important;
-
-            font-weight:
-                900!important;
-
-            margin-left:
-                2px!important;
-
-            text-shadow:
-                0 1px 4px
-                rgba(0,0,0,.4)!important;
 
         }
 
@@ -1815,23 +1705,7 @@ const openArbitIframe=()=>{
         }
 
 
-        @media(max-width:1050px){
-
-            #arbit-iframe-header{
-
-                gap:
-                    5px!important;
-
-            }
-
-
-            #arbit-iframe-actions{
-
-                gap:
-                    5px!important;
-
-            }
-
+        @media(max-width:900px){
 
             #arbit-rush-verify,
             #arbit-pull-evidence{
@@ -1841,38 +1715,6 @@ const openArbitIframe=()=>{
 
                 font-size:
                     10px!important;
-
-            }
-
-        }
-
-
-        @media(max-width:800px){
-
-            #arbit-iframe-title{
-
-                font-size:
-                    12px!important;
-
-            }
-
-
-            #arbit-iframe-number{
-
-                font-size:
-                    12px!important;
-
-            }
-
-
-            #arbit-rush-verify,
-            #arbit-pull-evidence{
-
-                padding:
-                    0 7px!important;
-
-                font-size:
-                    9px!important;
 
             }
 
@@ -1905,18 +1747,7 @@ const openArbitIframe=()=>{
 
             #arbit-iframe-title{
 
-                display:flex!important;
-
-                font-size:
-                    11px!important;
-
-            }
-
-
-            #arbit-iframe-number{
-
-                font-size:
-                    11px!important;
+                display:none!important;
 
             }
 
@@ -1967,67 +1798,23 @@ const openArbitIframe=()=>{
         );
 
 
-    /* =====================================================
-       UPDATE IFRAME ARBIT NUMBER
-       ===================================================== */
+    const closeIframe=()=>{
 
-    const iframeNumberElement=
-        document.getElementById(
-            "arbit-iframe-number"
-        );
+        const vobViewer=
+            document.getElementById(
+                "vob-file-viewer-overlay"
+            );
 
 
-    if(iframeNumberElement){
-
-        iframeNumberElement.textContent=
-            arbitIdNumber || "UNKNOWN";
-
-    }
+        if(vobViewer)
+            vobViewer.remove();
 
 
-    /* =====================================================
-       FORCE IFRAME TO FRONT
-       ===================================================== */
+        overlay.remove();
+        iframeStyle.remove();
 
-    try{
+    };
 
-        overlay.style.setProperty(
-            "z-index",
-            "2147483647",
-            "important"
-        );
-
-        overlay.style.setProperty(
-            "position",
-            "fixed",
-            "important"
-        );
-
-        overlay.style.setProperty(
-            "inset",
-            "0",
-            "important"
-        );
-
-        overlay.style.setProperty(
-            "isolation",
-            "isolate",
-            "important"
-        );
-
-    }catch(e){
-
-        console.warn(
-            "Could not force iframe stacking:",
-            e
-        );
-
-    }
-
-
-    /* =====================================================
-       RUSH VERIFY
-       ===================================================== */
 
     rushBtn.onclick=()=>{
 
@@ -2037,10 +1824,6 @@ const openArbitIframe=()=>{
 
     };
 
-
-    /* =====================================================
-       PULL CASE / HISTORY EVIDENCE
-       ===================================================== */
 
     pullEvidenceBtn.onclick=()=>{
 
@@ -2060,35 +1843,9 @@ const openArbitIframe=()=>{
     );
 
 
-    /* =====================================================
-       CLOSE IFRAME
-       ===================================================== */
-
-    const closeIframe=()=>{
-
-        const vobViewer=
-            document.getElementById(
-                "vob-file-viewer-overlay"
-            );
-
-
-        if(vobViewer)
-            vobViewer.remove();
-
-
-        overlay.remove();
-        iframeStyle.remove();
-
-    };
-
-
     closeBtn.onclick=
         closeIframe;
 
-
-    /* =====================================================
-       CLICK OUTSIDE
-       ===================================================== */
 
     overlay.addEventListener(
         "mousedown",
@@ -2106,10 +1863,6 @@ const openArbitIframe=()=>{
     );
 
 
-    /* =====================================================
-       ESC
-       ===================================================== */
-
     overlay.addEventListener(
         "keydown",
         e=>{
@@ -2119,7 +1872,6 @@ const openArbitIframe=()=>{
             ){
 
                 e.preventDefault();
-
 
                 const vobViewer=
                     document.getElementById(
@@ -2142,21 +1894,6 @@ const openArbitIframe=()=>{
         },
         true
     );
-
-
-    /* =====================================================
-       FOCUS
-       ===================================================== */
-
-    setTimeout(()=>{
-
-        try{
-
-            closeBtn.focus();
-
-        }catch(e){}
-
-    },50);
 
 };
 
@@ -2486,7 +2223,7 @@ const popup=()=>new Promise(resolve=>{
 
 
     /* =====================================================
-       STYLE
+       MAIN POPUP STYLE
        ===================================================== */
 
     const style=
@@ -3621,6 +3358,7 @@ const popup=()=>new Promise(resolve=>{
         nonBifurcated="",
         plantypeMismatch=""
     )=>{
+
 
         const actualG=
             disputeStatus;
