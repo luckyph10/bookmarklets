@@ -16,17 +16,15 @@
     const caseNotesButtonSelector =
         "#ngForm > fieldset > div:nth-child(24) > div.d-flex.mb-2 > button";
 
-    /* Ineligibility Reasons textarea */
     const ineligibilityReasonsSelector =
         "#ngForm > fieldset > div:nth-child(15) > div:nth-child(3) > div:nth-child(2) > div > div:nth-child(2) > textarea";
 
-    /* State selector */
     const stateSelector =
         "#ngForm > fieldset > div:nth-child(15) > div:nth-child(3) > div.col-lg-6.justify-content-end.mb-4 > div:nth-child(1) > select";
 
 
     /* ============================================================
-       VOB SECTION BUTTON
+       VOB SECTION
        ============================================================ */
 
     const vobSectionButtonSelector =
@@ -34,174 +32,27 @@
 
 
     /* ============================================================
-       PROOF OF ID INITIATION
+       EXACT IDR SELECTOR
        ============================================================ */
 
-    /*
-     * Searches for the actual application button containing
-     * Proof of ID Initiation.
-     *
-     * No Insurance Card.
-     * No EOB.
-     * No other file types.
-     */
-
-    function findProofOfIdInitiationButtons() {
-
-        const allButtons = [
-
-            ...document.querySelectorAll(
-                "button"
-            ),
-
-            ...document.querySelectorAll(
-                '[role="button"]'
-            ),
-
-            ...document.querySelectorAll(
-                "a"
-            )
-
-        ];
+    const idrButtonsSelector =
+        "#ngForm > fieldset > div:nth-child(22) > div.collapse.show > div.card.card-body > div > div > table > tbody > tr > td:nth-child(2) > button";
 
 
-        const matches = [];
+    /* ============================================================
+       FILES
+       ============================================================ */
 
-        const seen =
-            new Set();
-
-
-        allButtons.forEach(
-            function (button) {
-
-                if (
-                    seen.has(
-                        button
-                    )
-                ) {
-
-                    return;
-
-                }
+    const filesButtonSelector =
+        'button[title="Toggle the Files list"]';
 
 
-                const textParts = [
+    /* ============================================================
+       NOTES
+       ============================================================ */
 
-                    button.innerText,
-
-                    button.textContent,
-
-                    button.title,
-
-                    button.getAttribute(
-                        "aria-label"
-                    ),
-
-                    button.getAttribute(
-                        "data-title"
-                    ),
-
-                    button.getAttribute(
-                        "data-name"
-                    ),
-
-                    button.getAttribute(
-                        "data-file-name"
-                    ),
-
-                    button.getAttribute(
-                        "filename"
-                    )
-
-                ].filter(Boolean);
-
-
-                const text =
-                    textParts
-                        .join(" ")
-                        .toLowerCase()
-                        .replace(
-                            /[_\-]+/g,
-                            " "
-                        )
-                        .replace(
-                            /\s+/g,
-                            " "
-                        )
-                        .trim();
-
-
-                /*
-                 * Exact Proof of ID Initiation matching.
-                 *
-                 * This intentionally does NOT search for EOB
-                 * or Insurance Card.
-                 */
-
-                const isProofOfId =
-
-                    text.includes(
-                        "proof of id initiation"
-                    ) ||
-
-                    text.includes(
-                        "proofidinitiation"
-                    ) ||
-
-                    text.includes(
-                        "proof id initiation"
-                    ) ||
-
-                    text.includes(
-                        "proof of id init"
-                    ) ||
-
-                    text.includes(
-                        "proof id init"
-                    ) ||
-
-                    text.includes(
-                        "proofofid"
-                    ) ||
-
-                    text ===
-                        "proof of id" ||
-
-                    text ===
-                        "proofid";
-
-
-                if (isProofOfId) {
-
-                    /*
-                     * Avoid accidentally selecting a very
-                     * large parent/container that contains
-                     * multiple files.
-                     */
-
-                    if (
-                        text.length <= 150
-                    ) {
-
-                        seen.add(
-                            button
-                        );
-
-                        matches.push(
-                            button
-                        );
-
-                    }
-
-                }
-
-            }
-        );
-
-
-        return matches;
-
-    }
+    const notesButtonSelector =
+        'button[title="Toggle Notes section"]';
 
 
     /* ============================================================
@@ -210,38 +61,43 @@
 
     function openVobSection() {
 
-        const vobSectionButton =
+        const button =
             document.querySelector(
                 vobSectionButtonSelector
             );
 
-        if (!vobSectionButton) {
+        if (!button) {
             return;
         }
 
-        const ariaExpanded =
-            vobSectionButton.getAttribute(
+        const expanded =
+            button.getAttribute(
                 "aria-expanded"
             );
 
-
         if (
-            ariaExpanded ===
-            "false"
+            expanded === "false" ||
+            expanded === null
         ) {
 
-            vobSectionButton.click();
+            button.click();
 
         }
 
-        else if (
-            ariaExpanded ===
-            null
-        ) {
+    }
 
-            vobSectionButton.click();
 
-        }
+    /* ============================================================
+       FIND ALL IDR BUTTONS
+       ============================================================ */
+
+    function findIdrButtons() {
+
+        return [
+            ...document.querySelectorAll(
+                idrButtonsSelector
+            )
+        ];
 
     }
 
@@ -250,30 +106,24 @@
        OPEN FILES
        ============================================================ */
 
-    const filesButtonSelector =
-        'button[title="Toggle the Files list"]';
-
-
     function openFilesSection() {
 
-        const filesBtn =
+        const button =
             document.querySelector(
                 filesButtonSelector
             );
 
-        if (!filesBtn) {
+        if (!button) {
             return;
         }
 
-
         if (
-            filesBtn.getAttribute(
+            button.getAttribute(
                 "aria-expanded"
-            ) ===
-            "false"
+            ) === "false"
         ) {
 
-            filesBtn.click();
+            button.click();
 
         }
 
@@ -284,30 +134,24 @@
        OPEN NOTES
        ============================================================ */
 
-    const notesButtonSelector =
-        'button[title="Toggle Notes section"]';
-
-
     function openNotesSection() {
 
-        const notesBtn =
+        const button =
             document.querySelector(
                 notesButtonSelector
             );
 
-        if (!notesBtn) {
+        if (!button) {
             return;
         }
 
-
         if (
-            notesBtn.getAttribute(
+            button.getAttribute(
                 "aria-expanded"
-            ) ===
-            "false"
+            ) === "false"
         ) {
 
-            notesBtn.click();
+            button.click();
 
         }
 
@@ -315,17 +159,15 @@
 
 
     /* ============================================================
-       FIND VOB BUTTONS
+       FIND VOBS
        ============================================================ */
 
     function findVobButtons() {
 
         return [
-
             ...document.querySelectorAll(
                 "button.btn-modal"
             )
-
         ].filter(
             function (btn) {
 
@@ -335,24 +177,19 @@
                         ""
                     ).toLowerCase();
 
-
                 const text =
                     (
                         btn.textContent ||
                         ""
                     ).toLowerCase();
 
-
                 return (
-
                     title.includes(
                         "view vob"
                     ) ||
-
                     text.includes(
                         "vob"
                     )
-
                 );
 
             }
@@ -368,26 +205,11 @@
     function escapeHtml(text) {
 
         return String(text)
-            .replace(
-                /&/g,
-                "&amp;"
-            )
-            .replace(
-                /</g,
-                "&lt;"
-            )
-            .replace(
-                />/g,
-                "&gt;"
-            )
-            .replace(
-                /"/g,
-                "&quot;"
-            )
-            .replace(
-                /'/g,
-                "&#039;"
-            );
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
 
     }
 
@@ -407,7 +229,6 @@
                 "#DOB"
             );
 
-
         if (!dob) {
 
             alert(
@@ -418,18 +239,15 @@
 
         }
 
-
         var dobValue =
             dob.value ||
             dob.textContent ||
             dob.innerText;
 
-
         var dobDate =
             new Date(
                 dobValue
             );
-
 
         if (isNaN(dobDate)) {
 
@@ -449,25 +267,19 @@
         var today =
             new Date();
 
-
         var age =
             today.getFullYear() -
             dobDate.getFullYear();
 
-
         if (
-
             today.getMonth() <
                 dobDate.getMonth() ||
-
             (
                 today.getMonth() ===
                     dobDate.getMonth() &&
-
                 today.getDate() <
                     dobDate.getDate()
             )
-
         ) {
 
             age--;
@@ -482,7 +294,6 @@
         var planType =
             "Unknown";
 
-
         var plan =
             Array.from(
                 document.querySelectorAll(
@@ -492,18 +303,14 @@
                 function (s) {
 
                     return (
-
                         s.parentElement &&
-
                         s.parentElement.innerText.indexOf(
                             "Plan Type"
                         ) > -1
-
                     );
 
                 }
             );
-
 
         if (plan) {
 
@@ -522,25 +329,17 @@
         var state =
             "Unknown";
 
-
         var stateElement =
             document.querySelector(
                 stateSelector
             );
 
-
         if (stateElement) {
 
             state =
-
-                stateElement
-                    .selectedOptions[0]
-                    ?.text ||
-
+                stateElement.selectedOptions[0]?.text ||
                 stateElement.value ||
-
                 "Unknown";
-
 
             state =
                 state.trim();
@@ -579,50 +378,27 @@
 
         ];
 
-
         var stateLower =
-            state
-                .toLowerCase()
-                .trim();
-
+            state.toLowerCase().trim();
 
         var isBifurcated =
             bifurcatedStates.some(
-                function (
-                    bifurcatedState
-                ) {
+                function (bifurcatedState) {
 
                     return (
-
                         stateLower ===
                         bifurcatedState
                             .toLowerCase()
                             .trim()
-
                     );
 
                 }
             );
 
-
-        /* ========================================================
-           STATE INDICATOR
-           ======================================================== */
-
-        var stateColor;
-
-        if (isBifurcated) {
-
-            stateColor =
-                "#ff4d4f";
-
-        } else {
-
-            stateColor =
-                "#2ecc71";
-
-        }
-
+        var stateColor =
+            isBifurcated
+                ? "#ff4d4f"
+                : "#2ecc71";
 
         var stateStatus =
             isBifurcated
@@ -631,12 +407,11 @@
 
 
         /* ========================================================
-           HISTORY TEXT
+           HISTORY
            ======================================================== */
 
         var historyText =
             "";
-
 
         document.querySelectorAll(
 
@@ -652,63 +427,50 @@
             }
         );
 
-
         historyText =
             historyText.toLowerCase();
 
 
         /* ========================================================
-           CASE NOTES TEXT
+           CASE NOTES
            ======================================================== */
 
         var caseNotesText =
             "";
-
 
         var caseNotesElement =
             document.querySelector(
                 caseNotesSelector
             );
 
-
         if (caseNotesElement) {
 
             caseNotesText =
-                caseNotesElement
-                    .innerText
-                    .toLowerCase();
+                caseNotesElement.innerText.toLowerCase();
 
         }
 
 
         /* ========================================================
-           INELIGIBILITY REASONS
+           INELIGIBILITY
            ======================================================== */
 
         var ineligibilityReasonsText =
             "";
-
 
         var ineligibilityReasonsElement =
             document.querySelector(
                 ineligibilityReasonsSelector
             );
 
-
         if (
             ineligibilityReasonsElement
         ) {
 
             ineligibilityReasonsText =
-
-                ineligibilityReasonsElement
-                    .value ||
-
-                ineligibilityReasonsElement
-                    .textContent ||
-
+                ineligibilityReasonsElement.value ||
+                ineligibilityReasonsElement.textContent ||
                 "";
-
 
             ineligibilityReasonsText =
                 ineligibilityReasonsText.trim();
@@ -723,10 +485,8 @@
         var ptMatch =
             false;
 
-
         var historyEvidence =
             [];
-
 
         var caseNotesEvidence =
             [];
@@ -784,17 +544,14 @@
 
 
         /* ========================================================
-           PT EVIDENCE LOGIC
+           PT EVIDENCE
            ======================================================== */
 
         if (
-
             planType ===
                 "Self Funded" ||
-
             planType ===
                 "Self Funded (Opt Out)"
-
         ) {
 
             selfFundedKeywords.forEach(
@@ -802,7 +559,6 @@
 
                     var search =
                         keyword.toLowerCase();
-
 
                     if (
                         historyText.indexOf(
@@ -812,7 +568,6 @@
 
                         ptMatch =
                             true;
-
 
                         if (
                             historyEvidence.indexOf(
@@ -828,7 +583,6 @@
 
                     }
 
-
                     if (
                         caseNotesText.indexOf(
                             search
@@ -837,7 +591,6 @@
 
                         ptMatch =
                             true;
-
 
                         if (
                             caseNotesEvidence.indexOf(
@@ -861,7 +614,6 @@
             var search =
                 planType.toLowerCase();
 
-
             if (
                 historyText.indexOf(
                     search
@@ -871,13 +623,11 @@
                 ptMatch =
                     true;
 
-
                 historyEvidence.push(
                     planType
                 );
 
             }
-
 
             if (
                 caseNotesText.indexOf(
@@ -887,7 +637,6 @@
 
                 ptMatch =
                     true;
-
 
                 caseNotesEvidence.push(
                     planType
@@ -915,29 +664,23 @@
 
         ];
 
-
         var planTypeLower =
             planType.toLowerCase();
-
 
         var isRedPlanType =
             redPlanTypeKeywords.some(
                 function (keyword) {
 
                     return (
-
                         planTypeLower.indexOf(
                             keyword
                         ) > -1
-
                     );
 
                 }
             );
 
-
         var ptColor;
-
 
         if (isRedPlanType) {
 
@@ -958,7 +701,7 @@
 
 
         /* ========================================================
-           AGE INDICATOR
+           AGE COLOR
            ======================================================== */
 
         var ageColor =
@@ -968,7 +711,7 @@
 
 
         /* ========================================================
-           INELIGIBILITY INDICATOR
+           INELIGIBILITY COLOR
            ======================================================== */
 
         var ineligibilityColor =
@@ -978,15 +721,15 @@
 
 
         /* ========================================================
-           FIND PROOF OF ID INITIATION
+           FIND IDRS
            ======================================================== */
 
-        var proofOfIdButtons =
-            findProofOfIdInitiationButtons();
+        var idrs =
+            findIdrButtons();
 
 
         /* ========================================================
-           FIND VOB BUTTONS
+           FIND VOBS
            ======================================================== */
 
         var vobs =
@@ -1001,7 +744,6 @@
             document.getElementById(
                 "agePopupBookmarklet"
             );
-
 
         if (old) {
 
@@ -1019,10 +761,8 @@
                 "div"
             );
 
-
         popup.id =
             "agePopupBookmarklet";
-
 
         popup.style.cssText =
 
@@ -1044,29 +784,26 @@
 
 
         /* ========================================================
-           PROOF OF ID INITIATION HTML
+           IDR HTML
            ======================================================== */
 
-        var proofHtml =
+        var idrHtml =
             "";
 
+        if (idrs.length) {
 
-        if (
-            proofOfIdButtons.length
-        ) {
-
-            proofHtml +=
+            idrHtml +=
 
                 '<div style="margin-top:16px;padding-top:12px;border-top:1px solid #374151;">' +
 
-                '<div style="font-size:20px;font-weight:bold;display:flex;align-items:center;gap:8px;">' +
+                '<div style="font-size:20px;font-weight:bold;">' +
 
                 "Proof of ID Initiation" +
 
-                '<span style="font-size:12px;color:#9ca3af;font-weight:normal;">' +
+                '<span style="font-size:12px;color:#9ca3af;font-weight:normal;margin-left:8px;">' +
 
                 "(" +
-                proofOfIdButtons.length +
+                idrs.length +
                 " found)" +
 
                 "</span>" +
@@ -1076,41 +813,24 @@
                 '<div style="margin-top:8px;">';
 
 
-            proofOfIdButtons.forEach(
+            idrs.forEach(
                 function (
-                    button,
+                    idr,
                     i
                 ) {
 
-                    var buttonTitle =
-
-                        button.title ||
-
-                        button.getAttribute(
+                    var idrTitle =
+                        idr.title ||
+                        idr.getAttribute(
                             "aria-label"
                         ) ||
-
-                        button.getAttribute(
-                            "data-title"
-                        ) ||
-
-                        button.textContent ||
-
+                        idr.textContent ||
                         "Proof of ID Initiation";
 
 
-                    buttonTitle =
-                        buttonTitle
-                            .replace(
-                                /\s+/g,
-                                " "
-                            )
-                            .trim();
+                    idrHtml +=
 
-
-                    proofHtml +=
-
-                        '<button class="mainProofIdBtn" data-proof-index="' +
+                        '<button class="mainIdrBtn" data-idr-index="' +
                         i +
                         '" style="' +
 
@@ -1129,13 +849,13 @@
 
                         '">' +
 
-                        "🪪 Proof of ID " +
+                        "🪪 IDR " +
                         (i + 1) +
 
-                        '<span style="float:right;color:#ede9fe;font-size:11px;max-width:45%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' +
+                        '<span style="float:right;color:#ede9fe;font-size:11px;">' +
 
                         escapeHtml(
-                            buttonTitle
+                            idrTitle
                         ) +
 
                         "</span>" +
@@ -1146,12 +866,12 @@
             );
 
 
-            proofHtml +=
+            idrHtml +=
                 "</div></div>";
 
         } else {
 
-            proofHtml =
+            idrHtml =
 
                 '<div style="margin-top:16px;padding-top:12px;border-top:1px solid #374151;">' +
 
@@ -1179,7 +899,6 @@
         var vobHtml =
             "";
 
-
         if (
             vobs.length
         ) {
@@ -1188,11 +907,9 @@
 
                 '<div style="margin-top:16px;padding-top:12px;border-top:1px solid #374151;">' +
 
-                '<div style="font-size:20px;font-weight:bold;display:flex;align-items:center;gap:8px;">' +
+                '<div style="font-size:20px;font-weight:bold;">VOB' +
 
-                "VOB" +
-
-                '<span style="font-size:12px;color:#9ca3af;font-weight:normal;">' +
+                '<span style="font-size:12px;color:#9ca3af;font-weight:normal;margin-left:8px;">' +
 
                 "(" +
                 vobs.length +
@@ -1241,7 +958,7 @@
                         "📄 VOB " +
                         (i + 1) +
 
-                        '<span style="float:right;color:#dbeafe;font-size:11px;max-width:45%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' +
+                        '<span style="float:right;color:#dbeafe;font-size:11px;">' +
 
                         escapeHtml(
                             vobTitle
@@ -1264,11 +981,7 @@
 
                 '<div style="margin-top:16px;padding-top:12px;border-top:1px solid #374151;">' +
 
-                '<div style="font-size:18px;font-weight:bold;">' +
-
-                "VOB" +
-
-                "</div>" +
+                '<div style="font-size:18px;font-weight:bold;">VOB</div>' +
 
                 '<div style="margin-top:6px;font-size:13px;color:#ff6b6b;">' +
 
@@ -1282,193 +995,111 @@
 
 
         /* ========================================================
-           POPUP HTML
+           POPUP
            ======================================================== */
 
         popup.innerHTML =
 
-            /* CLOSE */
-
             '<button id="closeAgePopup" style="position:absolute;top:5px;right:10px;background:none;border:none;color:#fff;font-size:20px;cursor:pointer;">×</button>' +
-
-
-            /* AGE */
 
             '<div style="font-size:24px;font-weight:bold;display:flex;align-items:center;gap:10px;">' +
 
             "AGE: " +
-
             age +
 
-            ' <span style="width:14px;height:14px;border-radius:50%;background:' +
-
+            '<span style="width:14px;height:14px;border-radius:50%;background:' +
             ageColor +
-
             ';display:inline-block;"></span>' +
 
             "</div>" +
-
-
-            /* PT */
 
             '<div style="margin-top:10px;font-size:24px;font-weight:bold;display:flex;align-items:center;gap:10px;">' +
 
             "PT: " +
+            escapeHtml(planType) +
 
-            escapeHtml(
-                planType
-            ) +
-
-            ' <span style="width:14px;height:14px;border-radius:50%;background:' +
-
+            '<span style="width:14px;height:14px;border-radius:50%;background:' +
             ptColor +
-
             ';display:inline-block;"></span>' +
 
             "</div>" +
 
-
-            /* HISTORY EVIDENCE */
-
             (
-
                 historyEvidence.length
-
                     ?
-
                     '<div style="margin-top:10px;font-size:14px;color:#90ee90;">' +
-
                     '<strong style="color:#ffffff;">History Evidence:</strong><br>' +
-
                     historyEvidence
-                        .map(
-                            escapeHtml
-                        )
-                        .join(
-                            "<br>"
-                        ) +
-
+                        .map(escapeHtml)
+                        .join("<br>") +
                     "</div>"
-
                     :
-
                     ""
-
             ) +
-
-
-            /* CASE NOTES */
 
             (
-
                 caseNotesEvidence.length
-
                     ?
-
                     '<div style="margin-top:10px;font-size:14px;color:#90ee90;">' +
-
                     '<strong style="color:#ffffff;">Case Notes:</strong><br>' +
-
                     caseNotesEvidence
-                        .map(
-                            escapeHtml
-                        )
-                        .join(
-                            "<br>"
-                        ) +
-
+                        .map(escapeHtml)
+                        .join("<br>") +
                     "</div>"
-
                     :
-
                     ""
-
             ) +
-
-
-            /* INELIGIBILITY */
 
             '<div style="margin-top:14px;font-size:16px;font-weight:bold;display:flex;align-items:center;gap:8px;">' +
 
             "Ineligibility Reasons:" +
 
             '<span style="width:14px;height:14px;border-radius:50%;background:' +
-
             ineligibilityColor +
-
             ';display:inline-block;"></span>' +
 
             "</div>" +
 
-
             (
-
                 ineligibilityReasonsText
-
                     ?
-
                     '<div style="margin-top:6px;font-size:14px;color:#90ee90;white-space:pre-wrap;word-break:break-word;">' +
-
                     escapeHtml(
                         ineligibilityReasonsText
                     ) +
-
                     "</div>"
-
                     :
-
                     '<div style="margin-top:6px;font-size:14px;color:#ff6b6b;">No evidence found / textarea is empty.</div>'
-
             ) +
-
-
-            /* STATE */
 
             '<div style="margin-top:14px;font-size:20px;font-weight:bold;display:flex;align-items:center;gap:10px;">' +
 
-            "STATE: " +
+            "STATE:" +
 
             '<span style="width:14px;height:14px;border-radius:50%;background:' +
-
             stateColor +
-
             ';display:inline-block;"></span>' +
 
             "</div>" +
 
-
             '<div style="margin-top:4px;font-size:16px;color:#fff;">' +
 
-            escapeHtml(
-                state
-            ) +
+            escapeHtml(state) +
 
             " (" +
-
             stateStatus +
-
             ")" +
 
             "</div>" +
 
+            /*
+             * IDR ABOVE VOB
+             */
 
-            /* ====================================================
-               PROOF OF ID INITIATION ABOVE VOB
-               ==================================================== */
-
-            proofHtml +
-
-
-            /* ====================================================
-               VOB
-               ==================================================== */
+            idrHtml +
 
             vobHtml;
 
-
-        /* ========================================================
-           ADD POPUP
-           ======================================================== */
 
         document.body.appendChild(
             popup
@@ -1476,14 +1107,13 @@
 
 
         /* ========================================================
-           CLOSE BUTTON
+           CLOSE
            ======================================================== */
 
         var closeButton =
             popup.querySelector(
                 "#closeAgePopup"
             );
-
 
         if (closeButton) {
 
@@ -1498,57 +1128,43 @@
 
 
         /* ========================================================
-           PROOF OF ID BUTTON EVENTS
+           IDR EVENTS
            ======================================================== */
 
         popup
             .querySelectorAll(
-                ".mainProofIdBtn"
+                ".mainIdrBtn"
             )
             .forEach(
-                function (btn) {
+                function (button) {
 
-                    btn.onclick =
+                    button.onclick =
                         function () {
 
                             var index =
                                 parseInt(
-                                    btn.getAttribute(
-                                        "data-proof-index"
+                                    button.getAttribute(
+                                        "data-idr-index"
                                     ),
                                     10
                                 );
 
-
-                            var proofButton =
-                                proofOfIdButtons[
-                                    index
-                                ];
+                            var idr =
+                                idrs[index];
 
 
-                            if (!proofButton) {
+                            if (!idr) {
                                 return;
                             }
 
 
-                            /*
-                             * Remove popup first.
-                             */
-
                             popup.remove();
 
-
-                            /*
-                             * Click the REAL application
-                             * Proof of ID button.
-                             *
-                             * No scrolling.
-                             */
 
                             setTimeout(
                                 function () {
 
-                                    proofButton.click();
+                                    idr.click();
 
                                 },
                                 100
@@ -1561,7 +1177,7 @@
 
 
         /* ========================================================
-           VOB BUTTON EVENTS
+           VOB EVENTS
            ======================================================== */
 
         popup
@@ -1569,39 +1185,39 @@
                 ".mainVobBtn"
             )
             .forEach(
-                function (btn) {
+                function (button) {
 
-                    btn.onclick =
+                    button.onclick =
                         function () {
 
                             var index =
                                 parseInt(
-                                    btn.getAttribute(
+                                    button.getAttribute(
                                         "data-vob-index"
                                     ),
                                     10
                                 );
 
-
-                            var v =
+                            var vob =
                                 vobs[index];
 
 
-                            if (v) {
-
-                                popup.remove();
-
-
-                                setTimeout(
-                                    function () {
-
-                                        v.click();
-
-                                    },
-                                    100
-                                );
-
+                            if (!vob) {
+                                return;
                             }
+
+
+                            popup.remove();
+
+
+                            setTimeout(
+                                function () {
+
+                                    vob.click();
+
+                                },
+                                100
+                            );
 
                         };
 
@@ -1610,7 +1226,7 @@
 
 
         /* ========================================================
-           AUTO CLOSE AFTER 10 SECONDS
+           AUTO CLOSE
            ======================================================== */
 
         setTimeout(
@@ -1620,7 +1236,6 @@
                     document.getElementById(
                         "agePopupBookmarklet"
                     );
-
 
                 if (p) {
 
@@ -1636,7 +1251,7 @@
 
 
     /* ============================================================
-       CHECK HISTORY
+       OPEN HISTORY / CASE NOTES
        ============================================================ */
 
     const historyIsOpen =
@@ -1644,40 +1259,21 @@
             openContentSelector
         );
 
-
-    /* ============================================================
-       CHECK CASE NOTES
-       ============================================================ */
-
     const caseNotesIsOpen =
         document.querySelector(
             caseNotesSelector
         );
-
-
-    /* ============================================================
-       FIND HISTORY BUTTON
-       ============================================================ */
 
     const historyButton =
         document.querySelector(
             openerSelector
         );
 
-
-    /* ============================================================
-       FIND CASE NOTES BUTTON
-       ============================================================ */
-
     const caseNotesButton =
         document.querySelector(
             caseNotesButtonSelector
         );
 
-
-    /* ============================================================
-       OPEN HISTORY
-       ============================================================ */
 
     if (
         !historyIsOpen &&
@@ -1688,10 +1284,6 @@
 
     }
 
-
-    /* ============================================================
-       OPEN CASE NOTES
-       ============================================================ */
 
     if (
         !caseNotesIsOpen &&
@@ -1704,28 +1296,18 @@
 
 
     /* ============================================================
-       OPEN VOB SECTION
+       OPEN SECTIONS
        ============================================================ */
 
     openVobSection();
 
-
-    /* ============================================================
-       OPEN FILES
-       ============================================================ */
-
     openFilesSection();
-
-
-    /* ============================================================
-       OPEN NOTES
-       ============================================================ */
 
     openNotesSection();
 
 
     /* ============================================================
-       RUN MAIN LOGIC
+       RUN
        ============================================================ */
 
     setTimeout(
