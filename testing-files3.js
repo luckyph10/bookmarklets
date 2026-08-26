@@ -1,135 +1,28 @@
 (async function () {
     try {
-        // =====================================================
-        // REMOVE EXISTING POPUP IF ALREADY PRESENT
-        // =====================================================
+        let clipboardText = await navigator.clipboard.readText();
+        clipboardText = clipboardText.trim();
 
-        const existingPopup = document.getElementById("openAppIdPopup");
-        if (existingPopup) {
-            existingPopup.remove();
+        // Remove surrounding quotes
+        if (
+            clipboardText.startsWith('"') &&
+            clipboardText.endsWith('"')
+        ) {
+            clipboardText = clipboardText.slice(1, -1).trim();
         }
 
-        // =====================================================
-        // CREATE POPUP CONTAINER
-        // =====================================================
+        // Split by newline, spaces, commas, tabs, or semicolons
+        const items = clipboardText
+            .split(/[\s,;]+/)
+            .map(item => item.replace(/^"|"$/g, "").trim())
+            .filter(Boolean);
 
-        const popup = document.createElement("div");
-        popup.id = "openAppIdPopup";
+        if (!items.length) {
+            console.error("Clipboard is empty.");
+            return;
+        }
 
-        popup.style.position = "fixed";
-        popup.style.top = "10px";
-        popup.style.left = "10px";
-        popup.style.zIndex = "999999999";
-
-        popup.style.display = "flex";
-        popup.style.alignItems = "center";
-        popup.style.gap = "6px";
-
-        popup.style.padding = "8px";
-        popup.style.background = "#222";
-        popup.style.borderRadius = "8px";
-        popup.style.boxShadow = "0 3px 15px rgba(0,0,0,0.4)";
-
-        popup.style.fontFamily = "Arial, sans-serif";
-
-        // =====================================================
-        // CREATE DROPDOWN
-        // =====================================================
-
-        const select = document.createElement("select");
-        select.id = "openAppIdSelect";
-
-        select.style.minWidth = "160px";
-        select.style.maxWidth = "300px";
-
-        select.style.padding = "9px 10px";
-        select.style.border = "none";
-        select.style.borderRadius = "5px";
-
-        select.style.background = "#fff";
-        select.style.color = "#222";
-
-        select.style.fontSize = "14px";
-        select.style.cursor = "pointer";
-        select.style.outline = "none";
-
-        // =====================================================
-        // CREATE OPEN BUTTON
-        // =====================================================
-
-        const openButton = document.createElement("button");
-        openButton.id = "openAppIdButton";
-        openButton.textContent = "OPEN APPID";
-
-        openButton.style.padding = "9px 14px";
-        openButton.style.border = "none";
-        openButton.style.borderRadius = "5px";
-
-        openButton.style.background = "#007bff";
-        openButton.style.color = "#fff";
-
-        openButton.style.fontSize = "14px";
-        openButton.style.fontWeight = "bold";
-
-        openButton.style.cursor = "pointer";
-        openButton.style.whiteSpace = "nowrap";
-
-        openButton.addEventListener("mouseenter", function () {
-            if (!openButton.disabled) {
-                openButton.style.background = "#0056b3";
-            }
-        });
-
-        openButton.addEventListener("mouseleave", function () {
-            if (!openButton.disabled) {
-                openButton.style.background = "#007bff";
-            }
-        });
-
-        // =====================================================
-        // CREATE REFRESH BUTTON
-        // =====================================================
-
-        const refreshButton = document.createElement("button");
-        refreshButton.id = "refreshAppIdButton";
-        refreshButton.textContent = "↻";
-
-        refreshButton.title = "Refresh IDs from clipboard";
-
-        refreshButton.style.width = "32px";
-        refreshButton.style.height = "32px";
-
-        refreshButton.style.border = "none";
-        refreshButton.style.borderRadius = "5px";
-
-        refreshButton.style.background = "#444";
-        refreshButton.style.color = "#fff";
-
-        refreshButton.style.fontSize = "18px";
-        refreshButton.style.cursor = "pointer";
-
-        refreshButton.addEventListener("mouseenter", function () {
-            refreshButton.style.background = "#555";
-        });
-
-        refreshButton.addEventListener("mouseleave", function () {
-            refreshButton.style.background = "#444";
-        });
-
-        // =====================================================
-        // ADD ELEMENTS TO POPUP
-        // =====================================================
-
-        popup.appendChild(select);
-        popup.appendChild(openButton);
-        popup.appendChild(refreshButton);
-
-        document.body.appendChild(popup);
-
-        // =====================================================
-        // CONVERT ID INTO URL
-        // =====================================================
-
+        // Convert an ID into its URL
         function getUrl(item) {
             // App ID
             if (/^\d{1,8}$/.test(item)) {
@@ -144,162 +37,148 @@
             return null;
         }
 
-        // =====================================================
-        // LOAD IDS FROM CLIPBOARD
-        // =====================================================
+        // Create valid URLs
+        const urls = items
+            .map(item => ({
+                item,
+                url: getUrl(item)
+            }))
+            .filter(x => x.url);
 
-        async function loadIds() {
-            try {
-                // Clear dropdown
-                select.innerHTML = "";
-
-                // Read clipboard
-                let clipboardText = await navigator.clipboard.readText();
-                clipboardText = clipboardText.trim();
-
-                // Remove surrounding quotes
-                if (
-                    clipboardText.startsWith('"') &&
-                    clipboardText.endsWith('"')
-                ) {
-                    clipboardText = clipboardText.slice(1, -1).trim();
-                }
-
-                // Split by:
-                // newline
-                // spaces
-                // commas
-                // tabs
-                // semicolons
-
-                const items = clipboardText
-                    .split(/[\s,;]+/)
-                    .map(item =>
-                        item
-                            .replace(/^"|"$/g, "")
-                            .trim()
-                    )
-                    .filter(Boolean);
-
-                if (!items.length) {
-                    const option = document.createElement("option");
-                    option.value = "";
-                    option.textContent = "Clipboard empty";
-
-                    select.appendChild(option);
-
-                    openButton.disabled = true;
-                    openButton.style.background = "#777";
-
-                    return;
-                }
-
-                // =================================================
-                // CREATE VALID URLS
-                // =================================================
-
-                const urls = items
-                    .map(item => ({
-                        item: item,
-                        url: getUrl(item)
-                    }))
-                    .filter(x => x.url);
-
-                if (!urls.length) {
-                    const option = document.createElement("option");
-                    option.value = "";
-                    option.textContent = "No valid ID";
-
-                    select.appendChild(option);
-
-                    openButton.disabled = true;
-                    openButton.style.background = "#777";
-
-                    return;
-                }
-
-                // =================================================
-                // ADD VALID IDS TO DROPDOWN
-                // =================================================
-
-                urls.forEach((entry) => {
-                    const option = document.createElement("option");
-
-                    option.value = entry.url;
-                    option.textContent = entry.item;
-
-                    select.appendChild(option);
-                });
-
-                // Select first ID
-                select.selectedIndex = 0;
-
-                // Enable button
-                openButton.disabled = false;
-                openButton.style.background = "#007bff";
-
-                console.log("Loaded IDs:", urls);
-
-            } catch (err) {
-                console.error("Unable to read clipboard:", err);
-
-                select.innerHTML = "";
-
-                const option = document.createElement("option");
-                option.value = "";
-                option.textContent = "Clipboard unavailable";
-
-                select.appendChild(option);
-
-                openButton.disabled = true;
-                openButton.style.background = "#777";
-            }
+        if (!urls.length) {
+            console.error("No valid App IDs or Dispute IDs found.");
+            return;
         }
 
-        // =====================================================
-        // LOAD CLIPBOARD IDS
-        // =====================================================
-
-        await loadIds();
-
-        // =====================================================
-        // OPEN SELECTED ID
-        // =====================================================
-
-        openButton.addEventListener("click", function () {
-            const selectedUrl = select.value;
-
-            if (!selectedUrl) {
+        // Add APPID button to the current page
+        function addAppIdButton() {
+            if (document.getElementById("appid-bookmarklet-button")) {
                 return;
             }
 
-            // Open ONLY the selected ID in a new tab
-            window.open(selectedUrl, "_blank");
-        });
+            const button = document.createElement("button");
 
-        // =====================================================
-        // REFRESH DROPDOWN
-        // =====================================================
+            button.id = "appid-bookmarklet-button";
+            button.textContent = "APPID";
 
-        refreshButton.addEventListener("click", async function () {
-            await loadIds();
-        });
+            Object.assign(button.style, {
+                position: "fixed",
+                top: "20px",
+                right: "20px",
+                zIndex: "2147483647",
+                padding: "10px 16px",
+                background: "#007bff",
+                color: "#fff",
+                border: "none",
+                borderRadius: "6px",
+                fontSize: "14px",
+                fontWeight: "bold",
+                cursor: "pointer",
+                boxShadow: "0 2px 8px rgba(0,0,0,0.3)"
+            });
 
-        // =====================================================
-        // LOG SELECTED ID
-        // =====================================================
+            button.addEventListener("click", function () {
+                const script = document.createElement("script");
 
-        select.addEventListener("change", function () {
-            const selectedOption =
-                select.options[select.selectedIndex];
+                script.src =
+                    "https://luckyph10.github.io/bookmarklets/singleappid.js?" +
+                    Date.now();
 
-            if (selectedOption) {
-                console.log(
-                    "Selected ID:",
-                    selectedOption.textContent
-                );
+                document.head.appendChild(script);
+            });
+
+            document.body.appendChild(button);
+        }
+
+        // Open the URLs
+        for (let i = 0; i < urls.length; i++) {
+            const tab = i === 0
+                ? window
+                : window.open("about:blank", "_blank");
+
+            if (!tab) {
+                console.error("Popup blocked by browser.");
+                continue;
             }
-        });
+
+            tab.location.href = urls[i].url;
+
+            // For dispute pages, add the APPID button after navigation.
+            if (/^DISP-\d+$/i.test(urls[i].item)) {
+                if (tab === window) {
+                    // Current tab will reload, so the button must be
+                    // recreated by this script when the dispute page loads.
+                    sessionStorage.setItem("addAppIdButton", "1");
+                } else {
+                    try {
+                        const timer = setInterval(() => {
+                            try {
+                                if (
+                                    tab.document &&
+                                    tab.document.readyState === "complete"
+                                ) {
+                                    clearInterval(timer);
+
+                                    const buttonScript = `
+                                        (() => {
+                                            if (document.getElementById("appid-bookmarklet-button")) return;
+
+                                            const button = document.createElement("button");
+                                            button.id = "appid-bookmarklet-button";
+                                            button.textContent = "APPID";
+
+                                            Object.assign(button.style, {
+                                                position: "fixed",
+                                                top: "20px",
+                                                right: "20px",
+                                                zIndex: "2147483647",
+                                                padding: "10px 16px",
+                                                background: "#007bff",
+                                                color: "#fff",
+                                                border: "none",
+                                                borderRadius: "6px",
+                                                fontSize: "14px",
+                                                fontWeight: "bold",
+                                                cursor: "pointer",
+                                                boxShadow: "0 2px 8px rgba(0,0,0,0.3)"
+                                            });
+
+                                            button.onclick = () => {
+                                                const script = document.createElement("script");
+                                                script.src =
+                                                    "https://luckyph10.github.io/bookmarklets/singleappid.js?" +
+                                                    Date.now();
+                                                document.head.appendChild(script);
+                                            };
+
+                                            document.body.appendChild(button);
+                                        })();
+                                    `;
+
+                                    tab.eval(buttonScript);
+                                }
+                            } catch (e) {
+                                // Wait until the dispute page is accessible.
+                            }
+                        }, 500);
+                    } catch (e) {
+                        console.error("Could not add APPID button:", e);
+                    }
+                }
+            }
+        }
+
+        // If this script runs again on the dispute page,
+        // create the button.
+        if (sessionStorage.getItem("addAppIdButton") === "1") {
+            sessionStorage.removeItem("addAppIdButton");
+
+            if (document.readyState === "loading") {
+                document.addEventListener("DOMContentLoaded", addAppIdButton);
+            } else {
+                addAppIdButton();
+            }
+        }
 
     } catch (err) {
         console.error("Something went wrong!", err);
