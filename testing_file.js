@@ -176,6 +176,20 @@ const planTypes=[
 
 
 /* =========================================================
+   GET FIRST ARBIT ID NUMBER
+   ========================================================= */
+
+const arbitIdNumber =
+    document.querySelector(
+        "#table-body > tr > td:nth-child(2)"
+    )?.textContent
+        ?.replace(/\u00A0/g," ")
+        .replace(/\r?\n/g," ")
+        .replace(/\s+/g," ")
+        .trim() || "";
+
+
+/* =========================================================
    VALIDATION
    ========================================================= */
 
@@ -233,6 +247,11 @@ console.log(
 console.log(
     "Page K value:",
     columnKPageValue
+);
+
+console.log(
+    "ARBIT ID:",
+    arbitIdNumber
 );
 
 console.log(
@@ -647,7 +666,501 @@ const showCopyMessage=(message,clipboardText)=>{
 
 
 /* =========================================================
-   ARBIT ID IFRAME
+   RUSH VERIFY
+   ========================================================= */
+
+const runRushVerify=iframe=>{
+
+    const scriptUrl=
+        "https://luckyph10.github.io/bookmarklets/vob_intelligence.js?" +
+        Date.now();
+
+
+    try{
+
+        const doc=
+            iframe.contentDocument ||
+            iframe.contentWindow?.document;
+
+
+        if(!doc){
+
+            throw new Error(
+                "Unable to access iframe document."
+            );
+
+        }
+
+
+        const oldScript=
+            doc.getElementById(
+                "rush-verify-script"
+            );
+
+
+        if(oldScript)
+            oldScript.remove();
+
+
+        const script=
+            doc.createElement("script");
+
+
+        script.id=
+            "rush-verify-script";
+
+
+        script.src=
+            scriptUrl;
+
+
+        script.onload=()=>{
+
+            console.log(
+                "RUSH VERIFY loaded inside ARBIT iframe."
+            );
+
+        };
+
+
+        script.onerror=()=>{
+
+            alert(
+                "RUSH VERIFY: Load failed."
+            );
+
+        };
+
+
+        (
+            doc.head||
+            doc.documentElement
+        ).appendChild(
+            script
+        );
+
+
+    }catch(e){
+
+        console.error(
+            "RUSH VERIFY iframe error:",
+            e
+        );
+
+        alert(
+            "RUSH VERIFY could not run inside the ARBIT iframe.\n\n"+
+            "The iframe page may block cross-origin script injection."
+        );
+
+    }
+
+};
+
+
+/* =========================================================
+   PULL CASE / HISTORY EVIDENCE
+   ========================================================= */
+
+const runPullEvidence=iframe=>{
+
+    const scriptUrl=
+        "https://luckyph10.github.io/bookmarklets/case_notes_puller.js?" +
+        Date.now();
+
+
+    try{
+
+        const doc=
+            iframe.contentDocument ||
+            iframe.contentWindow?.document;
+
+
+        if(!doc){
+
+            throw new Error(
+                "Unable to access iframe document."
+            );
+
+        }
+
+
+        const oldScript=
+            doc.getElementById(
+                "pull-case-history-evidence-script"
+            );
+
+
+        if(oldScript)
+            oldScript.remove();
+
+
+        const script=
+            doc.createElement("script");
+
+
+        script.id=
+            "pull-case-history-evidence-script";
+
+
+        script.src=
+            scriptUrl;
+
+
+        script.onload=()=>{
+
+            console.log(
+                "Pull Case/History Evidence loaded inside ARBIT iframe."
+            );
+
+        };
+
+
+        script.onerror=()=>{
+
+            alert(
+                "Pull Case/History Evidence: Load failed."
+            );
+
+        };
+
+
+        (
+            doc.head||
+            doc.documentElement
+        ).appendChild(
+            script
+        );
+
+
+    }catch(e){
+
+        console.error(
+            "Pull Case/History Evidence iframe error:",
+            e
+        );
+
+        alert(
+            "Pull Case/History Evidence could not run inside the ARBIT iframe.\n\n"+
+            "The iframe page may block cross-origin script injection."
+        );
+
+    }
+
+};
+
+
+/* =========================================================
+   VOB FILE VIEWER
+   ========================================================= */
+
+const openVobViewer=url=>{
+
+    if(!url)
+        return;
+
+
+    const old=
+        document.getElementById(
+            "vob-file-viewer-overlay"
+        );
+
+
+    if(old)
+        old.remove();
+
+
+    const viewer=
+        document.createElement("div");
+
+
+    viewer.id=
+        "vob-file-viewer-overlay";
+
+
+    viewer.innerHTML=`
+
+        <div id="vob-file-viewer-window">
+
+            <div id="vob-file-viewer-header">
+
+                <div id="vob-file-viewer-title">
+                    VOB FILE
+                </div>
+
+
+                <button
+                    id="vob-file-viewer-close"
+                    type="button"
+                    aria-label="Close VOB file"
+                >
+                    ×
+                </button>
+
+            </div>
+
+
+            <iframe
+                id="vob-file-viewer-frame"
+                src="${String(url).replace(/"/g,"&quot;")}"
+                frameborder="0"
+                allowfullscreen
+            ></iframe>
+
+        </div>
+
+    `;
+
+
+    document.body.appendChild(
+        viewer
+    );
+
+
+    const close=()=>{
+
+        viewer.remove();
+
+    };
+
+
+    viewer
+        .querySelector(
+            "#vob-file-viewer-close"
+        )
+        .onclick=
+            close;
+
+
+    viewer.addEventListener(
+        "mousedown",
+        e=>{
+
+            if(
+                e.target===viewer
+            ){
+
+                close();
+
+            }
+
+        }
+    );
+
+};
+
+
+/* =========================================================
+   INSTALL VOB IFRAME HANDLERS
+   ========================================================= */
+
+const installVobIframeHandlers=iframe=>{
+
+    const install=()=>{
+
+        try{
+
+            const win=
+                iframe.contentWindow;
+
+
+            const doc=
+                iframe.contentDocument||
+                win?.document;
+
+
+            if(!win||!doc)
+                return;
+
+
+            /* -------------------------------------------------
+               CATCH window.open FROM VOB FILE ACTIONS
+               ------------------------------------------------- */
+
+            if(
+                !win.__disputeVobOpenPatched
+            ){
+
+                const originalOpen=
+                    win.open.bind(win);
+
+
+                win.open=function(
+                    url,
+                    target,
+                    features
+                ){
+
+                    const value=
+                        String(url||"");
+
+
+                    if(value){
+
+                        openVobViewer(
+                            value
+                        );
+
+                        return null;
+
+                    }
+
+
+                    return originalOpen(
+                        url,
+                        target,
+                        features
+                    );
+
+                };
+
+
+                win.__disputeVobOpenPatched=
+                    true;
+
+            }
+
+
+            /* -------------------------------------------------
+               CATCH VOB LINKS
+               ------------------------------------------------- */
+
+            if(
+                !doc.__disputeVobClickHandler
+            ){
+
+                doc.addEventListener(
+                    "click",
+                    e=>{
+
+                        const el=
+                            e.target instanceof Element
+                                ?e.target
+                                :null;
+
+
+                        if(!el)
+                            return;
+
+
+                        const link=
+                            el.closest("a");
+
+
+                        if(link){
+
+                            const text=
+                                (
+                                    link.innerText||
+                                    link.textContent||
+                                    link.title||
+                                    ""
+                                )
+                                .toLowerCase();
+
+
+                            const href=
+                                link.href||
+                                link.getAttribute(
+                                    "href"
+                                )||
+                                "";
+
+
+                            const isVob=
+                                /vob/.test(text)||
+                                /vob/.test(
+                                    String(
+                                        link.className||
+                                        ""
+                                    ).toLowerCase()
+                                );
+
+
+                            const isFile=
+                                /\.(pdf|docx?|xlsx?|csv|txt|png|jpe?g|gif|tiff?|bmp|webp)(?:[?#]|$)/i
+                                    .test(href);
+
+
+                            const opensOutside=
+                                link.target==="_blank"||
+                                link.target==="_new";
+
+
+                            if(
+                                (
+                                    isVob||
+                                    (
+                                        opensOutside&&
+                                        isFile
+                                    )
+                                )&&
+                                href
+                            ){
+
+                                e.preventDefault();
+                                e.stopPropagation();
+
+
+                                openVobViewer(
+                                    href
+                                );
+
+
+                                return;
+
+                            }
+
+                        }
+
+                    },
+                    true
+                );
+
+
+                doc.__disputeVobClickHandler=
+                    true;
+
+            }
+
+        }catch(e){
+
+            console.warn(
+                "Unable to install iframe VOB handlers:",
+                e
+            );
+
+        }
+
+    };
+
+
+    iframe.addEventListener(
+        "load",
+        install,
+        {
+            passive:true
+        }
+    );
+
+
+    try{
+
+        if(
+            iframe.contentDocument?.readyState===
+            "complete"
+        ){
+
+            install();
+
+        }
+
+    }catch(e){}
+
+};
+
+
+/* =========================================================
+   OPEN ARBIT ID IFRAME
    ========================================================= */
 
 const openArbitIframe=()=>{
@@ -656,6 +1169,7 @@ const openArbitIframe=()=>{
         document.querySelector(
             "#table-body > tr > td:nth-child(2) > a"
         );
+
 
     if(!arbitLink){
 
@@ -673,12 +1187,24 @@ const openArbitIframe=()=>{
             "arbit-iframe-overlay"
         );
 
+
     if(old)
         old.remove();
 
 
+    const oldStyle=
+        document.getElementById(
+            "arbit-iframe-style"
+        );
+
+
+    if(oldStyle)
+        oldStyle.remove();
+
+
     const overlay=
         document.createElement("div");
+
 
     overlay.id=
         "arbit-iframe-overlay";
@@ -691,7 +1217,19 @@ const openArbitIframe=()=>{
             <div id="arbit-iframe-header">
 
                 <div id="arbit-iframe-title">
-                    ARBIT ID
+
+                    ARBIT ID:
+
+                    <span id="arbit-iframe-number">
+                        ${arbitIdNumber
+                            ?String(arbitIdNumber)
+                                .replace(/&/g,"&amp;")
+                                .replace(/</g,"&lt;")
+                                .replace(/>/g,"&gt;")
+                                .replace(/"/g,"&quot;")
+                            :"UNKNOWN"}
+                    </span>
+
                 </div>
 
 
@@ -716,6 +1254,7 @@ const openArbitIframe=()=>{
                     <button
                         id="arbit-iframe-close"
                         type="button"
+                        aria-label="Close ARBIT ID"
                     >
                         ×
                     </button>
@@ -740,6 +1279,7 @@ const openArbitIframe=()=>{
     const iframeStyle=
         document.createElement("style");
 
+
     iframeStyle.id=
         "arbit-iframe-style";
 
@@ -750,37 +1290,38 @@ const openArbitIframe=()=>{
 
             position:fixed!important;
 
-            top:0!important;
-            right:0!important;
-            bottom:0!important;
-            left:0!important;
+            inset:0!important;
 
             width:100vw!important;
+
             height:100vh!important;
 
-            display:flex!important;
-
-            align-items:center!important;
-            justify-content:center!important;
-
-            padding:0!important;
-            margin:0!important;
-
             background:
-                rgba(0,0,0,.78)!important;
+                rgba(0,0,0,.80)!important;
 
             backdrop-filter:
-                blur(7px)!important;
+                blur(6px)!important;
 
             -webkit-backdrop-filter:
-                blur(7px)!important;
+                blur(6px)!important;
 
             z-index:
                 2147483647!important;
 
-            isolation:isolate!important;
+            display:flex!important;
 
-            box-sizing:border-box!important;
+            align-items:center!important;
+
+            justify-content:center!important;
+
+            padding:
+                8px!important;
+
+            box-sizing:
+                border-box!important;
+
+            isolation:
+                isolate!important;
 
         }
 
@@ -799,31 +1340,27 @@ const openArbitIframe=()=>{
                 96vh!important;
 
             max-width:
-                1800px!important;
-
-            max-height:
-                98vh!important;
+                1900px!important;
 
             background:#111!important;
 
             border:
-                1px solid
-                rgba(255,255,255,.25)!important;
+                2px solid
+                rgba(255,255,255,.22)!important;
 
             border-radius:
-                16px!important;
+                14px!important;
 
             overflow:hidden!important;
 
             box-shadow:
-                0 25px 100px
+                0 25px 90px
                 rgba(0,0,0,.85)!important;
 
             display:flex!important;
 
-            flex-direction:column!important;
-
-            box-sizing:border-box!important;
+            flex-direction:
+                column!important;
 
         }
 
@@ -833,15 +1370,13 @@ const openArbitIframe=()=>{
             position:relative!important;
 
             z-index:
-                2147483647!important;
+                3!important;
 
             height:
                 54px!important;
 
             min-height:
                 54px!important;
-
-            flex-shrink:0!important;
 
             background:
                 #151515!important;
@@ -856,10 +1391,14 @@ const openArbitIframe=()=>{
 
             justify-content:space-between!important;
 
-            padding:
-                0 10px 0 18px!important;
+            gap:
+                8px!important;
 
-            box-sizing:border-box!important;
+            padding:
+                0 10px 0 16px!important;
+
+            box-sizing:
+                border-box!important;
 
         }
 
@@ -872,13 +1411,41 @@ const openArbitIframe=()=>{
                 Arial,sans-serif!important;
 
             font-size:
-                15px!important;
+                14px!important;
 
             font-weight:
                 800!important;
 
             letter-spacing:
                 .3px!important;
+
+            white-space:
+                nowrap!important;
+
+            display:flex!important;
+
+            align-items:center!important;
+
+            gap:
+                4px!important;
+
+        }
+
+
+        #arbit-iframe-number{
+
+            color:
+                #facc15!important;
+
+            font-weight:
+                900!important;
+
+            margin-left:
+                2px!important;
+
+            text-shadow:
+                0 1px 4px
+                rgba(0,0,0,.4)!important;
 
         }
 
@@ -891,9 +1458,11 @@ const openArbitIframe=()=>{
 
             justify-content:flex-end!important;
 
-            gap:8px!important;
+            gap:
+                8px!important;
 
-            flex-wrap:nowrap!important;
+            flex-wrap:
+                nowrap!important;
 
         }
 
@@ -911,7 +1480,7 @@ const openArbitIframe=()=>{
                 rgba(255,255,255,.2)!important;
 
             border-radius:
-                9px!important;
+                8px!important;
 
             background:
                 #16a34a!important;
@@ -928,7 +1497,7 @@ const openArbitIframe=()=>{
                 800!important;
 
             letter-spacing:
-                .4px!important;
+                .35px!important;
 
             cursor:pointer!important;
 
@@ -937,7 +1506,7 @@ const openArbitIframe=()=>{
 
             box-shadow:
                 0 4px 14px
-                rgba(0,0,0,.35)!important;
+                rgba(0,0,0,.3)!important;
 
         }
 
@@ -947,20 +1516,9 @@ const openArbitIframe=()=>{
             background:
                 #22c55e!important;
 
-            transform:
-                translateY(-1px)!important;
-
             box-shadow:
                 0 5px 18px
-                rgba(22,163,74,.45)!important;
-
-        }
-
-
-        #arbit-rush-verify:active{
-
-            transform:
-                translateY(0)!important;
+                rgba(34,197,94,.4)!important;
 
         }
 
@@ -978,7 +1536,7 @@ const openArbitIframe=()=>{
                 rgba(255,255,255,.2)!important;
 
             border-radius:
-                9px!important;
+                8px!important;
 
             background:
                 #2563eb!important;
@@ -1004,7 +1562,7 @@ const openArbitIframe=()=>{
 
             box-shadow:
                 0 4px 14px
-                rgba(0,0,0,.35)!important;
+                rgba(0,0,0,.3)!important;
 
         }
 
@@ -1014,20 +1572,9 @@ const openArbitIframe=()=>{
             background:
                 #3b82f6!important;
 
-            transform:
-                translateY(-1px)!important;
-
             box-shadow:
                 0 5px 18px
-                rgba(37,99,235,.45)!important;
-
-        }
-
-
-        #arbit-pull-evidence:active{
-
-            transform:
-                translateY(0)!important;
+                rgba(59,130,246,.4)!important;
 
         }
 
@@ -1053,7 +1600,8 @@ const openArbitIframe=()=>{
             font-size:
                 27px!important;
 
-            line-height:1!important;
+            line-height:
+                1!important;
 
             cursor:pointer!important;
 
@@ -1063,7 +1611,8 @@ const openArbitIframe=()=>{
 
             justify-content:center!important;
 
-            flex-shrink:0!important;
+            flex-shrink:
+                0!important;
 
         }
 
@@ -1071,7 +1620,7 @@ const openArbitIframe=()=>{
         #arbit-iframe-close:hover{
 
             background:
-                rgba(220,40,40,.95)!important;
+                rgba(220,40,40,.92)!important;
 
         }
 
@@ -1081,9 +1630,7 @@ const openArbitIframe=()=>{
             position:relative!important;
 
             z-index:
-                2147483647!important;
-
-            display:block!important;
+                1!important;
 
             width:
                 100%!important;
@@ -1092,10 +1639,7 @@ const openArbitIframe=()=>{
                 calc(100% - 54px)!important;
 
             flex:
-                1 1 auto!important;
-
-            min-height:
-                0!important;
+                1!important;
 
             border:0!important;
 
@@ -1104,11 +1648,187 @@ const openArbitIframe=()=>{
         }
 
 
-        @media(max-width:900px){
+        /* =====================================================
+           VOB VIEWER
+           ===================================================== */
+
+        #vob-file-viewer-overlay{
+
+            position:fixed!important;
+
+            inset:0!important;
+
+            width:100vw!important;
+
+            height:100vh!important;
+
+            background:
+                rgba(0,0,0,.84)!important;
+
+            backdrop-filter:
+                blur(6px)!important;
+
+            -webkit-backdrop-filter:
+                blur(6px)!important;
+
+            z-index:
+                2147483647!important;
+
+            display:flex!important;
+
+            align-items:center!important;
+
+            justify-content:center!important;
+
+            padding:
+                10px!important;
+
+            box-sizing:
+                border-box!important;
+
+            isolation:
+                isolate!important;
+
+        }
+
+
+        #vob-file-viewer-window{
+
+            width:
+                96vw!important;
+
+            height:
+                94vh!important;
+
+            max-width:
+                1800px!important;
+
+            background:#111!important;
+
+            border:
+                1px solid
+                rgba(255,255,255,.25)!important;
+
+            border-radius:
+                14px!important;
+
+            overflow:hidden!important;
+
+            box-shadow:
+                0 25px 100px
+                rgba(0,0,0,.9)!important;
+
+            display:flex!important;
+
+            flex-direction:
+                column!important;
+
+        }
+
+
+        #vob-file-viewer-header{
+
+            height:
+                48px!important;
+
+            min-height:
+                48px!important;
+
+            background:
+                #151515!important;
+
+            border-bottom:
+                1px solid
+                rgba(255,255,255,.18)!important;
+
+            display:flex!important;
+
+            align-items:center!important;
+
+            justify-content:space-between!important;
+
+            padding:
+                0 10px 0 16px!important;
+
+        }
+
+
+        #vob-file-viewer-title{
+
+            color:#fff!important;
+
+            font:
+                800 13px Arial,sans-serif!important;
+
+        }
+
+
+        #vob-file-viewer-close{
+
+            width:
+                36px!important;
+
+            height:
+                36px!important;
+
+            border:0!important;
+
+            border-radius:
+                50%!important;
+
+            background:
+                rgba(255,255,255,.08)!important;
+
+            color:#fff!important;
+
+            font-size:
+                26px!important;
+
+            cursor:pointer!important;
+
+        }
+
+
+        #vob-file-viewer-close:hover{
+
+            background:
+                rgba(220,40,40,.95)!important;
+
+        }
+
+
+        #vob-file-viewer-frame{
+
+            width:
+                100%!important;
+
+            height:
+                calc(100% - 48px)!important;
+
+            flex:
+                1!important;
+
+            border:0!important;
+
+            background:#fff!important;
+
+        }
+
+
+        @media(max-width:1050px){
+
+            #arbit-iframe-header{
+
+                gap:
+                    5px!important;
+
+            }
+
 
             #arbit-iframe-actions{
 
-                gap:5px!important;
+                gap:
+                    5px!important;
 
             }
 
@@ -1117,7 +1837,7 @@ const openArbitIframe=()=>{
             #arbit-pull-evidence{
 
                 padding:
-                    0 9px!important;
+                    0 10px!important;
 
                 font-size:
                     10px!important;
@@ -1127,7 +1847,47 @@ const openArbitIframe=()=>{
         }
 
 
+        @media(max-width:800px){
+
+            #arbit-iframe-title{
+
+                font-size:
+                    12px!important;
+
+            }
+
+
+            #arbit-iframe-number{
+
+                font-size:
+                    12px!important;
+
+            }
+
+
+            #arbit-rush-verify,
+            #arbit-pull-evidence{
+
+                padding:
+                    0 7px!important;
+
+                font-size:
+                    9px!important;
+
+            }
+
+        }
+
+
         @media(max-width:700px){
+
+            #arbit-iframe-overlay{
+
+                padding:
+                    4px!important;
+
+            }
+
 
             #arbit-iframe-window{
 
@@ -1145,14 +1905,26 @@ const openArbitIframe=()=>{
 
             #arbit-iframe-title{
 
-                display:none!important;
+                display:flex!important;
+
+                font-size:
+                    11px!important;
+
+            }
+
+
+            #arbit-iframe-number{
+
+                font-size:
+                    11px!important;
 
             }
 
 
             #arbit-iframe-header{
 
-                padding-left:8px!important;
+                padding-left:
+                    8px!important;
 
             }
 
@@ -1165,6 +1937,7 @@ const openArbitIframe=()=>{
         iframeStyle
     );
 
+
     document.body.appendChild(
         overlay
     );
@@ -1173,12 +1946,6 @@ const openArbitIframe=()=>{
     const iframe=
         document.getElementById(
             "arbit-iframe"
-        );
-
-
-    const closeBtn=
-        document.getElementById(
-            "arbit-iframe-close"
         );
 
 
@@ -1192,6 +1959,30 @@ const openArbitIframe=()=>{
         document.getElementById(
             "arbit-pull-evidence"
         );
+
+
+    const closeBtn=
+        document.getElementById(
+            "arbit-iframe-close"
+        );
+
+
+    /* =====================================================
+       UPDATE IFRAME ARBIT NUMBER
+       ===================================================== */
+
+    const iframeNumberElement=
+        document.getElementById(
+            "arbit-iframe-number"
+        );
+
+
+    if(iframeNumberElement){
+
+        iframeNumberElement.textContent=
+            arbitIdNumber || "UNKNOWN";
+
+    }
 
 
     /* =====================================================
@@ -1240,71 +2031,9 @@ const openArbitIframe=()=>{
 
     rushBtn.onclick=()=>{
 
-        try{
-
-            const iframeDocument=
-                iframe.contentDocument ||
-                iframe.contentWindow?.document;
-
-
-            if(!iframeDocument){
-
-                alert(
-                    "RUSH VERIFY cannot access the ARBIT page."
-                );
-
-                return;
-
-            }
-
-
-            const script=
-                iframeDocument.createElement(
-                    "script"
-                );
-
-
-            script.src=
-                "https://luckyph10.github.io/bookmarklets/vob_intelligence.js?" +
-                Date.now();
-
-
-            script.onload=()=>{
-
-                console.log(
-                    "RUSH VERIFY loaded inside ARBIT iframe."
-                );
-
-            };
-
-
-            script.onerror=()=>{
-
-                alert(
-                    "RUSH VERIFY: Load failed"
-                );
-
-            };
-
-
-            iframeDocument.head.appendChild(
-                script
-            );
-
-
-        }catch(e){
-
-            console.error(
-                "RUSH VERIFY iframe error:",
-                e
-            );
-
-            alert(
-                "RUSH VERIFY could not run inside the ARBIT iframe.\n\n"+
-                "The ARBIT page may block cross-origin script access."
-            );
-
-        }
+        runRushVerify(
+            iframe
+        );
 
     };
 
@@ -1315,73 +2044,20 @@ const openArbitIframe=()=>{
 
     pullEvidenceBtn.onclick=()=>{
 
-        try{
-
-            const iframeDocument=
-                iframe.contentDocument ||
-                iframe.contentWindow?.document;
-
-
-            if(!iframeDocument){
-
-                alert(
-                    "Pull Case/History Evidence cannot access the ARBIT page."
-                );
-
-                return;
-
-            }
-
-
-            const script=
-                iframeDocument.createElement(
-                    "script"
-                );
-
-
-            script.src=
-                "https://luckyph10.github.io/bookmarklets/case_notes_puller.js?" +
-                Date.now();
-
-
-            script.onload=()=>{
-
-                console.log(
-                    "Pull Case/History Evidence loaded inside ARBIT iframe."
-                );
-
-            };
-
-
-            script.onerror=()=>{
-
-                alert(
-                    "Pull Case/History Evidence: Load failed"
-                );
-
-            };
-
-
-            iframeDocument.head.appendChild(
-                script
-            );
-
-
-        }catch(e){
-
-            console.error(
-                "Pull Case/History Evidence iframe error:",
-                e
-            );
-
-            alert(
-                "Pull Case/History Evidence could not run inside the ARBIT iframe.\n\n"+
-                "The ARBIT page may block cross-origin script access."
-            );
-
-        }
+        runPullEvidence(
+            iframe
+        );
 
     };
+
+
+    /* =====================================================
+       INSTALL VOB HANDLERS
+       ===================================================== */
+
+    installVobIframeHandlers(
+        iframe
+    );
 
 
     /* =====================================================
@@ -1389,6 +2065,16 @@ const openArbitIframe=()=>{
        ===================================================== */
 
     const closeIframe=()=>{
+
+        const vobViewer=
+            document.getElementById(
+                "vob-file-viewer-overlay"
+            );
+
+
+        if(vobViewer)
+            vobViewer.remove();
+
 
         overlay.remove();
         iframeStyle.remove();
@@ -1428,11 +2114,28 @@ const openArbitIframe=()=>{
         "keydown",
         e=>{
 
-            if(e.key==="Escape"){
+            if(
+                e.key==="Escape"
+            ){
 
                 e.preventDefault();
 
-                closeIframe();
+
+                const vobViewer=
+                    document.getElementById(
+                        "vob-file-viewer-overlay"
+                    );
+
+
+                if(vobViewer){
+
+                    vobViewer.remove();
+
+                }else{
+
+                    closeIframe();
+
+                }
 
             }
 
@@ -1459,7 +2162,7 @@ const openArbitIframe=()=>{
 
 
 /* =========================================================
-   POPUP
+   MAIN DISPUTE POPUP
    ========================================================= */
 
 const popup=()=>new Promise(resolve=>{
@@ -1469,12 +2172,14 @@ const popup=()=>new Promise(resolve=>{
             "dispute-popup-overlay"
         );
 
+
     if(old)
         old.remove();
 
 
     const overlay=
         document.createElement("div");
+
 
     overlay.id=
         "dispute-popup-overlay";
@@ -1520,13 +2225,16 @@ const popup=()=>new Promise(resolve=>{
                     autocomplete="off"
                 >
 
+
                 <button id="dp-edit">
                     Edit
                 </button>
 
+
                 <span id="dp-saved">
                     Saved ✓
                 </span>
+
 
                 <button id="dp-save">
                     Save
@@ -1560,16 +2268,17 @@ const popup=()=>new Promise(resolve=>{
                         Select Duplicate Dispute Comments
                     </option>
 
+
                     <option value="Duplicate Dispute Reviewed">
                         Duplicate Dispute Reviewed
                     </option>
+
 
                     <option value="N/A">
                         N/A
                     </option>
 
                 </select>
-
 
             </div>
 
@@ -1589,9 +2298,11 @@ const popup=()=>new Promise(resolve=>{
                     Select Yes or No
                 </option>
 
+
                 <option value="Yes">
                     Yes
                 </option>
+
 
                 <option value="No">
                     No
@@ -1623,6 +2334,7 @@ const popup=()=>new Promise(resolve=>{
                     <button id="dp-no">
                         NO
                     </button>
+
 
                     <button id="dp-yes">
                         YES
@@ -1677,21 +2389,26 @@ const popup=()=>new Promise(resolve=>{
                             Select Plan Type Evidence
                         </option>
 
+
                         <option value="Yes - VOB">
                             Yes - VOB
                         </option>
+
 
                         <option value="Yes - VOB Team">
                             Yes - VOB Team
                         </option>
 
+
                         <option value="Yes - Insurance Card">
                             Yes - Insurance Card
                         </option>
 
+
                         <option value="Yes - State Authority">
                             Yes - State Authority
                         </option>
+
 
                         <option value="Yes - EOB">
                             Yes - EOB
@@ -1711,9 +2428,11 @@ const popup=()=>new Promise(resolve=>{
                             Select Yes or No
                         </option>
 
+
                         <option value="Yes">
                             Yes
                         </option>
+
 
                         <option value="No">
                             No
@@ -1737,9 +2456,11 @@ const popup=()=>new Promise(resolve=>{
                             Select N/A or Yes
                         </option>
 
+
                         <option value="N/A">
                             N/A
                         </option>
+
 
                         <option value="Yes">
                             Yes
@@ -1890,8 +2611,7 @@ const popup=()=>new Promise(resolve=>{
 
             border-radius:9px;
 
-            background:
-                #d92828;
+            background:#d92828;
 
             color:#fff;
 
@@ -2391,25 +3111,31 @@ const popup=()=>new Promise(resolve=>{
 
             }
 
+
             #dp-title{
 
                 font-size:18px;
 
             }
 
+
             #dp-arbit-id{
 
-                padding:0 11px;
+                padding:
+                    0 11px;
 
-                font-size:12px;
+                font-size:
+                    12px;
 
             }
+
 
             #dp-state-row{
 
                 flex-wrap:wrap;
 
             }
+
 
             #dp-state{
 
@@ -2418,6 +3144,7 @@ const popup=()=>new Promise(resolve=>{
                 flex:none;
 
             }
+
 
             #dp-duplicate-comments{
 
@@ -2430,8 +3157,14 @@ const popup=()=>new Promise(resolve=>{
     `;
 
 
-    document.head.appendChild(style);
-    document.body.appendChild(overlay);
+    document.head.appendChild(
+        style
+    );
+
+
+    document.body.appendChild(
+        overlay
+    );
 
 
     /* =====================================================
@@ -2488,7 +3221,9 @@ const popup=()=>new Promise(resolve=>{
         document.getElementById("dp-email");
 
     const arbitNotesInput=
-        document.getElementById("dp-arbit-notes");
+        document.getElementById(
+            "dp-arbit-notes"
+        );
 
     const planEvidenceInput=
         document.getElementById(
@@ -2533,6 +3268,7 @@ const popup=()=>new Promise(resolve=>{
 
     let currentName=
         getName();
+
 
     nameInput.value=
         currentName;
@@ -2827,6 +3563,7 @@ const popup=()=>new Promise(resolve=>{
         eligible.style.display=
             "block";
 
+
         yesExtra.style.display=
             "none";
 
@@ -2884,7 +3621,6 @@ const popup=()=>new Promise(resolve=>{
         nonBifurcated="",
         plantypeMismatch=""
     )=>{
-
 
         const actualG=
             disputeStatus;
@@ -3347,6 +4083,7 @@ const popup=()=>new Promise(resolve=>{
                 duplicateCommentsInput.value=
                     "N/A";
 
+
                 duplicateCommentsInput.dispatchEvent(
                     new Event(
                         "change",
@@ -3355,6 +4092,7 @@ const popup=()=>new Promise(resolve=>{
                         }
                     )
                 );
+
 
                 status.textContent=
                     "Duplicate Dispute Comments: N/A";
@@ -3378,6 +4116,7 @@ const popup=()=>new Promise(resolve=>{
                 duplicateCommentsInput.value=
                     "Duplicate Dispute Reviewed";
 
+
                 duplicateCommentsInput.dispatchEvent(
                     new Event(
                         "change",
@@ -3386,6 +4125,7 @@ const popup=()=>new Promise(resolve=>{
                         }
                     )
                 );
+
 
                 status.textContent=
                     "Duplicate Dispute Comments: Duplicate Dispute Reviewed";
@@ -3409,6 +4149,7 @@ const popup=()=>new Promise(resolve=>{
                 mismatchInput.value=
                     "No";
 
+
                 mismatchInput.dispatchEvent(
                     new Event(
                         "change",
@@ -3417,6 +4158,7 @@ const popup=()=>new Promise(resolve=>{
                         }
                     )
                 );
+
 
                 status.textContent=
                     "Plantype Mismatch: No";
@@ -3440,6 +4182,7 @@ const popup=()=>new Promise(resolve=>{
                 mismatchInput.value=
                     "Yes";
 
+
                 mismatchInput.dispatchEvent(
                     new Event(
                         "change",
@@ -3448,6 +4191,7 @@ const popup=()=>new Promise(resolve=>{
                         }
                     )
                 );
+
 
                 status.textContent=
                     "Plantype Mismatch: Yes";
