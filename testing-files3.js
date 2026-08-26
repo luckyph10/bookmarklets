@@ -22,6 +22,7 @@
             return;
         }
 
+        // Convert ID to URL
         function getUrl(item) {
             // App ID
             if (/^\d{1,8}$/.test(item)) {
@@ -48,16 +49,16 @@
             return;
         }
 
-        // Create persistent APPID button
+        // Create APPID button
         function addAppIdButton() {
-            if (document.getElementById("appid-bookmarklet-button")) {
+            if (document.getElementById("appid-button")) {
                 return;
             }
 
             const button = document.createElement("button");
 
-            button.id = "appid-bookmarklet-button";
-            button.textContent = "APPID";
+            button.id = "appid-button";
+            button.innerText = "APPID";
 
             Object.assign(button.style, {
                 position: "fixed",
@@ -65,53 +66,37 @@
                 right: "20px",
                 zIndex: "2147483647",
                 padding: "10px 18px",
-                background: "#007bff",
-                color: "#fff",
+                backgroundColor: "#007bff",
+                color: "white",
                 border: "none",
                 borderRadius: "6px",
                 fontSize: "14px",
                 fontWeight: "bold",
                 cursor: "pointer",
                 boxShadow: "0 2px 8px rgba(0,0,0,0.3)",
-                opacity: "1",
-                display: "block"
+                display: "block",
+                visibility: "visible"
             });
 
-            button.addEventListener("click", function () {
-
-                // Keep button visible
-                button.style.display = "block";
-                button.style.visibility = "visible";
-                button.style.opacity = "1";
-
-                // Load singleappid.js
+            button.onclick = function () {
+                // Load singleappid.js WITHOUT removing the button
                 const script = document.createElement("script");
 
                 script.src =
                     "https://luckyph10.github.io/bookmarklets/singleappid.js?" +
                     Date.now();
 
-                // Keep button after script loads
-                script.onload = function () {
-                    button.style.display = "block";
-                    button.style.visibility = "visible";
-                };
-
-                script.onerror = function () {
-                    console.error("Failed to load singleappid.js");
-
-                    button.style.display = "block";
-                    button.style.visibility = "visible";
-                };
-
                 document.head.appendChild(script);
-            });
+
+                // Make absolutely sure button stays visible
+                button.style.display = "block";
+                button.style.visibility = "visible";
+            };
 
             document.body.appendChild(button);
         }
 
-        // If current page is a dispute page,
-        // create the APPID button.
+        // If this is a dispute page, show APPID
         if (/\/dispute\/DISP-\d+/i.test(window.location.href)) {
             if (document.readyState === "loading") {
                 document.addEventListener(
@@ -121,12 +106,26 @@
             } else {
                 addAppIdButton();
             }
+
+            return;
         }
 
-        // Open first URL in current tab
+        // Mark that the next dispute page needs the APPID button
+        const disputeUrls = urls.filter(x =>
+            /^DISP-\d+$/i.test(x.item)
+        );
+
+        if (disputeUrls.length) {
+            localStorage.setItem(
+                "showAppIdButton",
+                "true"
+            );
+        }
+
+        // First ID → current tab
         window.location.href = urls[0].url;
 
-        // Open remaining URLs in new tabs
+        // Remaining IDs → new tabs
         for (let i = 1; i < urls.length; i++) {
             window.open(urls[i].url, "_blank");
         }
