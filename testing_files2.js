@@ -166,9 +166,9 @@ const arbitLinks=[
         link.closest("td")
             ?.textContent
             ?.replace(/\u00A0/g," ")
-            .replace(/\r?\n/g," ")
-            .replace(/\s+/g," ")
-            .trim()
+            ?.replace(/\r?\n/g," ")
+            ?.replace(/\s+/g," ")
+            ?.trim()
         ||
         ids[index]
         ||
@@ -1032,6 +1032,10 @@ const installVobIframeHandlers=iframe=>{
                 return;
 
 
+            /* -------------------------------------------------
+               CATCH window.open FROM VOB FILE ACTIONS
+               ------------------------------------------------- */
+
             if(
                 !win.__disputeVobOpenPatched
             ){
@@ -1075,6 +1079,10 @@ const installVobIframeHandlers=iframe=>{
 
             }
 
+
+            /* -------------------------------------------------
+               CATCH VOB LINKS
+               ------------------------------------------------- */
 
             if(
                 !doc.__disputeVobClickHandler
@@ -1217,9 +1225,12 @@ const installVobIframeHandlers=iframe=>{
 
 const openArbitIframe=()=>{
 
-    /* =====================================================
-       RESTORE EXISTING MINIMIZED IFRAME
-       ===================================================== */
+    /*
+     * RESTORE EXISTING MINIMIZED IFRAME
+     *
+     * The iframe is NOT recreated.
+     * This keeps the current iframe page/state.
+     */
 
     const existingOverlay=
         document.getElementById(
@@ -1227,46 +1238,46 @@ const openArbitIframe=()=>{
         );
 
 
-    if(existingOverlay){
+    if(
+        existingOverlay &&
+        existingOverlay.dataset.minimized==="true"
+    ){
 
-        if(
-            existingOverlay.dataset.minimized===
-            "true"
-        ){
+        existingOverlay.dataset.minimized="false";
 
-            existingOverlay.dataset.minimized=
-                "false";
+        existingOverlay.style.setProperty(
+            "display",
+            "flex",
+            "important"
+        );
 
 
-            existingOverlay.style.setProperty(
+        const existingVobViewer=
+            document.getElementById(
+                "vob-file-viewer-overlay"
+            );
+
+
+        if(existingVobViewer){
+
+            existingVobViewer.style.setProperty(
                 "display",
                 "flex",
                 "important"
             );
 
-
-            existingOverlay.style.setProperty(
-                "z-index",
-                "2147483647",
-                "important"
-            );
-
-
-            console.log(
-                "ARBIT iframe restored."
-            );
-
-
-            return;
-
         }
 
 
-        existingOverlay.style.setProperty(
-            "z-index",
-            "2147483647",
-            "important"
-        );
+        try{
+
+            document
+                .getElementById(
+                    "arbit-iframe"
+                )
+                ?.focus();
+
+        }catch(e){}
 
 
         return;
@@ -1274,14 +1285,26 @@ const openArbitIframe=()=>{
     }
 
 
-    /* =====================================================
-       GET ALL ARBIT / APP ID LINKS
-       ===================================================== */
+    /*
+     * Get ALL available ARBIT / APP ID links.
+     *
+     * This is the important change:
+     * instead of only using:
+     *
+     * #table-body > tr > td:nth-child(2) > a
+     *
+     * we collect every ID link from the table.
+     */
 
     let appLinks=[
         ...uniqueArbitLinks
     ];
 
+
+    /*
+     * Fallback if the link collector did not find
+     * anything for some reason.
+     */
 
     if(!appLinks.length){
 
@@ -1294,19 +1317,14 @@ const openArbitIframe=()=>{
         if(fallbackLink){
 
             appLinks=[
-
                 {
                     id:
                         arbitIdNumber||
                         "UNKNOWN",
-
                     href:
                         fallbackLink.href,
-
                     index:0
-
                 }
-
             ];
 
         }
@@ -1323,6 +1341,30 @@ const openArbitIframe=()=>{
         return;
 
     }
+
+
+    /* =====================================================
+       REMOVE OLD IFRAME
+       ===================================================== */
+
+    const old=
+        document.getElementById(
+            "arbit-iframe-overlay"
+        );
+
+
+    if(old)
+        old.remove();
+
+
+    const oldStyle=
+        document.getElementById(
+            "arbit-iframe-style"
+        );
+
+
+    if(oldStyle)
+        oldStyle.remove();
 
 
     /* =====================================================
@@ -1405,11 +1447,6 @@ const openArbitIframe=()=>{
                             </select>
 
 
-                            <!--
-                                OPEN ONLY APPEARS WHEN
-                                ANOTHER ID IS SELECTED.
-                            -->
-
                             <button
                                 id="arbit-app-open"
                                 type="button"
@@ -1445,19 +1482,15 @@ const openArbitIframe=()=>{
                     </button>
 
 
-                    <!-- MINIMIZE -->
-
                     <button
                         id="arbit-iframe-minimize"
                         type="button"
-                        aria-label="Minimize ARBIT iframe"
+                        aria-label="Minimize ARBIT ID"
                         title="Minimize"
                     >
                         −
                     </button>
 
-
-                    <!-- CLOSE -->
 
                     <button
                         id="arbit-iframe-close"
@@ -1616,17 +1649,19 @@ const openArbitIframe=()=>{
         }
 
 
+        /* =====================================================
+           LEFT SIDE
+           ===================================================== */
+
         #arbit-iframe-left{
 
             display:flex!important;
 
             align-items:center!important;
 
-            gap:
-                10px!important;
+            gap:10px!important;
 
-            min-width:
-                0!important;
+            min-width:0!important;
 
             flex:1!important;
 
@@ -1659,8 +1694,7 @@ const openArbitIframe=()=>{
             gap:
                 4px!important;
 
-            flex-shrink:
-                0!important;
+            flex-shrink:0!important;
 
         }
 
@@ -1684,7 +1718,7 @@ const openArbitIframe=()=>{
 
 
         /* =====================================================
-           APP DROPDOWN
+           APP / ARBIT ID DROPDOWN
            ===================================================== */
 
         #arbit-app-selector-wrap{
@@ -1693,11 +1727,9 @@ const openArbitIframe=()=>{
 
             align-items:center!important;
 
-            gap:
-                6px!important;
+            gap:6px!important;
 
-            min-width:
-                0!important;
+            min-width:0!important;
 
         }
 
@@ -1741,8 +1773,7 @@ const openArbitIframe=()=>{
 
             cursor:pointer!important;
 
-            box-sizing:
-                border-box!important;
+            box-sizing:border-box!important;
 
         }
 
@@ -1778,13 +1809,7 @@ const openArbitIframe=()=>{
 
 
         /* =====================================================
-           OPEN BUTTON
-           
-           LOGIC:
-           CURRENT ID -> HIDDEN
-           DIFFERENT ID -> VISIBLE
-           CLICK -> SAME IFRAME LOAD
-           AFTER LOAD -> HIDDEN
+           OPEN SELECTED APP BUTTON
            ===================================================== */
 
         #arbit-app-open{
@@ -1827,12 +1852,6 @@ const openArbitIframe=()=>{
             box-shadow:
                 0 4px 14px
                 rgba(0,0,0,.3)!important;
-
-            display:inline-flex!important;
-
-            align-items:center!important;
-
-            justify-content:center!important;
 
         }
 
@@ -2005,25 +2024,22 @@ const openArbitIframe=()=>{
                 38px!important;
 
             border:
-                1px solid
-                rgba(255,255,255,.16)!important;
+                0!important;
 
             border-radius:
                 50%!important;
 
             background:
-                rgba(255,255,255,.08)!important;
+                rgba(250,204,21,.18)!important;
 
-            color:#fff!important;
-
-            font-family:
-                Arial,sans-serif!important;
+            color:
+                #facc15!important;
 
             font-size:
                 25px!important;
 
             font-weight:
-                700!important;
+                900!important;
 
             line-height:
                 1!important;
@@ -2040,10 +2056,7 @@ const openArbitIframe=()=>{
                 0!important;
 
             padding:
-                0 0 5px 0!important;
-
-            box-sizing:
-                border-box!important;
+                0!important;
 
         }
 
@@ -2051,16 +2064,13 @@ const openArbitIframe=()=>{
         #arbit-iframe-minimize:hover{
 
             background:
-                rgba(255,193,7,.28)!important;
-
-            border-color:
-                rgba(255,193,7,.45)!important;
+                rgba(250,204,21,.32)!important;
 
         }
 
 
         /* =====================================================
-           CLOSE
+           CLOSE BUTTON
            ===================================================== */
 
         #arbit-iframe-close{
@@ -2071,13 +2081,14 @@ const openArbitIframe=()=>{
             height:
                 38px!important;
 
-            border:0!important;
+            border:
+                0!important;
 
             border-radius:
                 50%!important;
 
             background:
-                rgba(255,255,255,.08)!important;
+                #dc2626!important;
 
             color:#fff!important;
 
@@ -2098,13 +2109,16 @@ const openArbitIframe=()=>{
             flex-shrink:
                 0!important;
 
+            padding:
+                0!important;
+
         }
 
 
         #arbit-iframe-close:hover{
 
             background:
-                rgba(220,40,40,.92)!important;
+                #ef4444!important;
 
         }
 
@@ -2505,17 +2519,6 @@ const openArbitIframe=()=>{
 
             }
 
-
-            #arbit-iframe-minimize{
-
-                font-size:
-                    21px!important;
-
-                padding-bottom:
-                    4px!important;
-
-            }
-
         }
 
     `;
@@ -2602,10 +2605,6 @@ const openArbitIframe=()=>{
 
     /* =====================================================
        APP DROPDOWN CHANGE
-       
-       PRESERVED LOGIC:
-       Current ID    -> OPEN hidden
-       Other ID      -> OPEN appears
        ===================================================== */
 
     if(appSelector){
@@ -2632,26 +2631,34 @@ const openArbitIframe=()=>{
                 }
 
 
+                /*
+                 * IMPORTANT:
+                 *
+                 * We DO NOT load the iframe here.
+                 *
+                 * We only show OPEN.
+                 *
+                 * This matches your request:
+                 *
+                 * select another ID -> OPEN appears
+                 *
+                 * select current ID -> OPEN disappears
+                 */
+
                 if(
                     selectedIndex===
                     currentAppIndex
                 ){
 
-                    if(appOpenBtn){
-
+                    if(appOpenBtn)
                         appOpenBtn.style.display=
                             "none";
 
-                    }
-
                 }else{
 
-                    if(appOpenBtn){
-
+                    if(appOpenBtn)
                         appOpenBtn.style.display=
                             "inline-flex";
-
-                    }
 
                 }
 
@@ -2664,12 +2671,6 @@ const openArbitIframe=()=>{
 
     /* =====================================================
        OPEN SELECTED APP IN SAME IFRAME
-       
-       PRESERVED LOGIC:
-       - Only appears after choosing another ID
-       - Opens that ID in the same iframe
-       - Updates header ID
-       - Hides OPEN afterward
        ===================================================== */
 
     if(appOpenBtn){
@@ -2723,6 +2724,12 @@ const openArbitIframe=()=>{
                 );
 
 
+                /*
+                 * Keep the SAME iframe element.
+                 *
+                 * Only change its src.
+                 */
+
                 currentAppIndex=
                     selectedIndex;
 
@@ -2731,8 +2738,6 @@ const openArbitIframe=()=>{
                     selectedApp;
 
 
-                /* SAME iframe -- only src changes */
-
                 iframe.src=
                     selectedApp.href;
 
@@ -2740,13 +2745,18 @@ const openArbitIframe=()=>{
                 updateCurrentIdDisplay();
 
 
-                /* OPEN hides after opening */
+                /*
+                 * Hide OPEN after opening because
+                 * the selected ID is now the active ID.
+                 */
 
                 appOpenBtn.style.display=
                     "none";
 
 
-                /* Keep dropdown synchronized */
+                /*
+                 * Make sure dropdown stays synchronized.
+                 */
 
                 appSelector.value=
                     String(
@@ -2755,47 +2765,6 @@ const openArbitIframe=()=>{
 
             }
 
-        );
-
-    }
-
-
-    /* =====================================================
-       MINIMIZE
-       ===================================================== */
-
-    if(minimizeBtn){
-
-        minimizeBtn.addEventListener(
-            "click",
-            e=>{
-
-                e.preventDefault();
-                e.stopPropagation();
-
-
-                /*
-                 * The overlay is display:flex!important,
-                 * so the important flag is necessary.
-                 */
-
-                overlay.dataset.minimized=
-                    "true";
-
-
-                overlay.style.setProperty(
-                    "display",
-                    "none",
-                    "important"
-                );
-
-
-                console.log(
-                    "ARBIT iframe minimized."
-                );
-
-            },
-            true
         );
 
     }
@@ -2881,6 +2850,35 @@ const openArbitIframe=()=>{
     installVobIframeHandlers(
         iframe
     );
+
+
+    /* =====================================================
+       MINIMIZE IFRAME
+       ===================================================== */
+
+    const minimizeIframe=()=>{
+
+        overlay.dataset.minimized=
+            "true";
+
+
+        /*
+         * Hide only the ARBIT iframe overlay.
+         * The iframe itself stays alive in the DOM,
+         * so its current page/state is preserved.
+         */
+
+        overlay.style.setProperty(
+            "display",
+            "none",
+            "important"
+        );
+
+    };
+
+
+    minimizeBtn.onclick=
+        minimizeIframe;
 
 
     /* =====================================================
@@ -3325,11 +3323,17 @@ const popup=()=>new Promise(resolve=>{
         #dispute-popup-overlay{
 
             position:fixed;
+
             inset:0;
+
             width:100%;
+
             height:100%;
+
             z-index:2147483646;
+
             pointer-events:none;
+
             isolation:isolate;
 
         }
@@ -3338,33 +3342,51 @@ const popup=()=>new Promise(resolve=>{
         #dispute-popup{
 
             pointer-events:auto;
+
             position:absolute;
+
             top:20px;
+
             left:50%;
+
             transform:translateX(-50%);
+
             width:620px;
+
             max-width:
                 calc(100vw - 30px);
+
             max-height:
                 calc(100vh - 40px);
+
             overflow-y:auto;
+
             padding:24px;
+
             border-radius:18px;
+
             background:
                 rgba(0,0,0,.78);
+
             border:
                 1px solid
                 rgba(255,255,255,.18);
+
             box-shadow:
                 0 15px 45px
                 rgba(0,0,0,.45);
+
             backdrop-filter:
                 blur(14px);
+
             -webkit-backdrop-filter:
                 blur(14px);
+
             font-family:
                 Arial,sans-serif;
+
             color:#fff;
+
             box-sizing:border-box;
 
         }
@@ -3373,10 +3395,15 @@ const popup=()=>new Promise(resolve=>{
         #dp-title-row{
 
             display:flex;
+
             align-items:center;
+
             justify-content:space-between;
+
             gap:12px;
+
             margin-bottom:20px;
+
             padding-right:34px;
 
         }
@@ -3385,7 +3412,9 @@ const popup=()=>new Promise(resolve=>{
         #dp-title{
 
             font-size:20px;
+
             font-weight:700;
+
             margin:0;
 
         }
@@ -3394,18 +3423,29 @@ const popup=()=>new Promise(resolve=>{
         #dp-arbit-id{
 
             height:38px;
+
             padding:0 16px;
+
             border:
                 1px solid
                 rgba(255,255,255,.25);
+
             border-radius:9px;
+
             background:#d92828;
+
             color:#fff;
+
             font-size:13px;
+
             font-weight:800;
+
             letter-spacing:.4px;
+
             cursor:pointer;
+
             white-space:nowrap;
+
             box-shadow:
                 0 4px 12px
                 rgba(0,0,0,.3);
@@ -3416,6 +3456,7 @@ const popup=()=>new Promise(resolve=>{
         #dp-arbit-id:hover{
 
             background:#ef3333;
+
             transform:translateY(-1px);
 
         }
@@ -3424,15 +3465,25 @@ const popup=()=>new Promise(resolve=>{
         #dp-close{
 
             position:absolute;
+
             top:8px;
+
             right:10px;
+
             width:34px;
+
             height:34px;
+
             border:0;
+
             border-radius:50%;
+
             background:transparent;
+
             color:#fff;
+
             font-size:27px;
+
             cursor:pointer;
 
         }
@@ -3456,9 +3507,12 @@ const popup=()=>new Promise(resolve=>{
         #dp-label-non-bifurcated{
 
             font-size:13px;
+
             font-weight:600;
+
             color:
                 rgba(255,255,255,.9);
+
             margin:
                 10px 0 7px;
 
@@ -3469,8 +3523,11 @@ const popup=()=>new Promise(resolve=>{
         #dp-state-row{
 
             display:flex;
+
             gap:8px;
+
             width:100%;
+
             align-items:center;
 
         }
@@ -3487,17 +3544,25 @@ const popup=()=>new Promise(resolve=>{
         #dp-duplicate-comments{
 
             height:42px;
+
             box-sizing:border-box;
+
             border:
                 1px solid
                 rgba(255,255,255,.25);
+
             border-radius:10px;
+
             background:
                 rgba(255,255,255,.09);
+
             color:#fff;
+
             outline:none;
+
             padding:
                 0 12px;
+
             font-size:14px;
 
         }
@@ -3507,6 +3572,7 @@ const popup=()=>new Promise(resolve=>{
         #dp-state{
 
             flex:1;
+
             min-width:0;
 
         }
@@ -3515,7 +3581,9 @@ const popup=()=>new Promise(resolve=>{
         #dp-duplicate-comments{
 
             width:220px;
+
             flex-shrink:0;
+
             cursor:pointer;
 
         }
@@ -3550,6 +3618,7 @@ const popup=()=>new Promise(resolve=>{
         #dp-duplicate-comments option{
 
             background:#222;
+
             color:#fff;
 
         }
@@ -3591,18 +3660,27 @@ const popup=()=>new Promise(resolve=>{
         #dp-go{
 
             height:42px;
+
             padding:
                 0 15px;
+
             border:
                 1px solid
                 rgba(255,255,255,.25);
+
             border-radius:10px;
+
             background:
                 rgba(255,255,255,.14);
+
             color:#fff;
+
             font-weight:700;
+
             font-size:14px;
+
             cursor:pointer;
+
             white-space:nowrap;
 
         }
@@ -3620,9 +3698,12 @@ const popup=()=>new Promise(resolve=>{
         #dp-go{
 
             width:100%;
+
             margin-top:10px;
+
             background:
                 rgba(35,150,70,.9);
+
             border-color:
                 rgba(35,150,70,.65);
 
@@ -3647,17 +3728,27 @@ const popup=()=>new Promise(resolve=>{
         #dp-saved{
 
             display:none;
+
             height:42px;
+
             padding:
                 0 12px;
+
             border-radius:10px;
+
             background:
                 rgba(35,140,65,.8);
+
             color:#fff;
+
             font-weight:700;
+
             font-size:13px;
+
             align-items:center;
+
             justify-content:center;
+
             white-space:nowrap;
 
         }
@@ -3666,9 +3757,12 @@ const popup=()=>new Promise(resolve=>{
         #dp-status{
 
             margin-top:9px;
+
             font-size:12px;
+
             color:
                 rgba(255,255,255,.65);
+
             min-height:16px;
 
         }
@@ -3677,7 +3771,9 @@ const popup=()=>new Promise(resolve=>{
         #dp-eligible{
 
             margin-top:16px;
+
             padding-top:14px;
+
             border-top:
                 1px solid
                 rgba(255,255,255,.14);
@@ -3688,7 +3784,9 @@ const popup=()=>new Promise(resolve=>{
         #dp-eligible-title{
 
             font-size:13px;
+
             font-weight:600;
+
             margin-bottom:9px;
 
         }
@@ -3697,6 +3795,7 @@ const popup=()=>new Promise(resolve=>{
         #dp-eligible-buttons{
 
             display:flex;
+
             gap:8px;
 
         }
@@ -3706,14 +3805,21 @@ const popup=()=>new Promise(resolve=>{
         #dp-yes{
 
             flex:1;
+
             height:42px;
+
             border-radius:10px;
+
             border:
                 1px solid
                 rgba(255,255,255,.2);
+
             color:#fff;
+
             font-size:14px;
+
             font-weight:700;
+
             cursor:pointer;
 
         }
@@ -3754,7 +3860,9 @@ const popup=()=>new Promise(resolve=>{
         #dp-yes-extra{
 
             margin-top:14px;
+
             padding-top:14px;
+
             border-top:
                 1px solid
                 rgba(255,255,255,.14);
@@ -3765,17 +3873,26 @@ const popup=()=>new Promise(resolve=>{
         #dp-continue{
 
             width:100%;
+
             height:42px;
+
             margin-top:10px;
+
             border-radius:10px;
+
             border:
                 1px solid
                 rgba(35,140,65,.45);
+
             background:
                 rgba(35,150,70,.9);
+
             color:#fff;
+
             font-size:14px;
+
             font-weight:700;
+
             cursor:pointer;
 
         }
@@ -3793,11 +3910,15 @@ const popup=()=>new Promise(resolve=>{
 
             background:
                 rgba(100,100,100,.45);
+
             border-color:
                 rgba(255,255,255,.12);
+
             color:
                 rgba(255,255,255,.45);
+
             cursor:not-allowed;
+
             opacity:.65;
 
         }
@@ -3840,6 +3961,7 @@ const popup=()=>new Promise(resolve=>{
             #dp-state{
 
                 width:100%;
+
                 flex:none;
 
             }
