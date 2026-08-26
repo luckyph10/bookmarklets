@@ -647,13 +647,8 @@ const showCopyMessage=(message,clipboardText)=>{
 
 
 /* =========================================================
-   ARBIT ID IFRAME + RUSH VERIFY
+   ARBIT ID IFRAME
    ========================================================= */
-
-const RUSH_VERIFY_SCRIPT=
-    "https://luckyph10.github.io/bookmarklets/vob_intelligence.js?" +
-    Date.now();
-
 
 const openArbitIframe=()=>{
 
@@ -695,22 +690,26 @@ const openArbitIframe=()=>{
 
             <div id="arbit-iframe-header">
 
-                <div
-                    id="arbit-iframe-title"
-                >
+                <div id="arbit-iframe-title">
                     ARBIT ID
                 </div>
 
 
-                <div
-                    id="arbit-iframe-actions"
-                >
+                <div id="arbit-iframe-actions">
 
                     <button
                         id="arbit-rush-verify"
                         type="button"
                     >
                         RUSH VERIFY
+                    </button>
+
+
+                    <button
+                        id="arbit-pull-evidence"
+                        type="button"
+                    >
+                        Pull Case/History Evidence
                     </button>
 
 
@@ -890,7 +889,11 @@ const openArbitIframe=()=>{
 
             align-items:center!important;
 
+            justify-content:flex-end!important;
+
             gap:8px!important;
+
+            flex-wrap:nowrap!important;
 
         }
 
@@ -929,6 +932,9 @@ const openArbitIframe=()=>{
 
             cursor:pointer!important;
 
+            white-space:
+                nowrap!important;
+
             box-shadow:
                 0 4px 14px
                 rgba(0,0,0,.35)!important;
@@ -952,6 +958,73 @@ const openArbitIframe=()=>{
 
 
         #arbit-rush-verify:active{
+
+            transform:
+                translateY(0)!important;
+
+        }
+
+
+        #arbit-pull-evidence{
+
+            height:
+                38px!important;
+
+            padding:
+                0 16px!important;
+
+            border:
+                1px solid
+                rgba(255,255,255,.2)!important;
+
+            border-radius:
+                9px!important;
+
+            background:
+                #2563eb!important;
+
+            color:#fff!important;
+
+            font-family:
+                Arial,sans-serif!important;
+
+            font-size:
+                12px!important;
+
+            font-weight:
+                800!important;
+
+            letter-spacing:
+                .2px!important;
+
+            cursor:pointer!important;
+
+            white-space:
+                nowrap!important;
+
+            box-shadow:
+                0 4px 14px
+                rgba(0,0,0,.35)!important;
+
+        }
+
+
+        #arbit-pull-evidence:hover{
+
+            background:
+                #3b82f6!important;
+
+            transform:
+                translateY(-1px)!important;
+
+            box-shadow:
+                0 5px 18px
+                rgba(37,99,235,.45)!important;
+
+        }
+
+
+        #arbit-pull-evidence:active{
 
             transform:
                 translateY(0)!important;
@@ -989,6 +1062,8 @@ const openArbitIframe=()=>{
             align-items:center!important;
 
             justify-content:center!important;
+
+            flex-shrink:0!important;
 
         }
 
@@ -1029,6 +1104,29 @@ const openArbitIframe=()=>{
         }
 
 
+        @media(max-width:900px){
+
+            #arbit-iframe-actions{
+
+                gap:5px!important;
+
+            }
+
+
+            #arbit-rush-verify,
+            #arbit-pull-evidence{
+
+                padding:
+                    0 9px!important;
+
+                font-size:
+                    10px!important;
+
+            }
+
+        }
+
+
         @media(max-width:700px){
 
             #arbit-iframe-window{
@@ -1045,13 +1143,16 @@ const openArbitIframe=()=>{
             }
 
 
-            #arbit-rush-verify{
+            #arbit-iframe-title{
 
-                padding:
-                    0 10px!important;
+                display:none!important;
 
-                font-size:
-                    11px!important;
+            }
+
+
+            #arbit-iframe-header{
+
+                padding-left:8px!important;
 
             }
 
@@ -1074,14 +1175,22 @@ const openArbitIframe=()=>{
             "arbit-iframe"
         );
 
+
     const closeBtn=
         document.getElementById(
             "arbit-iframe-close"
         );
 
+
     const rushBtn=
         document.getElementById(
             "arbit-rush-verify"
+        );
+
+
+    const pullEvidenceBtn=
+        document.getElementById(
+            "arbit-pull-evidence"
         );
 
 
@@ -1115,12 +1224,6 @@ const openArbitIframe=()=>{
             "important"
         );
 
-        document.body.style.setProperty(
-            "position",
-            document.body.style.position||"relative",
-            ""
-        );
-
     }catch(e){
 
         console.warn(
@@ -1142,6 +1245,7 @@ const openArbitIframe=()=>{
             const iframeDocument=
                 iframe.contentDocument ||
                 iframe.contentWindow?.document;
+
 
             if(!iframeDocument){
 
@@ -1197,6 +1301,81 @@ const openArbitIframe=()=>{
 
             alert(
                 "RUSH VERIFY could not run inside the ARBIT iframe.\n\n"+
+                "The ARBIT page may block cross-origin script access."
+            );
+
+        }
+
+    };
+
+
+    /* =====================================================
+       PULL CASE / HISTORY EVIDENCE
+       ===================================================== */
+
+    pullEvidenceBtn.onclick=()=>{
+
+        try{
+
+            const iframeDocument=
+                iframe.contentDocument ||
+                iframe.contentWindow?.document;
+
+
+            if(!iframeDocument){
+
+                alert(
+                    "Pull Case/History Evidence cannot access the ARBIT page."
+                );
+
+                return;
+
+            }
+
+
+            const script=
+                iframeDocument.createElement(
+                    "script"
+                );
+
+
+            script.src=
+                "https://luckyph10.github.io/bookmarklets/case_notes_puller.js?" +
+                Date.now();
+
+
+            script.onload=()=>{
+
+                console.log(
+                    "Pull Case/History Evidence loaded inside ARBIT iframe."
+                );
+
+            };
+
+
+            script.onerror=()=>{
+
+                alert(
+                    "Pull Case/History Evidence: Load failed"
+                );
+
+            };
+
+
+            iframeDocument.head.appendChild(
+                script
+            );
+
+
+        }catch(e){
+
+            console.error(
+                "Pull Case/History Evidence iframe error:",
+                e
+            );
+
+            alert(
+                "Pull Case/History Evidence could not run inside the ARBIT iframe.\n\n"+
                 "The ARBIT page may block cross-origin script access."
             );
 
@@ -1327,10 +1506,6 @@ const popup=()=>new Promise(resolve=>{
             </div>
 
 
-            <!-- =================================================
-                 DISPUTE USER NAME
-                 ================================================= -->
-
             <div id="dp-label-name">
                 Dispute User Name
             </div>
@@ -1359,10 +1534,6 @@ const popup=()=>new Promise(resolve=>{
 
             </div>
 
-
-            <!-- =================================================
-                 STATE + DUPLICATE COMMENTS
-                 ================================================= -->
 
             <div id="dp-label-state">
                 State + Duplicate Comments
@@ -1403,11 +1574,6 @@ const popup=()=>new Promise(resolve=>{
             </div>
 
 
-            <!-- =================================================
-                 PLANTYPE MISMATCH
-                 COLUMN C
-                 ================================================= -->
-
             <div id="dp-label-mismatch">
                 Plantype Mismatch
             </div>
@@ -1442,10 +1608,6 @@ const popup=()=>new Promise(resolve=>{
             <div id="dp-status"></div>
 
 
-            <!-- =================================================
-                 ELIGIBILITY
-                 ================================================= -->
-
             <div
                 id="dp-eligible"
                 style="display:none"
@@ -1468,10 +1630,6 @@ const popup=()=>new Promise(resolve=>{
 
                 </div>
 
-
-                <!-- =================================================
-                     YES EXTRA FIELDS
-                     ================================================= -->
 
                 <div
                     id="dp-yes-extra"
@@ -2745,72 +2903,54 @@ const popup=()=>new Promise(resolve=>{
 
         const row=[
 
-            /* A */
             isYes
                 ?email
                 :"-",
 
-            /* B */
             getPlanType(i),
 
-            /* C */
             plantypeMismatch,
 
-            /* D */
             duplicateComments,
 
-            /* E */
             disputeNumber,
 
-            /* F */
             id,
 
-            /* G */
             actualG,
 
-            /* H */
             isYes
                 ?disputeUserName
                 :"-",
 
-            /* I */
             isYes
                 ?verificationStatus
                 :"-",
 
-            /* J */
             isYes
                 ?arbitCaseNotes
                 :"-",
 
-            /* K */
             isYes
                 ?planTypeEvidence
                 :"-",
 
-            /* L */
             actualL,
 
-            /* M */
             "N/A",
 
-            /* N */
             "N/A",
 
-            /* O */
             stateValue,
 
-            /* P */
             isYes
                 ?nonBifurcated
                 :"-",
 
-            /* Q */
             isYes
                 ?"Yes"
                 :"No",
 
-            /* R */
             actualR
 
         ];
@@ -2832,6 +2972,7 @@ const popup=()=>new Promise(resolve=>{
             "FINAL 18-COLUMN ROW",
             row
         );
+
 
         return row.join("\t");
 
