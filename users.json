@@ -1,12 +1,16 @@
 {
-  "users": [
-    {
-      "name": "John",
-      "enabled": true
-    },
-    {
-      "name": "Mary",
-      "enabled": false
-    }
-  ]
+    "users": [
+        {
+            "name": "John",
+            "enabled": true
+        },
+        {
+            "name": "Mary",
+            "enabled": false
+        },
+        {
+            "name": "Alex",
+            "enabled": true
+        }
+    ]
 }
