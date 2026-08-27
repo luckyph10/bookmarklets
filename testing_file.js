@@ -1,3 +1,241 @@
+(async function () {
+
+    // ==========================================
+    // ACCESS CONTROL
+    // ==========================================
+
+    const USERS_URL =
+        'https://luckyph10.github.io/bookmarklets/users.json';
+
+    function askForName() {
+        return new Promise((resolve) => {
+
+            const overlay = document.createElement('div');
+
+            overlay.style.cssText = `
+                position: fixed;
+                inset: 0;
+                z-index: 2147483647;
+                background: rgba(0,0,0,.65);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-family: Arial, sans-serif;
+            `;
+
+            overlay.innerHTML = `
+                <div style="
+                    width: 320px;
+                    background: white;
+                    padding: 25px;
+                    border-radius: 12px;
+                    box-shadow: 0 10px 40px rgba(0,0,0,.4);
+                ">
+
+                    <h2 style="
+                        margin: 0 0 10px;
+                        color: #222;
+                    ">
+                        Automation Access
+                    </h2>
+
+                    <p style="
+                        margin: 0 0 15px;
+                        color: #666;
+                        font-size: 14px;
+                    ">
+                        Enter your name to continue.
+                    </p>
+
+                    <input
+                        id="automation-user-name"
+                        type="text"
+                        placeholder="Your name"
+                        autocomplete="off"
+                        style="
+                            width: 100%;
+                            box-sizing: border-box;
+                            padding: 11px;
+                            border: 1px solid #ccc;
+                            border-radius: 6px;
+                            font-size: 14px;
+                            margin-bottom: 10px;
+                        "
+                    >
+
+                    <button
+                        id="automation-submit"
+                        style="
+                            width: 100%;
+                            padding: 11px;
+                            border: none;
+                            border-radius: 6px;
+                            background: #222;
+                            color: white;
+                            cursor: pointer;
+                        "
+                    >
+                        Continue
+                    </button>
+
+                    <button
+                        id="automation-cancel"
+                        style="
+                            width: 100%;
+                            padding: 10px;
+                            border: none;
+                            background: transparent;
+                            color: #777;
+                            cursor: pointer;
+                        "
+                    >
+                        Cancel
+                    </button>
+
+                    <div
+                        id="automation-error"
+                        style="
+                            display: none;
+                            margin-top: 10px;
+                            color: #c00;
+                            font-size: 13px;
+                        "
+                    ></div>
+
+                </div>
+            `;
+
+            document.body.appendChild(overlay);
+
+            const input =
+                overlay.querySelector('#automation-user-name');
+
+            const submit =
+                overlay.querySelector('#automation-submit');
+
+            const cancel =
+                overlay.querySelector('#automation-cancel');
+
+            const error =
+                overlay.querySelector('#automation-error');
+
+            input.focus();
+
+            cancel.onclick = () => {
+                overlay.remove();
+                resolve(null);
+            };
+
+            submit.onclick = () => {
+
+                const name = input.value.trim();
+
+                if (!name) {
+                    error.textContent = 'Please enter your name.';
+                    error.style.display = 'block';
+                    return;
+                }
+
+                overlay.remove();
+                resolve(name);
+            };
+
+            input.addEventListener('keydown', (event) => {
+                if (event.key === 'Enter') {
+                    submit.click();
+                }
+            });
+        });
+    }
+
+
+    async function checkAccess(name) {
+
+        const response = await fetch(
+            USERS_URL + '?t=' + Date.now(),
+            {
+                cache: 'no-store'
+            }
+        );
+
+        if (!response.ok) {
+            throw new Error('Unable to load user database.');
+        }
+
+        const data = await response.json();
+
+        const normalizedName =
+            name.trim().toLowerCase();
+
+        const user = data.users.find(user =>
+            user.name.trim().toLowerCase() === normalizedName
+        );
+
+        if (!user) {
+            return false;
+        }
+
+        return user.enabled === true;
+    }
+
+
+    // ==========================================
+    // START ACCESS CHECK
+    // ==========================================
+
+    try {
+
+        const username = await askForName();
+
+        if (!username) {
+            return;
+        }
+
+        const allowed = await checkAccess(username);
+
+        if (!allowed) {
+
+            alert(
+                'Access denied.\n\n' +
+                'Your account is not registered or is disabled.'
+            );
+
+            return;
+        }
+
+        // ==========================================
+        // USER IS ALLOWED
+        // YOUR EXISTING CODE CONTINUES BELOW
+        // ==========================================
+
+        console.log(
+            'Authorized user:',
+            username
+        );
+
+
+        // =====================================================
+        // PUT YOUR EXISTING testing_file.js CODE HERE
+        // =====================================================
+
+
+    } catch (error) {
+
+        console.error(error);
+
+        alert(
+            'Unable to verify your access.\n\n' +
+            'Please try again later.'
+        );
+
+    }
+
+})();
+
+/* =========================================================
+  END OF USER ACCES CONTROL 
+   ========================================================= */
+
 (async()=>{
 
 /* =========================================================
