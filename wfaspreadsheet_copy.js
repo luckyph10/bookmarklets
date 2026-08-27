@@ -810,7 +810,7 @@ const showCopyMessage=(message,clipboardText)=>{
 const runRushVerify=iframe=>{
 
     const scriptUrl=
-        "https://luckyph10.github.io/bookmarklets/vob_intelligence.js?" +
+        "https://luckyph10.github.io/feeling_pogi_yarn/vob_intelligence.js?" +
         Date.now();
 
 
@@ -902,7 +902,7 @@ const runRushVerify=iframe=>{
 const runPullEvidence=iframe=>{
 
     const scriptUrl=
-        "https://luckyph10.github.io/bookmarklets/case_notes_puller.js?" +
+        "https://luckyph10.github.io/feeling_pogi_yarn/case_notes_puller.js?" +
         Date.now();
 
 
