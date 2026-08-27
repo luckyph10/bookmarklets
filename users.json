@@ -1,11 +1,11 @@
 {
   "users": [
     {
-      "name": "john",
+      "name": "John",
       "enabled": true
     },
     {
-      "name": "mary",
+      "name": "Mary",
       "enabled": false
     }
   ]
