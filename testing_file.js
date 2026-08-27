@@ -1,47 +1,41 @@
 (async function () {
 
-    // Load authentication module
-    const script =
+    const authScript =
         document.createElement('script');
 
-    script.src =
+    authScript.src =
         'https://luckyph10.github.io/bookmarklets/auth.js';
 
-    document.head.appendChild(script);
+    document.head.appendChild(authScript);
 
-    await new Promise(resolve => {
 
-        script.onload = resolve;
+    await new Promise((resolve, reject) => {
+
+        authScript.onload = resolve;
+
+        authScript.onerror = reject;
 
     });
 
 
-    // Ask for username and verify access
     const user =
         await BookmarkAuth.requireUser();
 
 
-    // User cancelled or is disabled
     if (!user) {
         return;
     }
 
 
-    // =========================================
-    // USER IS AUTHORIZED
-    // =========================================
-
     console.log(
-        'Authorized user:',
+        'Authorized:',
         user.name
     );
 
 
     // =========================================
-    // YOUR EXISTING AUTOMATION
+    // YOUR EXISTING AUTOMATION CODE HERE
     // =========================================
-
-    // ... your existing code here ...
 
 
 })();
