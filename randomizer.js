@@ -3,7 +3,6 @@
 
     // =========================================================
     // BOOKMARKLET COMPATIBILITY
-    // Replaces Tampermonkey GM_* APIs with localStorage/Clipboard
     // =========================================================
 
     const GMStoragePrefix = '__vob_picker__';
@@ -39,9 +38,9 @@
                 navigator.clipboard &&
                 typeof navigator.clipboard.writeText === 'function'
             ) {
-                navigator.clipboard.writeText(
-                    String(text)
-                ).catch(() => {});
+                navigator.clipboard
+                    .writeText(String(text))
+                    .catch(() => {});
             }
         } catch (e) {}
     }
@@ -74,13 +73,15 @@
     // PREVENT DUPLICATE PANEL
     // =========================================================
 
-    const existingPanel = document.getElementById('vobPicker');
+    const existingPanel =
+        document.getElementById('vobPicker');
 
     if (existingPanel) {
         existingPanel.remove();
     }
 
-    const existingStyle = document.getElementById('vobPickerStyle');
+    const existingStyle =
+        document.getElementById('vobPickerStyle');
 
     if (existingStyle) {
         existingStyle.remove();
@@ -150,7 +151,8 @@
     // PANEL
     // =========================================================
 
-    const panel = document.createElement('div');
+    const panel =
+        document.createElement('div');
 
     panel.id = 'vobPicker';
 
@@ -319,7 +321,8 @@
     // CSS
     // =========================================================
 
-    const style = document.createElement('style');
+    const style =
+        document.createElement('style');
 
     style.id = 'vobPickerStyle';
 
@@ -879,7 +882,6 @@
                             saveNames();
 
                             renderNameList();
-
                         }
                     );
 
@@ -995,6 +997,7 @@
                 ) {
 
                     count = 3;
+
                     pickCountInput.value = 3;
                 }
 
@@ -1035,7 +1038,8 @@
                 );
 
         /*
-         * Keep A:U only.
+         * Keep A:U internally because
+         * Column U is needed for name filtering.
          */
 
         rows =
@@ -1174,7 +1178,6 @@
                     '</span><br>' +
                     'Paste the Excel data into the box below.';
             }
-
         }
     );
 
@@ -1189,7 +1192,6 @@
             loadData(
                 inputData.value
             );
-
         }
     );
 
@@ -1327,7 +1329,10 @@
                             Math.random() -
                             0.5
                     )
-                    .slice(0, count);
+                    .slice(
+                        0,
+                        count
+                    );
 
             attempts++;
 
@@ -1379,20 +1384,29 @@
             selected;
 
         /*
-         * Show results.
+         * Show only A, S, U.
          */
 
         showResults(selected);
 
         /*
-         * Copy A:U.
+         * Copy only A, S, U.
          */
 
         const copyText =
             selected
                 .map(
-                    item =>
-                        item.row.join('\t')
+                    item => {
+
+                        const row =
+                            item.row;
+
+                        return [
+                            row[0],  // A
+                            row[18], // S
+                            row[20]  // U
+                        ].join('\t');
+                    }
                 )
                 .join('\n');
 
@@ -1401,6 +1415,7 @@
 
     // =========================================================
     // SHOW RESULTS
+    // ONLY A, S, U
     // =========================================================
 
     function showResults(selected) {
@@ -1431,63 +1446,65 @@
             <table>
                 <thead>
                     <tr>
-        `;
-
-        /*
-         * A through U
-         */
-
-        for (
-            let i = 0;
-            i < 21;
-            i++
-        ) {
-
-            html +=
-                '<th>' +
-                String.fromCharCode(
-                    65 + i
-                ) +
-                '</th>';
-        }
-
-        html += `
+                        <th>A</th>
+                        <th>S</th>
+                        <th>U</th>
                     </tr>
                 </thead>
+
                 <tbody>
         `;
 
         selected.forEach(
             item => {
 
+                const row =
+                    item.row;
+
                 html +=
                     '<tr class="selectedRow">';
 
-                for (
-                    let i = 0;
-                    i < 21;
-                    i++
-                ) {
+                /*
+                 * A
+                 */
 
-                    const cls =
-                        i === 20
-                            ? 'nameColumn'
-                            : '';
+                html +=
+                    '<td>' +
+                    escapeHtml(
+                        String(
+                            row[0] || ''
+                        )
+                    ) +
+                    '</td>';
 
-                    html +=
-                        '<td class="' +
-                        cls +
-                        '">' +
-                        escapeHtml(
-                            String(
-                                item.row[i] ||
-                                ''
-                            )
-                        ) +
-                        '</td>';
-                }
+                /*
+                 * S
+                 */
 
-                html += '</tr>';
+                html +=
+                    '<td>' +
+                    escapeHtml(
+                        String(
+                            row[18] || ''
+                        )
+                    ) +
+                    '</td>';
+
+                /*
+                 * U
+                 */
+
+                html +=
+                    '<td class="nameColumn">' +
+                    escapeHtml(
+                        String(
+                            row[20] || ''
+                        )
+                    ) +
+                    '</td>';
+
+                html +=
+                    '</tr>';
             }
         );
 
@@ -1528,14 +1545,24 @@
         } catch (e) {}
 
         try {
-            navigator.clipboard
-                .writeText(text)
-                .catch(() => {});
+
+            if (
+                navigator.clipboard &&
+                typeof navigator.clipboard.writeText ===
+                    'function'
+            ) {
+
+                navigator.clipboard
+                    .writeText(text)
+                    .catch(() => {});
+            }
+
         } catch (e) {}
     }
 
     // =========================================================
     // COPY AGAIN
+    // ONLY A, S, U
     // =========================================================
 
     copy.addEventListener(
@@ -1551,10 +1578,17 @@
             const text =
                 lastSelected
                     .map(
-                        item =>
-                            item.row.join(
-                                '\t'
-                            )
+                        item => {
+
+                            const row =
+                                item.row;
+
+                            return [
+                                row[0],  // A
+                                row[18], // S
+                                row[20]  // U
+                            ].join('\t');
+                        }
                     )
                     .join('\n');
 
@@ -1767,7 +1801,6 @@
         function () {
 
             dragging = false;
-
         }
     );
 
