@@ -172,7 +172,7 @@
             <div class="section">
 
                 <div class="title">
-                    🔢 HOW MANY DISPUTES?
+                    🔢 HOW MANY DISPUTES PER USER?
                 </div>
 
                 <div class="countRow">
@@ -191,9 +191,11 @@
                 </div>
 
                 <div class="hint">
-                    Example: 3, 4, 5, 10, 20...
-                    The number must not be greater than
-                    the number of available names.
+                    This number is PER USER.
+                    Example: 3 means 3 random disputes
+                    for every allowed name.
+                    If 8 names are available, the total
+                    will be 24 disputes.
                 </div>
 
             </div>
@@ -206,9 +208,9 @@
                 </div>
 
                 <div class="hint">
-                    The picker will only choose disputes
-                    whose name in Column U is in this list.
-                    Each selected dispute uses a different name.
+                    The picker will select the requested
+                    number of disputes for EACH name whose
+                    name in Column U is in this list.
                 </div>
 
                 <div id="nameList"></div>
@@ -782,6 +784,14 @@
                 rgba(255,255,255,.07);
         }
 
+        .userHeader {
+
+            background:
+                rgba(255,255,255,.12);
+
+            font-weight: bold;
+        }
+
         hr {
 
             border: 0;
@@ -1007,7 +1017,7 @@
 
                 status.innerHTML =
                     '<span class="success">' +
-                    '✅ Pick count saved: ' +
+                    '✅ Disputes per user saved: ' +
                     pickCount +
                     '</span>';
             }
@@ -1039,7 +1049,7 @@
 
         /*
          * Keep A:U internally because
-         * Column U is needed for name filtering.
+         * A, S and U are needed.
          */
 
         rows =
@@ -1129,7 +1139,7 @@
 
             status.innerHTML =
                 'Data loaded. ' +
-                'Pick count: <b>' +
+                'Disputes per user: <b>' +
                 pickCount +
                 '</b>.';
 
@@ -1196,13 +1206,107 @@
     );
 
     // =========================================================
+    // SHUFFLE ARRAY
+    // =========================================================
+
+    function shuffleArray(array) {
+
+        const copy =
+            [...array];
+
+        for (
+            let i = copy.length - 1;
+            i > 0;
+            i--
+        ) {
+
+            const j =
+                Math.floor(
+                    Math.random() *
+                    (i + 1)
+                );
+
+            [
+                copy[i],
+                copy[j]
+            ] = [
+                copy[j],
+                copy[i]
+            ];
+        }
+
+        return copy;
+    }
+
+    // =========================================================
+    // ROW KEY
+    // Used to compare random selections
+    // =========================================================
+
+    function rowKey(row) {
+
+        return [
+            row[0],
+            row[18],
+            row[20]
+        ]
+            .map(
+                value =>
+                    String(
+                        value || ''
+                    )
+            )
+            .join('\t');
+    }
+
+    // =========================================================
+    // SAME SELECTION
+    // =========================================================
+
+    function sameSelection(a, b) {
+
+        if (
+            a.length !==
+            b.length
+        ) {
+            return false;
+        }
+
+        const aKeys =
+            a
+                .map(
+                    item =>
+                        rowKey(
+                            item.row
+                        )
+                )
+                .sort();
+
+        const bKeys =
+            b
+                .map(
+                    item =>
+                        rowKey(
+                            item.row
+                        )
+                )
+                .sort();
+
+        return (
+            aKeys.join('|') ===
+            bKeys.join('|')
+        );
+    }
+
+    // =========================================================
     // RANDOM PICK
+    // DISPUTES PER USER
     // =========================================================
 
     function pickDisputes() {
 
         /*
-         * Save count from the field automatically.
+         * Save count automatically.
          */
 
         let count =
@@ -1286,112 +1390,168 @@
             }
         );
 
-        const availableNames =
-            Object.keys(groups);
+        // =====================================================
+        // CHECK EVERY USER
+        // =====================================================
+
+        const missingUsers = [];
+
+        allowedNames.forEach(
+            name => {
+
+                const normalized =
+                    normalizeName(name);
+
+                const group =
+                    groups[normalized] || [];
+
+                if (
+                    group.length < count
+                ) {
+
+                    missingUsers.push(
+                        `${name} (${group.length} available)`
+                    );
+                }
+            }
+        );
 
         /*
-         * Cannot pick more people
-         * than available unique names.
+         * If any allowed name has fewer disputes
+         * than requested, stop instead of producing
+         * an incomplete result.
          */
 
         if (
-            count >
-            availableNames.length
+            missingUsers.length > 0
         ) {
 
             status.innerHTML =
                 '<span class="error">' +
-                '❌ You requested ' +
+                '❌ Not enough disputes for one or more users.<br>' +
+                'You requested ' +
                 count +
-                ' disputes, but only ' +
-                availableNames.length +
-                ' different allowed names ' +
-                'were found in this VOB file.' +
+                ' per user.<br><br>' +
+                escapeHtml(
+                    missingUsers.join(' | ')
+                ) +
                 '</span>';
+
+            again.disabled =
+                lastSelected.length === 0;
 
             return;
         }
 
-        /*
-         * Shuffle names.
-         */
+        // =====================================================
+        // RANDOMIZE EVERY USER
+        // =====================================================
 
-        let selectedNames;
+        let selected = [];
 
-        let attempts = 0;
+        allowedNames.forEach(
+            name => {
 
-        do {
+                const normalized =
+                    normalizeName(name);
 
-            selectedNames =
-                [...availableNames]
-                    .sort(
-                        () =>
-                            Math.random() -
-                            0.5
-                    )
-                    .slice(
+                const group =
+                    groups[normalized];
+
+                /*
+                 * Shuffle the user's disputes
+                 * and take EXACTLY the requested count.
+                 */
+
+                const shuffled =
+                    shuffleArray(group);
+
+                const userSelected =
+                    shuffled.slice(
                         0,
                         count
                     );
 
-            attempts++;
+                userSelected.forEach(
+                    row => {
 
-            /*
-             * Avoid same exact group
-             * on TRY AGAIN.
-             */
-
-        } while (
-            lastSelected.length > 0 &&
-            sameNameSet(
-                selectedNames,
-                lastSelected.map(
-                    item =>
-                        normalizeName(
-                            item.row[20]
-                        )
-                )
-            ) &&
-            attempts < 100
+                        selected.push({
+                            row: row
+                        });
+                    }
+                );
+            }
         );
 
-        /*
-         * One random row per name.
-         */
+        // =====================================================
+        // TRY AGAIN
+        // Avoid selecting the exact same rows
+        // when another combination is available.
+        // =====================================================
 
-        const selected =
-            selectedNames.map(
+        let attempts = 0;
+
+        while (
+            lastSelected.length > 0 &&
+            sameSelection(
+                selected,
+                lastSelected
+            ) &&
+            attempts < 100
+        ) {
+
+            selected = [];
+
+            allowedNames.forEach(
                 name => {
 
+                    const normalized =
+                        normalizeName(name);
+
                     const group =
-                        groups[name];
+                        groups[normalized];
 
-                    const row =
-                        group[
-                            Math.floor(
-                                Math.random() *
-                                group.length
-                            )
-                        ];
+                    const shuffled =
+                        shuffleArray(group);
 
-                    return {
-                        row: row
-                    };
+                    const userSelected =
+                        shuffled.slice(
+                            0,
+                            count
+                        );
+
+                    userSelected.forEach(
+                        row => {
+
+                            selected.push({
+                                row: row
+                            });
+                        }
+                    );
                 }
             );
+
+            attempts++;
+        }
+
+        // =====================================================
+        // SAVE SELECTION
+        // =====================================================
 
         lastSelected =
             selected;
 
-        /*
-         * Show only A, S, U.
-         */
+        // =====================================================
+        // SHOW RESULTS
+        // =====================================================
 
-        showResults(selected);
+        showResults(
+            selected
+        );
 
-        /*
-         * Copy only A, S, U.
-         */
+        // =====================================================
+        // COPY A, S, U ONLY
+        // =====================================================
 
         const copyText =
             selected
@@ -1402,28 +1562,75 @@
                             item.row;
 
                         return [
-                            row[0],  // A
-                            row[18], // S
-                            row[20]  // U
+                            row[0],   // A
+                            row[18],  // S
+                            row[20]   // U
                         ].join('\t');
                     }
                 )
                 .join('\n');
 
-        copyToClipboard(copyText);
+        copyToClipboard(
+            copyText
+        );
     }
 
     // =========================================================
     // SHOW RESULTS
-    // ONLY A, S, U
+    // A, S, U ONLY
     // =========================================================
 
     function showResults(selected) {
+
+        /*
+         * Count selected disputes per user
+         */
+
+        const userCounts = {};
+
+        selected.forEach(
+            item => {
+
+                const name =
+                    String(
+                        item.row[20] || ''
+                    ).trim();
+
+                const normalized =
+                    normalizeName(name);
+
+                if (
+                    !userCounts[normalized]
+                ) {
+
+                    userCounts[normalized] = {
+                        name: name,
+                        count: 0
+                    };
+                }
+
+                userCounts[normalized]
+                    .count++;
+            }
+        );
+
+        /*
+         * Status
+         */
 
         status.innerHTML =
             '<b>✅ ' +
             selected.length +
             ' RANDOM DISPUTES</b><br>' +
+
+            '<span class="success">' +
+            pickCount +
+            ' disputes per user × ' +
+            allowedNames.length +
+            ' users = ' +
+            selected.length +
+            ' total' +
+            '</span><br><br>' +
 
             selected
                 .map(
@@ -1441,6 +1648,10 @@
                         )
                 )
                 .join('<br>');
+
+        /*
+         * Results table
+         */
 
         let html = `
             <table>
@@ -1464,10 +1675,7 @@
                 html +=
                     '<tr class="selectedRow">';
 
-                /*
-                 * A
-                 */
-
+                // A
                 html +=
                     '<td>' +
                     escapeHtml(
@@ -1477,10 +1685,7 @@
                     ) +
                     '</td>';
 
-                /*
-                 * S
-                 */
-
+                // S
                 html +=
                     '<td>' +
                     escapeHtml(
@@ -1490,10 +1695,7 @@
                     ) +
                     '</td>';
 
-                /*
-                 * U
-                 */
-
+                // U
                 html +=
                     '<td class="nameColumn">' +
                     escapeHtml(
@@ -1562,7 +1764,7 @@
 
     // =========================================================
     // COPY AGAIN
-    // ONLY A, S, U
+    // A, S, U ONLY
     // =========================================================
 
     copy.addEventListener(
@@ -1584,15 +1786,17 @@
                                 item.row;
 
                             return [
-                                row[0],  // A
-                                row[18], // S
-                                row[20]  // U
+                                row[0],
+                                row[18],
+                                row[20]
                             ].join('\t');
                         }
                     )
                     .join('\n');
 
-            copyToClipboard(text);
+            copyToClipboard(
+                text
+            );
 
             status.innerHTML +=
                 '<br><span class="success">' +
@@ -1629,29 +1833,6 @@
             .replace(/\s+/g, ' ')
             .trim()
             .toLowerCase();
-    }
-
-    // =========================================================
-    // SAME NAME SET
-    // =========================================================
-
-    function sameNameSet(a, b) {
-
-        if (
-            a.length !==
-            b.length
-        ) {
-            return false;
-        }
-
-        return (
-            [...a]
-                .sort()
-                .join('|') ===
-            [...b]
-                .sort()
-                .join('|')
-        );
     }
 
     // =========================================================
@@ -1818,6 +1999,7 @@
         '<b>' +
         allowedNames.length +
         '</b> allowed names.<br>' +
-        'Set the number you want, then load your A:U data.';
+        'Set how many disputes you want <b>PER USER</b>, ' +
+        'then load your A:U data.';
 
 })();
