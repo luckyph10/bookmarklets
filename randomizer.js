@@ -49,19 +49,13 @@
     // SETTINGS
     // =========================================================
 
-    const STORAGE_KEY_NAMES = 'vob_allowed_names_v4';
-    const STORAGE_KEY_COUNT = 'vob_pick_count_v4';
+    const STORAGE_KEY_NAMES = 'vob_allowed_names_manual_v5';
+    const STORAGE_KEY_COUNT = 'vob_pick_count_v5';
 
-    const DEFAULT_NAMES = [
-        'Pamil, Angelica',
-        'Oriasel, Lordan Cyrus',
-        'Isidro, Khristian Kharl',
-        'Lizardo, Chique',
-        'Salamonding, Jayar',
-        'Tablon, Joshua Riam',
-        'Nicol, Steeve',
-        'Concpecion, Kurt Jostine'
-    ];
+    /*
+     * NO DEFAULT NAMES.
+     * Names are added manually from the UI.
+     */
 
     let allowedNames = loadNames();
     let pickCount = loadPickCount();
@@ -95,18 +89,17 @@
         try {
             const saved = GM_getValue(
                 STORAGE_KEY_NAMES,
-                null
+                []
             );
 
             if (
-                Array.isArray(saved) &&
-                saved.length > 0
+                Array.isArray(saved)
             ) {
                 return saved;
             }
         } catch (e) {}
 
-        return [...DEFAULT_NAMES];
+        return [];
     }
 
     function saveNames() {
@@ -194,8 +187,6 @@
                     This number is PER USER.
                     Example: 3 means 3 random disputes
                     for every allowed name.
-                    If 8 names are available, the total
-                    will be 24 disputes.
                 </div>
 
             </div>
@@ -208,9 +199,10 @@
                 </div>
 
                 <div class="hint">
+                    Add users manually below.
                     The picker will select the requested
-                    number of disputes for EACH name whose
-                    name in Column U is in this list.
+                    number of disputes for EACH user
+                    based on Column U.
                 </div>
 
                 <div id="nameList"></div>
@@ -220,7 +212,7 @@
                     <input
                         id="newName"
                         type="text"
-                        placeholder="Type name..."
+                        placeholder="Type user name..."
                     />
 
                     <button id="addName">
@@ -235,8 +227,8 @@
                         💾 SAVE NAMES
                     </button>
 
-                    <button id="resetNames">
-                        ↺ RESET
+                    <button id="clearNames">
+                        🗑 CLEAR ALL
                     </button>
 
                 </div>
@@ -249,8 +241,8 @@
             <div class="section">
 
                 <div id="status">
-                    Copy your Excel data from
-                    <b>A through U</b>.
+                    Add your users above, then copy your
+                    Excel data from <b>A through U</b>.
                 </div>
 
                 <button
@@ -488,6 +480,8 @@
             max-height: 220px;
 
             overflow-y: auto;
+
+            min-height: 42px;
         }
 
         .nameItem {
@@ -506,6 +500,10 @@
 
             background:
                 rgba(255,255,255,.1);
+        }
+
+        .nameItem:last-child {
+            margin-bottom: 0;
         }
 
         .nameText {
@@ -530,6 +528,18 @@
             cursor: pointer;
 
             font-weight: bold;
+        }
+
+        .emptyNames {
+
+            padding: 10px;
+
+            text-align: center;
+
+            color:
+                rgba(255,255,255,.6);
+
+            font-size: 12px;
         }
 
         .addRow {
@@ -673,23 +683,13 @@
             cursor: not-allowed;
         }
 
-        .blue {
-            background: white;
-            color: black;
-        }
-
-        .green {
-            background: white;
-            color: black;
-        }
-
-        .orange {
-            background: white;
-            color: black;
-        }
-
+        .blue,
+        .green,
+        .orange,
         .gray {
+
             background: white;
+
             color: black;
         }
 
@@ -784,12 +784,11 @@
                 rgba(255,255,255,.07);
         }
 
-        .userHeader {
+        .userSeparator {
 
-            background:
-                rgba(255,255,255,.12);
-
-            font-weight: bold;
+            border-top:
+                3px solid
+                rgba(255,255,255,.25);
         }
 
         hr {
@@ -855,6 +854,20 @@
 
         nameList.innerHTML = '';
 
+        if (
+            allowedNames.length === 0
+        ) {
+
+            nameList.innerHTML = `
+                <div class="emptyNames">
+                    No users added yet.
+                    Type a name below and click + ADD.
+                </div>
+            `;
+
+            return;
+        }
+
         allowedNames.forEach(
             (name, index) => {
 
@@ -892,6 +905,7 @@
                             saveNames();
 
                             renderNameList();
+
                         }
                     );
 
@@ -940,8 +954,18 @@
                 newName.value = '';
 
                 renderNameList();
+
+                status.innerHTML =
+                    '<span class="success">' +
+                    '✅ Added user: ' +
+                    escapeHtml(name) +
+                    '</span>';
             }
         );
+
+    // =========================================================
+    // ENTER TO ADD NAME
+    // =========================================================
 
     newName.addEventListener(
         'keydown',
@@ -959,29 +983,61 @@
     );
 
     // =========================================================
-    // RESET NAMES
+    // CLEAR ALL NAMES
     // =========================================================
 
     document
-        .getElementById('resetNames')
+        .getElementById('clearNames')
         .addEventListener(
             'click',
             function () {
 
                 if (
+                    allowedNames.length === 0
+                ) {
+                    return;
+                }
+
+                if (
                     !confirm(
-                        'Reset the name list to the defaults?'
+                        'Remove all users from the list?'
                     )
                 ) {
                     return;
                 }
 
-                allowedNames =
-                    [...DEFAULT_NAMES];
+                allowedNames = [];
 
                 saveNames();
 
                 renderNameList();
+
+                status.innerHTML =
+                    '<span class="success">' +
+                    '✅ All users removed.' +
+                    '</span>';
+
+            }
+        );
+
+    // =========================================================
+    // SAVE NAMES
+    // =========================================================
+
+    document
+        .getElementById('saveNames')
+        .addEventListener(
+            'click',
+            function () {
+
+                saveNames();
+
+                status.innerHTML =
+                    '<span class="success">' +
+                    '✅ Saved ' +
+                    allowedNames.length +
+                    ' users.' +
+                    '</span>';
             }
         );
 
@@ -1011,7 +1067,8 @@
                     pickCountInput.value = 3;
                 }
 
-                pickCount = count;
+                pickCount =
+                    count;
 
                 savePickCount();
 
@@ -1029,7 +1086,10 @@
 
     function parseExcelData(text) {
 
-        if (!text || !text.trim()) {
+        if (
+            !text ||
+            !text.trim()
+        ) {
 
             throw new Error(
                 'No Excel data was found.'
@@ -1041,15 +1101,20 @@
                 .replace(/\r/g, '')
                 .split('\n')
                 .filter(
-                    x => x.trim() !== ''
+                    x =>
+                        x.trim() !== ''
                 )
                 .map(
-                    x => x.split('\t')
+                    x =>
+                        x.split('\t')
                 );
 
         /*
-         * Keep A:U internally because
-         * A, S and U are needed.
+         * Keep A:U internally.
+         *
+         * A  = index 0
+         * S  = index 18
+         * U  = index 20
          */
 
         rows =
@@ -1057,11 +1122,15 @@
                 row => {
 
                     const r =
-                        row.slice(0, 21);
+                        row.slice(
+                            0,
+                            21
+                        );
 
                     while (
                         r.length < 21
                     ) {
+
                         r.push('');
                     }
 
@@ -1076,7 +1145,9 @@
         if (
             rows.length > 1 &&
             /dispute/i.test(
-                String(rows[0][0] || '')
+                String(
+                    rows[0][0] || ''
+                )
             )
         ) {
 
@@ -1107,7 +1178,9 @@
                     ).trim() !== ''
             );
 
-        if (rows.length < 1) {
+        if (
+            rows.length < 1
+        ) {
 
             throw new Error(
                 'No usable dispute rows found.'
@@ -1135,12 +1208,16 @@
                 ' dispute rows loaded.' +
                 '</span>';
 
-            pick.disabled = false;
+            pick.disabled =
+                allowedNames.length === 0;
 
             status.innerHTML =
                 'Data loaded. ' +
                 'Disputes per user: <b>' +
                 pickCount +
+                '</b>.<br>' +
+                'Users configured: <b>' +
+                allowedNames.length +
                 '</b>.';
 
         } catch (error) {
@@ -1155,11 +1232,14 @@
                 ) +
                 '</span>';
 
-            pick.disabled = true;
+            pick.disabled =
+                true;
 
-            again.disabled = true;
+            again.disabled =
+                true;
 
-            copy.disabled = true;
+            copy.disabled =
+                true;
         }
     }
 
@@ -1178,7 +1258,9 @@
                         .clipboard
                         .readText();
 
-                loadData(text);
+                loadData(
+                    text
+                );
 
             } catch (e) {
 
@@ -1206,7 +1288,7 @@
     );
 
     // =========================================================
-    // SHUFFLE ARRAY
+    // SHUFFLE
     // =========================================================
 
     function shuffleArray(array) {
@@ -1240,7 +1322,6 @@
 
     // =========================================================
     // ROW KEY
-    // Used to compare random selections
     // =========================================================
 
     function rowKey(row) {
@@ -1300,13 +1381,28 @@
 
     // =========================================================
     // RANDOM PICK
-    // DISPUTES PER USER
     // =========================================================
 
     function pickDisputes() {
 
         /*
-         * Save count automatically.
+         * Make sure there are users.
+         */
+
+        if (
+            allowedNames.length === 0
+        ) {
+
+            status.innerHTML =
+                '<span class="error">' +
+                '❌ Please add at least one user first.' +
+                '</span>';
+
+            return;
+        }
+
+        /*
+         * Save count.
          */
 
         let count =
@@ -1322,15 +1418,18 @@
 
             count = 3;
 
-            pickCountInput.value = 3;
+            pickCountInput.value =
+                3;
 
-            pickCount = 3;
+            pickCount =
+                3;
 
             savePickCount();
 
         } else {
 
-            pickCount = count;
+            pickCount =
+                count;
 
             savePickCount();
         }
@@ -1338,19 +1437,6 @@
         /*
          * Group rows by Column U.
          */
-
-        const allowedMap =
-            new Map();
-
-        allowedNames.forEach(
-            name => {
-
-                allowedMap.set(
-                    normalizeName(name),
-                    name
-                );
-            }
-        );
 
         const groups = {};
 
@@ -1367,31 +1453,21 @@
                         actualName
                     );
 
-                /*
-                 * Only allowed names.
-                 */
-
                 if (
-                    allowedMap.has(
-                        normalized
-                    )
+                    !groups[normalized]
                 ) {
 
-                    if (
-                        !groups[normalized]
-                    ) {
-
-                        groups[normalized] = [];
-                    }
-
-                    groups[normalized]
-                        .push(row);
+                    groups[normalized] =
+                        [];
                 }
+
+                groups[normalized]
+                    .push(row);
             }
         );
 
         // =====================================================
-        // CHECK EVERY USER
+        // CHECK EVERY MANUALLY ADDED USER
         // =====================================================
 
         const missingUsers = [];
@@ -1400,26 +1476,32 @@
             name => {
 
                 const normalized =
-                    normalizeName(name);
+                    normalizeName(
+                        name
+                    );
 
                 const group =
-                    groups[normalized] || [];
+                    groups[normalized] ||
+                    [];
 
                 if (
-                    group.length < count
+                    group.length <
+                    count
                 ) {
 
                     missingUsers.push(
-                        `${name} (${group.length} available)`
+                        name +
+                        ' (' +
+                        group.length +
+                        ' available)'
                     );
                 }
             }
         );
 
         /*
-         * If any allowed name has fewer disputes
-         * than requested, stop instead of producing
-         * an incomplete result.
+         * Stop if any configured user
+         * does not have enough disputes.
          */
 
         if (
@@ -1428,23 +1510,22 @@
 
             status.innerHTML =
                 '<span class="error">' +
-                '❌ Not enough disputes for one or more users.<br>' +
-                'You requested ' +
+                '❌ Not enough disputes for one or more users.<br><br>' +
+                'You requested <b>' +
                 count +
-                ' per user.<br><br>' +
+                '</b> disputes per user.<br><br>' +
                 escapeHtml(
-                    missingUsers.join(' | ')
+                    missingUsers.join(
+                        ' | '
+                    )
                 ) +
                 '</span>';
-
-            again.disabled =
-                lastSelected.length === 0;
 
             return;
         }
 
         // =====================================================
-        // RANDOMIZE EVERY USER
+        // RANDOM PICK FOR EACH USER
         // =====================================================
 
         let selected = [];
@@ -1453,18 +1534,25 @@
             name => {
 
                 const normalized =
-                    normalizeName(name);
+                    normalizeName(
+                        name
+                    );
 
                 const group =
-                    groups[normalized];
+                    groups[
+                        normalized
+                    ];
 
                 /*
-                 * Shuffle the user's disputes
-                 * and take EXACTLY the requested count.
+                 * Shuffle ONLY this user's rows.
+                 *
+                 * Then take exactly `count`.
                  */
 
                 const shuffled =
-                    shuffleArray(group);
+                    shuffleArray(
+                        group
+                    );
 
                 const userSelected =
                     shuffled.slice(
@@ -1485,8 +1573,6 @@
 
         // =====================================================
         // TRY AGAIN
-        // Avoid selecting the exact same rows
-        // when another combination is available.
         // =====================================================
 
         let attempts = 0;
@@ -1506,13 +1592,19 @@
                 name => {
 
                     const normalized =
-                        normalizeName(name);
+                        normalizeName(
+                            name
+                        );
 
                     const group =
-                        groups[normalized];
+                        groups[
+                            normalized
+                        ];
 
                     const shuffled =
-                        shuffleArray(group);
+                        shuffleArray(
+                            group
+                        );
 
                     const userSelected =
                         shuffled.slice(
@@ -1535,14 +1627,14 @@
         }
 
         // =====================================================
-        // SAVE SELECTION
+        // SAVE
         // =====================================================
 
         lastSelected =
             selected;
 
         // =====================================================
-        // SHOW RESULTS
+        // SHOW
         // =====================================================
 
         showResults(
@@ -1550,7 +1642,7 @@
         );
 
         // =====================================================
-        // COPY A, S, U ONLY
+        // COPY A, S, U
         // =====================================================
 
         const copyText =
@@ -1562,9 +1654,9 @@
                             item.row;
 
                         return [
-                            row[0],   // A
-                            row[18],  // S
-                            row[20]   // U
+                            row[0],
+                            row[18],
+                            row[20]
                         ].join('\t');
                     }
                 )
@@ -1577,50 +1669,26 @@
 
     // =========================================================
     // SHOW RESULTS
-    // A, S, U ONLY
     // =========================================================
 
-    function showResults(selected) {
+    function showResults(
+        selected
+    ) {
 
         /*
-         * Count selected disputes per user
+         * Total.
          */
 
-        const userCounts = {};
-
-        selected.forEach(
-            item => {
-
-                const name =
-                    String(
-                        item.row[20] || ''
-                    ).trim();
-
-                const normalized =
-                    normalizeName(name);
-
-                if (
-                    !userCounts[normalized]
-                ) {
-
-                    userCounts[normalized] = {
-                        name: name,
-                        count: 0
-                    };
-                }
-
-                userCounts[normalized]
-                    .count++;
-            }
-        );
+        const total =
+            selected.length;
 
         /*
-         * Status
+         * Status.
          */
 
         status.innerHTML =
             '<b>✅ ' +
-            selected.length +
+            total +
             ' RANDOM DISPUTES</b><br>' +
 
             '<span class="success">' +
@@ -1628,29 +1696,17 @@
             ' disputes per user × ' +
             allowedNames.length +
             ' users = ' +
-            selected.length +
+            total +
             ' total' +
-            '</span><br><br>' +
-
-            selected
-                .map(
-                    item =>
-                        escapeHtml(
-                            String(
-                                item.row[0]
-                            )
-                        ) +
-                        ' → ' +
-                        escapeHtml(
-                            String(
-                                item.row[20]
-                            )
-                        )
-                )
-                .join('<br>');
+            '</span>';
 
         /*
-         * Results table
+         * Results table.
+         *
+         * ONLY:
+         * A
+         * S
+         * U
          */
 
         let html = `
@@ -1666,16 +1722,43 @@
                 <tbody>
         `;
 
+        let previousUser =
+            null;
+
         selected.forEach(
             item => {
 
                 const row =
                     item.row;
 
-                html +=
-                    '<tr class="selectedRow">';
+                const currentUser =
+                    String(
+                        row[20] || ''
+                    ).trim();
 
-                // A
+                const isNewUser =
+                    previousUser !==
+                    null &&
+                    normalizeName(
+                        previousUser
+                    ) !==
+                    normalizeName(
+                        currentUser
+                    );
+
+                html +=
+                    '<tr' +
+                    (
+                        isNewUser
+                            ? ' class="selectedRow userSeparator"'
+                            : ' class="selectedRow"'
+                    ) +
+                    '>';
+
+                /*
+                 * Column A
+                 */
+
                 html +=
                     '<td>' +
                     escapeHtml(
@@ -1685,7 +1768,10 @@
                     ) +
                     '</td>';
 
-                // S
+                /*
+                 * Column S
+                 */
+
                 html +=
                     '<td>' +
                     escapeHtml(
@@ -1695,7 +1781,10 @@
                     ) +
                     '</td>';
 
-                // U
+                /*
+                 * Column U
+                 */
+
                 html +=
                     '<td class="nameColumn">' +
                     escapeHtml(
@@ -1707,6 +1796,9 @@
 
                 html +=
                     '</tr>';
+
+                previousUser =
+                    currentUser;
             }
         );
 
@@ -1718,16 +1810,20 @@
         results.innerHTML =
             html;
 
-        again.disabled = false;
+        again.disabled =
+            false;
 
-        copy.disabled = false;
+        copy.disabled =
+            false;
     }
 
     // =========================================================
     // COPY
     // =========================================================
 
-    function copyToClipboard(text) {
+    function copyToClipboard(
+        text
+    ) {
 
         try {
 
@@ -1755,8 +1851,12 @@
             ) {
 
                 navigator.clipboard
-                    .writeText(text)
-                    .catch(() => {});
+                    .writeText(
+                        text
+                    )
+                    .catch(
+                        () => {}
+                    );
             }
 
         } catch (e) {}
@@ -1764,7 +1864,6 @@
 
     // =========================================================
     // COPY AGAIN
-    // A, S, U ONLY
     // =========================================================
 
     copy.addEventListener(
@@ -1827,10 +1926,17 @@
     // NORMALIZE NAME
     // =========================================================
 
-    function normalizeName(name) {
+    function normalizeName(
+        name
+    ) {
 
-        return String(name || '')
-            .replace(/\s+/g, ' ')
+        return String(
+            name || ''
+        )
+            .replace(
+                /\s+/g,
+                ' '
+            )
             .trim()
             .toLowerCase();
     }
@@ -1839,9 +1945,13 @@
     // ESCAPE HTML
     // =========================================================
 
-    function escapeHtml(value) {
+    function escapeHtml(
+        value
+    ) {
 
-        return String(value)
+        return String(
+            value
+        )
             .replace(
                 /&/g,
                 '&amp;'
@@ -1870,7 +1980,8 @@
 
     document
         .getElementById('vobClose')
-        .onclick = function () {
+        .onclick =
+        function () {
 
             panel.remove();
 
@@ -1890,7 +2001,8 @@
 
     document
         .getElementById('vobMin')
-        .onclick = function () {
+        .onclick =
+        function () {
 
             const body =
                 document.getElementById(
@@ -1905,14 +2017,16 @@
                 body.style.display =
                     'block';
 
-                this.textContent = '−';
+                this.textContent =
+                    '−';
 
             } else {
 
                 body.style.display =
                     'none';
 
-                this.textContent = '+';
+                this.textContent =
+                    '+';
             }
         };
 
@@ -1937,7 +2051,8 @@
                     return;
                 }
 
-                dragging = true;
+                dragging =
+                    true;
 
                 const rect =
                     panel.getBoundingClientRect();
@@ -1981,7 +2096,8 @@
         'mouseup',
         function () {
 
-            dragging = false;
+            dragging =
+                false;
         }
     );
 
@@ -1995,11 +2111,7 @@
         pickCount;
 
     status.innerHTML =
-        '✅ Ready. You have ' +
-        '<b>' +
-        allowedNames.length +
-        '</b> allowed names.<br>' +
-        'Set how many disputes you want <b>PER USER</b>, ' +
-        'then load your A:U data.';
+        '✅ Ready.<br>' +
+        'Add your users manually above, then load your A:U data.';
 
 })();
