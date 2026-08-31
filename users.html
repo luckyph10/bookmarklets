@@ -1,186 +1,273 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>User Registration</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Automation Access</title>
 
 <style>
 
 *{
-    box-sizing:border-box;
-    m*rgin:0;
+    margin:0;
     padding:0;
+    box-sizing:border-box;
 }
 
 body{
-  * font-family:Arial,sans-serif;
-   *background:#ffffff;
-    padding:25*x;
+    font-family:Segoe UI,Arial,sans-serif;
+    background:rgba(0,0,0,.75);
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    padding:20px;
 }
+
+/* Popup Card */
 
 .card{
-    width:100%;
+    width:420px;
+    max-width:100%;
+    background:rgba(25,25,25,.95);
+    backdrop-filter:blur(10px);
+    border:1px solid rgba(255,255,255,.1);
+    border-radius:22px;
+    padding:25px;
+    box-shadow:
+        0 20px 40px rgba(0,0,0,.45),
+        0 0 20px rgba(0,120,255,.15);
+    position:relative;
 }
 
-.l*go{
+/* Close Button */
+
+.close-btn{
+    position:absolute;
+    top:12px;
+    right:12px;
+    width:35px;
+    height:35px;
+    border:none;
+    border-radius:50%;
+    background:rgba(255,255,255,.08);
+    color:#fff;
+    cursor:pointer;
+    font-size:18px;
+}
+
+.close-btn:hover{
+    background:rgba(255,255,255,.18);
+}
+
+/* Header */
+
+.logo{
     text-align:center;
-    fon*-size:24px;
-    margin-bottom:10px*
+    font-size:42px;
+    margin-bottom:10px;
 }
 
 h2{
+    color:#fff;
     text-align:center;
-   *color:#1f2937;
-    margin-bottom:5*x;
+    margin-bottom:5px;
 }
 
 .subtitle{
-    text-align:ce*ter;
-    color:#6b7280;
-    font-s*ze:13px;
+    color:#bdbdbd;
+    text-align:center;
+    font-size:13px;
     margin-bottom:20px;
-}*
-.device{
-    background:#f8fafc;
-*   border:1px solid #e5e7eb;
-    b*rder-radius:10px;
-    padding:10px*
-    margin-bottom:15px;
-    font-*ize:12px;
-    word-break:break-all*
 }
+
+/* Device Box */
+
+.device{
+    background:rgba(255,255,255,.05);
+    border:1px solid rgba(255,255,255,.1);
+    color:#fff;
+    padding:12px;
+    border-radius:14px;
+    margin-bottom:15px;
+    font-size:12px;
+    word-break:break-all;
+}
+
+/* Labels */
+
+label{
+    display:block;
+    color:#ddd;
+    margin-bottom:6px;
+    font-size:13px;
+}
+
+/* Bubble Inputs */
 
 input{
     width:100%;
-    pad*ing:12px;
-    border:1px solid #d1*5db;
-    border-radius:10px;
-    m*rgin-bottom:12px;
+    background:rgba(255,255,255,.08);
+    border:1px solid rgba(255,255,255,.12);
+    color:#fff;
+    padding:14px 16px;
+    border-radius:999px;
+    margin-bottom:15px;
+    font-size:14px;
+}
+
+input::placeholder{
+    color:#aaa;
 }
 
 input:focus{
-*   outline:none;
-    border-color:*2563eb;
+    outline:none;
+    border-color:#3498ff;
+    box-shadow:0 0 15px rgba(52,152,255,.35);
 }
 
-button{
-    width:100%;*    padding:12px;
-    border*none;
-    border*radius:*0px;
-    background:#2563eb;
-    c*lor:white;
+/* Button */
+
+.save-btn{
+    width:100%;
+    padding:14px;
+    border:none;
+    border-radius:999px;
+    background:linear-gradient(
+        135deg,
+        #0078d4,
+        #0099ff
+    );
+    color:#fff;
+    font-size:15px;
+    font-weight:600;
     cursor:pointer;
-   *font-weight:bold;
 }
 
-button:hover{*    background:#1d4ed8;
+.save-btn:hover{
+    opacity:.9;
 }
 
 .note{
-*   margin-top:10px;
-    text-align*center;
-    color:#6b7280;
-    fon*-size:12px;
+    margin-top:12px;
+    text-align:center;
+    color:#999;
+    font-size:11px;
 }
 
-</style*
+</style>
 </head>
 
 <body>
 
-<div class="*ard">
+<div class="card">
 
-    <div class="logo">*�</div>
+    <button
+        class="close-btn"
+        onclick="window.close()">
+        ✕
+    </button>
 
-    <h2>Automation Access*/h2>
+    <div class="logo">🔐</div>
 
-    <div*class="subtitle">
-        One-time*registration only
-    </*iv>
+    <h2>Automation Access</h2>
 
-    <div id="device" class="d*vice"></div>
+    <div class="subtitle">
+        One-time registration only
+    </div>
+
+    <div
+        id="device"
+        class="device">
+    </div>
+
+    <label>Username</label>
 
     <input
-        i*="username"
-        placeholder="U*ername">
+        id="username"
+        placeholder="Enter Username">
+
+    <label>Access Key</label>
 
     <input
-        id="a*cessKey"
+        id="accessKey"
         type="password"
- *      placeholder="Access Key">
+        placeholder="Enter Access Key">
 
- *  <button onclick="saveUser()">
-  *     Save & Continue
-    </button>*
+    <button
+        class="save-btn"
+        onclick="saveUser()">
+        Save & Continue
+    </button>
+
     <div class="note">
-        Cr*dentials will be stored locally.
- *  </div>
+        Credentials are saved locally on this browser.
+    </div>
 
 </div>
 
 <script>
 
-functi*n getDeviceId(){
+function getDeviceId(){
 
-    let id = loc*lStorage.getItem("fpy_device");
+    let id =
+        localStorage.getItem("fpy_device");
 
- *  if(!id){
+    if(!id){
 
-        id = crypto.ra*domUUID();
+        id = crypto.randomUUID();
 
-        localStorage.s*tItem(
+        localStorage.setItem(
             "fpy_device",
- *          id
+            id
         );
     }
 
-   *return id;
+    return id;
 }
 
-document.getElementB*Id("device").innerHTML =
+document.getElementById("device").innerHTML =
 `
-<b>Devi*e ID</b><br>
+<b>Device ID</b><br>
 ${getDeviceId()}
 `;
 
-*unction saveUser(){
+function saveUser(){
 
-    const use*name =
-        document.getElement*yId("username")
-        .value.tri*();
-
-    const accessKey =
-       *document.getElementById("accessKey*)
+    const username =
+        document.getElementById("username")
         .value.trim();
 
-    if(!*sername || !accessKey){
+    const accessKey =
+        document.getElementById("accessKey")
+        .value.trim();
 
-        a*ert(
-            "Please complete *ll fields."
+    if(!username || !accessKey){
+
+        alert(
+            "Username and Access Key are required."
         );
 
-        re*urn;
+        return;
     }
 
-    localStorage.setIt*m(
+    localStorage.setItem(
         "fpy_username",
-       *username
+        username
     );
 
-    localStorage.*etItem(
+    localStorage.setItem(
         "fpy_key",
-       *accessKey
+        accessKey
     );
 
     alert(
-     *  "Registration successful.\n\nPle*se click your bookmarklet again."
-*   );
+        "Registration Successful!"
+    );
 
-    parent.document
-       *.getElementById("fpy-auth-overlay"*
-        ?.remove();
-}
-
-</script>
-*</body>
-</html>
+    if(
+        parent &&
+        parent.document &&
+        parent.document.getElementById(
+            "fpy-auth-overlay"
+        )
+   
