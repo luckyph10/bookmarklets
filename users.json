@@ -105,8 +105,8 @@ Mode: global
       "key": "OTEP001",
       "enabled": true
     },
-     {
-      "username": "Chique",
+    {
+      "username": "chique",
       "key": "CHIQ001",
       "enabled": true
     },
@@ -115,5 +115,10 @@ Mode: global
       "key": "AHL001",
       "enabled": true
     },
+    {
+      "username": "thea",
+      "key": "THEA001",
+      "enabled": true
+    }
   ]
 }
