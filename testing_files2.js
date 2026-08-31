@@ -1,4 +1,6 @@
+
 (function () {
+
     /* =========================================================
        FIND COMMENT TEXTBOX
        ========================================================= */
@@ -8,12 +10,26 @@
     );
 
     /*
-     * FALLBACK TEXTAREA DETECTION
+     * FALLBACK:
+     * Find the actual Comments textarea by its elements/attributes.
      *
-     * Original selector is tried first.
-     * If Angular changes the DOM structure, use the
-     * stable attributes of the Comments textarea.
+     * Example:
+     *
+     * <textarea
+     *     name="comments"
+     *     aria-label="Comments"
+     *     rows="4"
+     *     title="Comments"
+     *     class="form-control form-control-sm ..."
+     * >
+     * </textarea>
      */
+
+    if (!el) {
+        el = document.querySelector(
+            'textarea[name="comments"][aria-label="Comments"][title="Comments"]'
+        );
+    }
 
     if (!el) {
         el = document.querySelector(
@@ -29,6 +45,18 @@
 
     if (!el) {
         el = document.querySelector(
+            'textarea[aria-label="Comments"][title="Comments"]'
+        );
+    }
+
+    if (!el) {
+        el = document.querySelector(
+            'textarea[name="comments"]'
+        );
+    }
+
+    if (!el) {
+        el = document.querySelector(
             'textarea[aria-label="Comments"]'
         );
     }
@@ -36,12 +64,6 @@
     if (!el) {
         el = document.querySelector(
             'textarea[title="Comments"]'
-        );
-    }
-
-    if (!el) {
-        el = document.querySelector(
-            'textarea[name="comments"]'
         );
     }
 
@@ -206,150 +228,6 @@
         'Automatic Comment Date:',
         getTodayPHDate()
     );
-
-    /* =========================================================
-       DISPUTE COMBOBOX FINDER
-       ========================================================= */
-
-    function findDisputeCombobox() {
-        /*
-         * The dispute field is an Angular autocomplete/combobox
-         * similar to:
-         *
-         * <input
-         *     role="combobox"
-         *     type="text"
-         *     aria-expanded="true"
-         *     aria-activedescendant="..."
-         *     aria-controls="..."
-         * >
-         *
-         * The generated aria-* values can change, so we do NOT
-         * depend on a fixed ID.
-         */
-
-        const candidates = Array.from(
-            document.querySelectorAll(
-                'input[role="combobox"]'
-            )
-        );
-
-        /*
-         * First try to identify the most likely dispute field
-         * using attributes that may contain "dispute".
-         */
-
-        for (const candidate of candidates) {
-            const labelText = [
-                candidate.getAttribute('aria-label'),
-                candidate.getAttribute('name'),
-                candidate.getAttribute('placeholder'),
-                candidate.getAttribute('title'),
-                candidate.getAttribute('autocomplete')
-            ]
-                .filter(Boolean)
-                .join(' ')
-                .toLowerCase();
-
-            if (labelText.includes('dispute')) {
-                return candidate;
-            }
-        }
-
-        /*
-         * If there is only one combobox on the page, it is the
-         * safest generic fallback.
-         */
-
-        if (candidates.length === 1) {
-            return candidates[0];
-        }
-
-        /*
-         * Otherwise prefer a visible combobox with a current
-         * value that looks like a dispute number.
-         */
-
-        for (const candidate of candidates) {
-            const value = (
-                candidate.value ||
-                ''
-            ).trim();
-
-            if (
-                value &&
-                (
-                    /^DISP[-\s]?\d+/i.test(value) ||
-                    /dispute/i.test(value)
-                )
-            ) {
-                return candidate;
-            }
-        }
-
-        /*
-         * Final fallback:
-         * prefer a visible autocomplete combobox.
-         */
-
-        for (const candidate of candidates) {
-            const style = window.getComputedStyle(candidate);
-            const rect = candidate.getBoundingClientRect();
-
-            const visible =
-                style.display !== 'none' &&
-                style.visibility !== 'hidden' &&
-                rect.width > 0 &&
-                rect.height > 0;
-
-            if (
-                visible &&
-                candidate.getAttribute('aria-controls')
-            ) {
-                return candidate;
-            }
-        }
-
-        return null;
-    }
-
-    /* =========================================================
-       READ DISPUTE NUMBER
-       ========================================================= */
-
-    function getDisputeNumberFromPage() {
-        const disputeInput = findDisputeCombobox();
-
-        if (!disputeInput) {
-            console.log(
-                'Dispute combobox not found. Prompt fallback will be used.'
-            );
-
-            return '';
-        }
-
-        const value = (
-            disputeInput.value ||
-            disputeInput.getAttribute('value') ||
-            ''
-        ).trim();
-
-        console.log(
-            'Dispute combobox detected:',
-            disputeInput
-        );
-
-        console.log(
-            'Dispute value detected:',
-            value
-        );
-
-        if (!value) {
-            return '';
-        }
-
-        return value;
-    }
 
     /* =========================================================
        REMOVE EXISTING POPUP
@@ -599,25 +477,10 @@
 
             if (item.needsDisp) {
 
-                /*
-                 * FIRST:
-                 * Try to read the dispute number directly
-                 * from the Angular combobox.
-                 */
-
-                let disp = getDisputeNumberFromPage();
-
-                /*
-                 * If the combobox does not contain a usable value,
-                 * keep the original prompt behavior.
-                 */
-
-                if (!disp) {
-                    disp = prompt(
-                        'Enter Dispute Number (example: DISP-6731470)',
-                        ''
-                    );
-                }
+                const disp = prompt(
+                    'Enter Dispute Number (example: DISP-6731470)',
+                    ''
+                );
 
                 if (disp === null) {
                     return;
