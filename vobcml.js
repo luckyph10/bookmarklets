@@ -197,8 +197,60 @@ if (!username || !accessKey) {
 
 
 
+(function () {
 
-  (async()=>{
+    var KEY = "commentPopupAuthorized";
+
+    if (localStorage.getItem(KEY) !== "yes") {
+
+        var pwd = document.createElement("input");
+
+        pwd.type = "password";
+        pwd.placeholder = "Enter password";
+
+        pwd.style.cssText =
+            "position:fixed;" +
+            "top:50%;" +
+            "left:50%;" +
+            "transform:translate(-50%,-50%);" +
+            "z-index:9999999;" +
+            "padding:10px;" +
+            "font-size:16px;" +
+            "border:2px solid #333;" +
+            "background:#fff;" +
+            "border-radius:6px;";
+
+        document.body.appendChild(pwd);
+
+        pwd.focus();
+
+        pwd.addEventListener("keydown", function (e) {
+
+            if (e.key === "Enter") {
+
+                if (pwd.value === "202608") {
+
+                    localStorage.setItem(KEY, "yes");
+
+                    document.body.removeChild(pwd);
+
+                    runScript();
+
+                } else {
+
+                    alert("Incorrect password");
+
+                    document.body.removeChild(pwd);
+                }
+            }
+        });
+
+        return;
+    }
+
+    runScript();
+
+    function runScript() {
 
         const el =
             document.querySelector('#ngForm > fieldset > div:nth-child(1) > div:nth-child(1) > div:nth-child(6) > textarea') ||
