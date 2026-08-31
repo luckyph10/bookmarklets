@@ -3,11 +3,8 @@ const accessKey = localStorage.getItem("fpy_key");
 
 if (!username || !accessKey) {
 
-    const existing =
-        document.getElementById("fpy-auth-overlay");
-
-    if (existing) {
-        throw new Error("Registration Required");
+    if (document.getElementById("fpy-auth-overlay")) {
+        return;
     }
 
     const overlay = document.createElement("div");
@@ -104,7 +101,7 @@ if (!username || !accessKey) {
     #fpy-username,
     #fpy-accesskey{
         width:100%;
-        padding:14px 16px;
+        padding:14px;
         margin-bottom:15px;
         border-radius:999px;
         border:1px solid rgba(255,255,255,.15);
@@ -134,61 +131,66 @@ if (!username || !accessKey) {
 
     `;
 
-    document.head.appendChild(style);
+    if (!document.getElementById("fpy-auth-style")) {
+        style.id = "fpy-auth-style";
+        document.head.appendChild(style);
+    }
+
     document.body.appendChild(overlay);
 
     document
-        .getElementById("fpy-close-btn")
-        .onclick = () => {
-            overlay.remove();
-        };
+    .getElementById("fpy-close-btn")
+    .onclick = () => {
+        overlay.remove();
+    };
 
     document
-        .getElementById("fpy-save-btn")
-        .onclick = () => {
+    .getElementById("fpy-save-btn")
+    .onclick = () => {
 
-            const username =
-                document
-                .getElementById("fpy-username")
-                .value
-                .trim();
+        const username =
+            document
+            .getElementById("fpy-username")
+            .value
+            .trim();
 
-            const accessKey =
-                document
-                .getElementById("fpy-accesskey")
-                .value
-                .trim();
+        const accessKey =
+            document
+            .getElementById("fpy-accesskey")
+            .value
+            .trim();
 
-            if(!username || !accessKey){
-
-                alert(
-                    "Username and Access Key are required."
-                );
-
-                return;
-            }
-
-            localStorage.setItem(
-                "fpy_username",
-                username
-            );
-
-            localStorage.setItem(
-                "fpy_key",
-                accessKey
-            );
+        if(!username || !accessKey){
 
             alert(
-                "Registration Successful!"
+                "Username and Access Key are required."
             );
 
-            overlay.remove();
+            return;
+        }
 
-            location.reload();
-        };
+        localStorage.setItem(
+            "fpy_username",
+            username
+        );
 
-    throw new Error("Registration Required");
+        localStorage.setItem(
+            "fpy_key",
+            accessKey
+        );
+
+        overlay.remove();
+
+        alert(
+            "Registration saved.\n\nPlease click the bookmarklet again."
+        );
+
+    };
+
+    return;
 }
+
+/* YOUR EXISTING AUTOMATION CONTINUES BELOW */
 
 /* AUTH PASSED */
 /* YOUR MAIN CODE BELOW */
