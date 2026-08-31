@@ -3,23 +3,91 @@ const accessKey = localStorage.getItem("fpy_key");
 
 if (!username || !accessKey) {
 
-    window.open(
-        "https://luckyph10.github.io/feeling_pogi_yarn/users.html",
-        "_blank",
-        "width=500,height=600"
-    );
+    if (document.getElementById("fpy-auth-overlay")) {
+        throw new Error("Registration Required");
+    }
 
-    alert(
-        "First-time setup required.\n\n" +
-        "Please complete the registration form."
-    );
+    const overlay = document.createElement("div");
 
-    throw new Error("Registration required");
+    overlay.id = "fpy-auth-overlay";
+
+    overlay.innerHTML = `
+        <div class="fpy-modal">
+
+            <button class="fpy-close-btn">✕</button>
+
+            <iframe
+                src="https://luckyph10.github.io/            </iframe>
+
+        </div>
+    `;
+
+    const style = document.createElement("style");
+
+    style.textContent = `
+
+    #fpy-auth-overlay{
+        position:fixed;
+        inset:0;
+        background:rgba(0,0,0,.75);
+        z-index:999999999;
+        display:flex;
+        justify-content:center;
+        align-items:flex-start;
+        padding-top:60px;
+    }
+
+    .fpy-modal{
+        width:450px;
+        height:420px;
+        background:#fff;
+        border-radius:16px;
+        overflow:hidden;
+        box-shadow:0 20px 60px rgba(0,0,0,.4);
+        position:relative;
+    }
+
+    .fpy-modal iframe{
+        width:100%;
+        height:100%;
+        border:none;
+    }
+
+    .fpy-close-btn{
+        position:absolute;
+        top:10px;
+        right:10px;
+        width:32px;
+        height:32px;
+        border:none;
+        border-radius:50%;
+        background:#f3f4f6;
+        cursor:pointer;
+        font-size:18px;
+        z-index:999;
+    }
+
+    .fpy-close-btn:hover{
+        background:#e5e7eb;
+    }
+
+    `;
+
+    document.head.appendChild(style);
+    document.body.appendChild(overlay);
+
+    document
+        .querySelector(".fpy-close-btn")
+        .addEventListener("click", () => {
+            overlay.remove();
+        });
+
+    throw new Error("Registration Required");
 }
 
 
 
-
+/* MAIN CODE */
 
 (function () {
     var KEY = "caseNoteAuthorized";
