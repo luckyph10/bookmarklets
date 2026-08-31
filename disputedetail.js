@@ -11,7 +11,7 @@
 
         const note = `${mm}/${dd}/${yy} VOB verified, no change to NSA jurisdiction - ALD`;
 
-        el.value = note + (el.value.trim() ? "\n" + el.value : "");
+        el.value = note + (el.value.trim() ? "\n\n" + el.value : "");
 
         el.dispatchEvent(new Event("input", { bubbles: true }));
         el.dispatchEvent(new Event("change", { bubbles: true }));
