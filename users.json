@@ -105,5 +105,10 @@ Mode: global
       "key": "OTEP001",
       "enabled": true
     }
+     {
+      "username": "Chique",
+      "key": "CHIQ001",
+      "enabled": true
+    }
   ]
 }
