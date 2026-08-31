@@ -202,7 +202,7 @@
                     Add users manually below.
                     The picker will select the requested
                     number of disputes for EACH user
-                    based on Column U.
+                    based on Column E.
                 </div>
 
                 <div id="nameList"></div>
@@ -242,7 +242,7 @@
 
                 <div id="status">
                     Add your users above, then copy your
-                    Excel data from <b>A through U</b>.
+                    Excel data from <b>A through F</b>.
                 </div>
 
                 <button
@@ -258,7 +258,7 @@
 
                 <textarea
                     id="inputData"
-                    placeholder="Paste your Excel A:U data here..."
+                    placeholder="Paste your Excel A:F data here..."
                 ></textarea>
 
                 <button
@@ -1110,11 +1110,14 @@
                 );
 
         /*
-         * Keep A:U internally.
+         * Keep A:F internally.
          *
          * A  = index 0
-         * S  = index 18
-         * U  = index 20
+         * B  = index 1
+         * C  = index 2
+         * D  = index 3
+         * E  = index 4
+         * F  = index 5
          */
 
         rows =
@@ -1124,11 +1127,11 @@
                     const r =
                         row.slice(
                             0,
-                            21
+                            6
                         );
 
                     while (
-                        r.length < 21
+                        r.length < 6
                     ) {
 
                         r.push('');
@@ -1146,7 +1149,31 @@
             rows.length > 1 &&
             /dispute/i.test(
                 String(
-                    rows[0][0] || ''
+                    rows[3] ||
+                    ''
+                )
+            )
+        ) {
+            // Header detection handled below
+        }
+
+        if (
+            rows.length > 1 &&
+            (
+                /dispute/i.test(
+                    String(
+                        rows[0][0] || ''
+                    )
+                ) ||
+                /dispute/i.test(
+                    String(
+                        rows[0][3] || ''
+                    )
+                ) ||
+                /name/i.test(
+                    String(
+                        rows[0][4] || ''
+                    )
                 )
             )
         ) {
@@ -1155,28 +1182,33 @@
         }
 
         /*
-         * Column A must contain data.
+         * Column D must contain data.
          */
 
         rows =
             rows.filter(
                 row =>
                     String(
-                        row[0] || ''
+                        row[3] || ''
                     ).trim() !== ''
             );
 
         /*
-         * Column U must contain a name.
+         * Column E must contain a name.
          */
 
         rows =
             rows.filter(
                 row =>
                     String(
-                        row[20] || ''
+                        row[4] || ''
                     ).trim() !== ''
             );
+
+        /*
+         * Column A is kept for output,
+         * but it is NOT used to group users.
+         */
 
         if (
             rows.length < 1
@@ -1326,10 +1358,15 @@
 
     function rowKey(row) {
 
+        /*
+         * Use A + D + E to identify
+         * a selected row.
+         */
+
         return [
             row[0],
-            row[18],
-            row[20]
+            row[3],
+            row[4]
         ]
             .map(
                 value =>
@@ -1435,7 +1472,7 @@
         }
 
         /*
-         * Group rows by Column U.
+         * Group rows by Column E.
          */
 
         const groups = {};
@@ -1445,7 +1482,7 @@
 
                 const actualName =
                     String(
-                        row[20] || ''
+                        row[4] || ''
                     ).trim();
 
                 const normalized =
@@ -1642,7 +1679,7 @@
         );
 
         // =====================================================
-        // COPY A, S, U
+        // COPY A, D, E
         // =====================================================
 
         const copyText =
@@ -1655,8 +1692,8 @@
 
                         return [
                             row[0],
-                            row[18],
-                            row[20]
+                            row[3],
+                            row[4]
                         ].join('\t');
                     }
                 )
@@ -1705,8 +1742,8 @@
          *
          * ONLY:
          * A
-         * S
-         * U
+         * D
+         * E
          */
 
         let html = `
@@ -1714,8 +1751,8 @@
                 <thead>
                     <tr>
                         <th>A</th>
-                        <th>S</th>
-                        <th>U</th>
+                        <th>D</th>
+                        <th>E</th>
                     </tr>
                 </thead>
 
@@ -1733,7 +1770,7 @@
 
                 const currentUser =
                     String(
-                        row[20] || ''
+                        row[4] || ''
                     ).trim();
 
                 const isNewUser =
@@ -1769,27 +1806,27 @@
                     '</td>';
 
                 /*
-                 * Column S
+                 * Column D
                  */
 
                 html +=
                     '<td>' +
                     escapeHtml(
                         String(
-                            row[18] || ''
+                            row[3] || ''
                         )
                     ) +
                     '</td>';
 
                 /*
-                 * Column U
+                 * Column E
                  */
 
                 html +=
                     '<td class="nameColumn">' +
                     escapeHtml(
                         String(
-                            row[20] || ''
+                            row[4] || ''
                         )
                     ) +
                     '</td>';
@@ -1886,8 +1923,8 @@
 
                             return [
                                 row[0],
-                                row[18],
-                                row[20]
+                                row[3],
+                                row[4]
                             ].join('\t');
                         }
                     )
@@ -2112,6 +2149,6 @@
 
     status.innerHTML =
         '✅ Ready.<br>' +
-        'Add your users manually above, then load your A:U data.';
+        'Add your users manually above, then load your A:F data.';
 
 })();
