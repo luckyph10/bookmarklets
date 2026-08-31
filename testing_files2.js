@@ -1,611 +1,2100 @@
-
 (function () {
+    'use strict';
 
-    /* =========================================================
-       FIND COMMENT TEXTBOX
-       ========================================================= */
+    // =========================================================
+    // BOOKMARKLET COMPATIBILITY
+    // =========================================================
 
-    let el = document.querySelector(
-        '#ngForm > fieldset > div:nth-child(1) > div:nth-child(1) > div:nth-child(6) > textarea'
-    );
+    const GMStoragePrefix = '__vob_picker__';
 
-    /*
-     * FALLBACK:
-     * Find the actual Comments textarea by its elements/attributes.
-     *
-     * Example:
-     *
-     * <textarea
-     *     name="comments"
-     *     aria-label="Comments"
-     *     rows="4"
-     *     title="Comments"
-     *     class="form-control form-control-sm ..."
-     * >
-     * </textarea>
-     */
-
-    if (!el) {
-        el = document.querySelector(
-            'textarea[name="comments"][aria-label="Comments"][title="Comments"]'
-        );
-    }
-
-    if (!el) {
-        el = document.querySelector(
-            'textarea[name="comments"][aria-label="Comments"]'
-        );
-    }
-
-    if (!el) {
-        el = document.querySelector(
-            'textarea[name="comments"][title="Comments"]'
-        );
-    }
-
-    if (!el) {
-        el = document.querySelector(
-            'textarea[aria-label="Comments"][title="Comments"]'
-        );
-    }
-
-    if (!el) {
-        el = document.querySelector(
-            'textarea[name="comments"]'
-        );
-    }
-
-    if (!el) {
-        el = document.querySelector(
-            'textarea[aria-label="Comments"]'
-        );
-    }
-
-    if (!el) {
-        el = document.querySelector(
-            'textarea[title="Comments"]'
-        );
-    }
-
-    if (!el) {
-        console.error('Comment textbox not found');
-        return;
-    }
-
-    console.log('Comment textbox found:', el);
-
-    /* =========================================================
-       COMMENT LIST
-       ========================================================= */
-
-    const items = [
-        {
-            header: true,
-            text: 'REVIEW'
-        },
-        {
-            header: false,
-            text: 'Reviewed, no action required'
-        },
-        {
-            header: false,
-            text: 'Reviewed. Eligible. IDR Initiation document attached'
-        },
-        {
-            header: false,
-            text: 'VOB verified, no change to NSA jurisdiction'
-        },
-
-        {
-            header: true,
-            text: 'BATCH CASE DIFFERENT PLAN TYPE'
-        },
-        {
-            header: false,
-            text: 'Plan type review'
-        },
-        {
-            header: false,
-            text: 'Self-Funded NSA eligible - Plan type review'
-        },
-        {
-            header: false,
-            text: 'Balanced Funding NSA eligible - Plan type review'
-        },
-        {
-            header: false,
-            text: 'Fully Insured NSA eligible - Plan type review'
-        },
-        {
-            header: false,
-            text: 'Fully Insured (Opt In) NSA eligible - Plan type review'
-        },
-        {
-            header: false,
-            text: 'Exchange/Marketplace NSA eligible - Plan type review'
-        },
-        {
-            header: false,
-            text: 'Fully Insured BlueCard NSA eligible - Plan type review'
-        },
-        {
-            header: false,
-            text: 'VOB pending. Verified, no evidence'
-        },
-        {
-            header: false,
-            text: 'Additional Information Requested'
-        },
-
-        {
-            header: true,
-            text: 'CLOSURE/CLOSED'
-        },
-        {
-            header: false,
-            text: 'Email sent for closure'
-        },
-        {
-            header: false,
-            text: 'Arbit ID AppID - Ineligible, closure has been verified'
-        },
-        {
-            header: false,
-            text: 'IDRE sent email. DISP-XXXX has been closed',
-            needsDisp: true
-        }
-    ];
-
-    /* =========================================================
-       PHILIPPINE TIME / DATE
-       ========================================================= */
-
-    const PH_TIMEZONE = 'Asia/Manila';
-
-    /*
-     * Get TODAY'S date based on Philippine Time.
-     *
-     * IMPORTANT:
-     * This uses Asia/Manila and does NOT use the computer's
-     * local timezone.
-     *
-     * Example:
-     *
-     * Philippine date = August 20, 2026
-     * Result = 08/20/26
-     *
-     * There is NO +1 day.
-     */
-
-    function getTodayPHDate() {
-        const parts = new Intl.DateTimeFormat('en-US', {
-            timeZone: PH_TIMEZONE,
-            year: 'numeric',
-            month: '2-digit',
-            day: '2-digit'
-        }).formatToParts(new Date());
-
-        const result = {};
-
-        parts.forEach(function (part) {
-            if (part.type !== 'literal') {
-                result[part.type] = part.value;
-            }
-        });
-
-        const mm = String(result.month).padStart(2, '0');
-        const dd = String(result.day).padStart(2, '0');
-        const yy = String(result.year).slice(-2);
-
-        return mm + '/' + dd + '/' + yy;
-    }
-
-    /*
-     * Get the current Philippine date/time for debugging.
-     *
-     * You can see this in the browser console.
-     */
-
-    function getCurrentPHDateTime() {
-        return new Intl.DateTimeFormat('en-US', {
-            timeZone: PH_TIMEZONE,
-            year: 'numeric',
-            month: '2-digit',
-            day: '2-digit',
-            hour: '2-digit',
-            minute: '2-digit',
-            second: '2-digit',
-            hour12: true
-        }).format(new Date());
-    }
-
-    console.log(
-        'Current Philippine Date/Time:',
-        getCurrentPHDateTime()
-    );
-
-    console.log(
-        'Automatic Comment Date:',
-        getTodayPHDate()
-    );
-
-    /* =========================================================
-       REMOVE EXISTING POPUP
-       ========================================================= */
-
-    const old = document.getElementById(
-        'afCommentPopup'
-    );
-
-    if (old) {
-        old.remove();
-    }
-
-    /* =========================================================
-       CREATE POPUP
-       ========================================================= */
-
-    const popup = document.createElement('div');
-
-    popup.id = 'afCommentPopup';
-
-    popup.style.cssText =
-        'position:fixed;' +
-        'top:50%;' +
-        'left:50%;' +
-        'transform:translate(-50%,-50%);' +
-        'width:1100px;' +
-        'max-width:95vw;' +
-        'max-height:85vh;' +
-        'overflow:auto;' +
-        'background:rgba(0,0,0,.75);' +
-        'border:4px solid #fff;' +
-        'padding:15px;' +
-        'z-index:9999999;' +
-        'font-family:Arial,sans-serif;' +
-        'border-radius:10px;' +
-        'box-shadow:0 0 25px rgba(0,0,0,.6);' +
-        'color:#fff;';
-
-    popup.innerHTML =
-        '<div style="' +
-        'font-size:30px;' +
-        'font-weight:bold;' +
-        'color:#fff;' +
-        'text-align:center;' +
-        'margin-bottom:15px;' +
-        '">' +
-        'Plan Type Comment List' +
-        '</div>';
-
-    /* =========================================================
-       INITIALS
-       ========================================================= */
-
-    const initialsWrap = document.createElement('div');
-
-    initialsWrap.style.cssText =
-        'position:absolute;' +
-        'top:10px;' +
-        'left:10px;' +
-        'display:flex;' +
-        'align-items:center;' +
-        'gap:5px;';
-
-    const initialsInput = document.createElement('input');
-
-    initialsInput.type = 'text';
-    initialsInput.placeholder = 'Initials';
-    initialsInput.maxLength = 10;
-
-    initialsInput.value =
-        localStorage.getItem('afCommentInitials') || '';
-
-    initialsInput.style.cssText =
-        'width:80px;' +
-        'padding:6px;' +
-        'border:1px solid #fff;' +
-        'border-radius:4px;' +
-        'font-weight:bold;' +
-        'text-transform:uppercase;' +
-        'background:rgba(0,0,0,.5);' +
-        'color:#fff;';
-
-    const saveBtn = document.createElement('button');
-
-    saveBtn.textContent = 'Save';
-
-    saveBtn.style.cssText =
-        'padding:6px 10px;' +
-        'background:#1976d2;' +
-        'color:#fff;' +
-        'border:none;' +
-        'border-radius:4px;' +
-        'cursor:pointer;' +
-        'font-weight:bold;';
-
-    saveBtn.onclick = function () {
-        const val =
-            initialsInput.value
-                .trim()
-                .toUpperCase();
-
-        if (!val) {
-            console.error(
-                'Enter your initials first.'
+    function GM_getValue(key, defaultValue) {
+        try {
+            const raw = localStorage.getItem(
+                GMStoragePrefix + key
             );
 
-            initialsInput.focus();
+            if (raw === null) {
+                return defaultValue;
+            }
+
+            return JSON.parse(raw);
+        } catch (e) {
+            return defaultValue;
+        }
+    }
+
+    function GM_setValue(key, value) {
+        try {
+            localStorage.setItem(
+                GMStoragePrefix + key,
+                JSON.stringify(value)
+            );
+        } catch (e) {}
+    }
+
+    function GM_setClipboard(text) {
+        try {
+            if (
+                navigator.clipboard &&
+                typeof navigator.clipboard.writeText === 'function'
+            ) {
+                navigator.clipboard
+                    .writeText(String(text))
+                    .catch(() => {});
+            }
+        } catch (e) {}
+    }
+
+    // =========================================================
+    // SETTINGS
+    // =========================================================
+
+    const STORAGE_KEY_NAMES = 'vob_allowed_names_manual_v5';
+    const STORAGE_KEY_COUNT = 'vob_pick_count_v5';
+
+    /*
+     * NO DEFAULT NAMES.
+     * Names are added manually from the UI.
+     */
+
+    let allowedNames = loadNames();
+    let pickCount = loadPickCount();
+
+    let tableData = [];
+    let lastSelected = [];
+
+    // =========================================================
+    // PREVENT DUPLICATE PANEL
+    // =========================================================
+
+    const existingPanel =
+        document.getElementById('vobPicker');
+
+    if (existingPanel) {
+        existingPanel.remove();
+    }
+
+    const existingStyle =
+        document.getElementById('vobPickerStyle');
+
+    if (existingStyle) {
+        existingStyle.remove();
+    }
+
+    // =========================================================
+    // STORAGE
+    // =========================================================
+
+    function loadNames() {
+        try {
+            const saved = GM_getValue(
+                STORAGE_KEY_NAMES,
+                []
+            );
+
+            if (
+                Array.isArray(saved)
+            ) {
+                return saved;
+            }
+        } catch (e) {}
+
+        return [];
+    }
+
+    function saveNames() {
+        try {
+            GM_setValue(
+                STORAGE_KEY_NAMES,
+                allowedNames
+            );
+        } catch (e) {}
+    }
+
+    function loadPickCount() {
+        try {
+            const saved = Number(
+                GM_getValue(
+                    STORAGE_KEY_COUNT,
+                    3
+                )
+            );
+
+            if (
+                Number.isInteger(saved) &&
+                saved >= 1
+            ) {
+                return saved;
+            }
+        } catch (e) {}
+
+        return 3;
+    }
+
+    function savePickCount() {
+        try {
+            GM_setValue(
+                STORAGE_KEY_COUNT,
+                pickCount
+            );
+        } catch (e) {}
+    }
+
+    // =========================================================
+    // PANEL
+    // =========================================================
+
+    const panel =
+        document.createElement('div');
+
+    panel.id = 'vobPicker';
+
+    panel.innerHTML = `
+        <div id="vobHeader">
+            <span>🎲 VOB RANDOM PICKER</span>
+
+            <div style="float:right;">
+                <button id="vobMin">−</button>
+                <button id="vobClose">×</button>
+            </div>
+        </div>
+
+        <div id="vobBody">
+
+            <!-- COUNT -->
+            <div class="section">
+
+                <div class="title">
+                    🔢 HOW MANY DISPUTES PER USER?
+                </div>
+
+                <div class="countRow">
+
+                    <input
+                        id="pickCount"
+                        type="number"
+                        min="1"
+                        value="${pickCount}"
+                    />
+
+                    <button id="saveCount">
+                        SAVE
+                    </button>
+
+                </div>
+
+                <div class="hint">
+                    This number is PER USER.
+                    Example: 3 means 3 random disputes
+                    for every allowed name.
+                </div>
+
+            </div>
+
+            <!-- NAMES -->
+            <div class="section">
+
+                <div class="title">
+                    👤 ALLOWED NAMES
+                </div>
+
+                <div class="hint">
+                    Add users manually below.
+                    The picker will select the requested
+                    number of disputes for EACH user
+                    based on Column E.
+                </div>
+
+                <div id="nameList"></div>
+
+                <div class="addRow">
+
+                    <input
+                        id="newName"
+                        type="text"
+                        placeholder="Type user name..."
+                    />
+
+                    <button id="addName">
+                        + ADD
+                    </button>
+
+                </div>
+
+                <div class="nameActions">
+
+                    <button id="saveNames">
+                        💾 SAVE NAMES
+                    </button>
+
+                    <button id="clearNames">
+                        🗑 CLEAR ALL
+                    </button>
+
+                </div>
+
+            </div>
+
+            <hr>
+
+            <!-- DATA -->
+            <div class="section">
+
+                <div id="status">
+                    Add your users above, then copy your
+                    Excel data from <b>A through F</b>.
+                </div>
+
+                <button
+                    id="capture"
+                    class="button blue"
+                >
+                    📋 CAPTURE CLIPBOARD
+                </button>
+
+                <div class="hint">
+                    Or paste the copied Excel data below.
+                </div>
+
+                <textarea
+                    id="inputData"
+                    placeholder="Paste your Excel A:F data here..."
+                ></textarea>
+
+                <button
+                    id="usePaste"
+                    class="button gray"
+                >
+                    📥 USE PASTED DATA
+                </button>
+
+                <div id="loaded"></div>
+
+            </div>
+
+            <hr>
+
+            <!-- RESULTS -->
+            <div id="results"></div>
+
+            <!-- ACTIONS -->
+            <div class="actions">
+
+                <button
+                    id="pick"
+                    class="button green"
+                    disabled
+                >
+                    🎲 PICK
+                </button>
+
+                <button
+                    id="again"
+                    class="button orange"
+                    disabled
+                >
+                    🔄 TRY AGAIN
+                </button>
+
+                <button
+                    id="copy"
+                    class="button gray"
+                    disabled
+                >
+                    📋 COPY AGAIN
+                </button>
+
+            </div>
+
+        </div>
+    `;
+
+    document.body.appendChild(panel);
+
+    // =========================================================
+    // CSS
+    // =========================================================
+
+    const style =
+        document.createElement('style');
+
+    style.id = 'vobPickerStyle';
+
+    style.textContent = `
+
+        #vobPicker {
+            position: fixed;
+            top: 60px;
+            right: 20px;
+
+            width: 900px;
+            max-width: 95vw;
+
+            max-height: 92vh;
+
+            z-index: 2147483647;
+
+            background: rgba(0,0,0,0.82);
+
+            color: white;
+
+            border:
+                1px solid
+                rgba(255,255,255,.25);
+
+            border-radius: 14px;
+
+            box-shadow:
+                0 15px 60px
+                rgba(0,0,0,.65);
+
+            font-family:
+                Arial,
+                Helvetica,
+                sans-serif;
+        }
+
+        #vobHeader {
+
+            background:
+                rgba(0,0,0,.55);
+
+            padding: 14px 16px;
+
+            font-size: 17px;
+
+            font-weight: bold;
+
+            border-radius:
+                14px 14px 0 0;
+
+            cursor: move;
+
+            border-bottom:
+                1px solid
+                rgba(255,255,255,.15);
+        }
+
+        #vobHeader button {
+
+            width: 28px;
+            height: 28px;
+
+            border: 0;
+
+            border-radius: 6px;
+
+            background:
+                rgba(255,255,255,.85);
+
+            color: black;
+
+            font-size: 18px;
+
+            font-weight: bold;
+
+            cursor: pointer;
+        }
+
+        #vobBody {
+
+            padding: 16px;
+
+            max-height: 84vh;
+
+            overflow-y: auto;
+        }
+
+        .section {
+            margin-bottom: 14px;
+        }
+
+        .title {
+
+            font-size: 15px;
+
+            font-weight: bold;
+
+            margin-bottom: 8px;
+        }
+
+        .hint {
+
+            font-size: 12px;
+
+            color:
+                rgba(255,255,255,.72);
+
+            margin:
+                6px 0 10px;
+
+            line-height: 1.45;
+        }
+
+        .countRow {
+
+            display: flex;
+
+            gap: 8px;
+        }
+
+        #pickCount {
+
+            width: 100px;
+
+            padding: 9px;
+
+            border-radius: 7px;
+
+            border:
+                1px solid
+                rgba(255,255,255,.4);
+
+            background:
+                rgba(255,255,255,.12);
+
+            color: white;
+
+            font-size: 15px;
+
+            font-weight: bold;
+        }
+
+        #pickCount:focus {
+            outline: 2px solid white;
+        }
+
+        #nameList {
+
+            border:
+                1px solid
+                rgba(255,255,255,.2);
+
+            background:
+                rgba(0,0,0,.3);
+
+            border-radius: 8px;
+
+            padding: 8px;
+
+            max-height: 220px;
+
+            overflow-y: auto;
+
+            min-height: 42px;
+        }
+
+        .nameItem {
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 8px;
+
+            padding: 7px;
+
+            margin-bottom: 5px;
+
+            border-radius: 6px;
+
+            background:
+                rgba(255,255,255,.1);
+        }
+
+        .nameItem:last-child {
+            margin-bottom: 0;
+        }
+
+        .nameText {
+
+            flex: 1;
+
+            font-weight: 600;
+        }
+
+        .removeName {
+
+            border: 0;
+
+            border-radius: 5px;
+
+            padding: 5px 9px;
+
+            background: white;
+
+            color: black;
+
+            cursor: pointer;
+
+            font-weight: bold;
+        }
+
+        .emptyNames {
+
+            padding: 10px;
+
+            text-align: center;
+
+            color:
+                rgba(255,255,255,.6);
+
+            font-size: 12px;
+        }
+
+        .addRow {
+
+            display: flex;
+
+            gap: 7px;
+
+            margin-top: 8px;
+        }
+
+        #newName {
+
+            flex: 1;
+
+            padding: 9px;
+
+            border-radius: 6px;
+
+            border:
+                1px solid
+                rgba(255,255,255,.3);
+
+            background:
+                rgba(255,255,255,.1);
+
+            color: white;
+        }
+
+        #newName::placeholder {
+
+            color:
+                rgba(255,255,255,.6);
+        }
+
+        #newName:focus {
+
+            outline: 2px solid white;
+        }
+
+        .nameActions {
+
+            margin-top: 8px;
+        }
+
+        .nameActions button,
+        #saveCount {
+
+            border: 0;
+
+            border-radius: 6px;
+
+            padding: 8px 12px;
+
+            background: white;
+
+            color: black;
+
+            cursor: pointer;
+
+            font-weight: bold;
+
+            margin-right: 5px;
+        }
+
+        #status {
+
+            padding: 10px;
+
+            border-radius: 8px;
+
+            background:
+                rgba(255,255,255,.09);
+
+            line-height: 1.5;
+
+            margin-bottom: 10px;
+        }
+
+        #inputData {
+
+            width: 100%;
+
+            height: 100px;
+
+            box-sizing: border-box;
+
+            resize: vertical;
+
+            padding: 8px;
+
+            border-radius: 7px;
+
+            border:
+                1px solid
+                rgba(255,255,255,.3);
+
+            background:
+                rgba(255,255,255,.08);
+
+            color: white;
+
+            font-family: monospace;
+
+            font-size: 12px;
+        }
+
+        #inputData::placeholder {
+
+            color:
+                rgba(255,255,255,.5);
+        }
+
+        .button {
+
+            border: 0;
+
+            border-radius: 7px;
+
+            padding: 10px 15px;
+
+            margin: 5px 4px 5px 0;
+
+            cursor: pointer;
+
+            background: white;
+
+            color: black;
+
+            font-weight: bold;
+
+            box-shadow:
+                0 2px 5px
+                rgba(0,0,0,.25);
+        }
+
+        .button:disabled {
+
+            opacity: .35;
+
+            cursor: not-allowed;
+        }
+
+        .blue,
+        .green,
+        .orange,
+        .gray {
+
+            background: white;
+
+            color: black;
+        }
+
+        #loaded {
+
+            margin-top: 8px;
+
+            font-weight: bold;
+        }
+
+        .success {
+
+            color: #7CFF9A;
+
+            font-weight: bold;
+        }
+
+        .error {
+
+            color: #FF7676;
+
+            font-weight: bold;
+        }
+
+        #results {
+
+            overflow: auto;
+
+            max-height: 430px;
+
+            margin-top: 10px;
+        }
+
+        #results table {
+
+            border-collapse: collapse;
+
+            width: 100%;
+
+            font-size: 11px;
+
+            background:
+                rgba(255,255,255,.04);
+        }
+
+        #results th {
+
+            background:
+                rgba(255,255,255,.18);
+
+            color: white;
+
+            position: sticky;
+
+            top: 0;
+
+            z-index: 2;
+        }
+
+        #results th,
+        #results td {
+
+            border:
+                1px solid
+                rgba(255,255,255,.2);
+
+            padding: 6px;
+
+            vertical-align: top;
+
+            white-space: pre-wrap;
+
+            color: white;
+        }
+
+        #results td:first-child {
+
+            font-weight: bold;
+        }
+
+        .nameColumn {
+
+            background:
+                rgba(255,230,120,.18);
+
+            font-weight: bold;
+        }
+
+        .selectedRow {
+
+            background:
+                rgba(255,255,255,.07);
+        }
+
+        .userSeparator {
+
+            border-top:
+                3px solid
+                rgba(255,255,255,.25);
+        }
+
+        hr {
+
+            border: 0;
+
+            border-top:
+                1px solid
+                rgba(255,255,255,.15);
+
+            margin: 14px 0;
+        }
+
+    `;
+
+    document.head.appendChild(style);
+
+    // =========================================================
+    // ELEMENTS
+    // =========================================================
+
+    const nameList =
+        document.getElementById('nameList');
+
+    const newName =
+        document.getElementById('newName');
+
+    const status =
+        document.getElementById('status');
+
+    const inputData =
+        document.getElementById('inputData');
+
+    const loaded =
+        document.getElementById('loaded');
+
+    const pickCountInput =
+        document.getElementById('pickCount');
+
+    const capture =
+        document.getElementById('capture');
+
+    const usePaste =
+        document.getElementById('usePaste');
+
+    const pick =
+        document.getElementById('pick');
+
+    const again =
+        document.getElementById('again');
+
+    const copy =
+        document.getElementById('copy');
+
+    const results =
+        document.getElementById('results');
+
+    // =========================================================
+    // RENDER NAMES
+    // =========================================================
+
+    function renderNameList() {
+
+        nameList.innerHTML = '';
+
+        if (
+            allowedNames.length === 0
+        ) {
+
+            nameList.innerHTML = `
+                <div class="emptyNames">
+                    No users added yet.
+                    Type a name below and click + ADD.
+                </div>
+            `;
 
             return;
         }
 
-        localStorage.setItem(
-            'afCommentInitials',
-            val
+        allowedNames.forEach(
+            (name, index) => {
+
+                const item =
+                    document.createElement(
+                        'div'
+                    );
+
+                item.className =
+                    'nameItem';
+
+                item.innerHTML = `
+                    <div class="nameText">
+                        ${escapeHtml(name)}
+                    </div>
+
+                    <button
+                        class="removeName"
+                        data-index="${index}">
+                        REMOVE
+                    </button>
+                `;
+
+                item
+                    .querySelector('.removeName')
+                    .addEventListener(
+                        'click',
+                        function () {
+
+                            allowedNames.splice(
+                                index,
+                                1
+                            );
+
+                            saveNames();
+
+                            renderNameList();
+
+                        }
+                    );
+
+                nameList.appendChild(item);
+            }
+        );
+    }
+
+    // =========================================================
+    // ADD NAME
+    // =========================================================
+
+    document
+        .getElementById('addName')
+        .addEventListener(
+            'click',
+            function () {
+
+                const name =
+                    newName.value.trim();
+
+                if (!name) {
+                    return;
+                }
+
+                const exists =
+                    allowedNames.some(
+                        x =>
+                            normalizeName(x) ===
+                            normalizeName(name)
+                    );
+
+                if (exists) {
+
+                    alert(
+                        'That name is already in the list.'
+                    );
+
+                    return;
+                }
+
+                allowedNames.push(name);
+
+                saveNames();
+
+                newName.value = '';
+
+                renderNameList();
+
+                status.innerHTML =
+                    '<span class="success">' +
+                    '✅ Added user: ' +
+                    escapeHtml(name) +
+                    '</span>';
+            }
         );
 
-        initialsInput.value = val;
-    };
+    // =========================================================
+    // ENTER TO ADD NAME
+    // =========================================================
 
-    initialsWrap.appendChild(initialsInput);
-    initialsWrap.appendChild(saveBtn);
+    newName.addEventListener(
+        'keydown',
+        function (event) {
 
-    popup.appendChild(initialsWrap);
+            if (event.key === 'Enter') {
 
-    /* =========================================================
-       CLOSE BUTTON
-       ========================================================= */
+                event.preventDefault();
 
-    const topClose = document.createElement('button');
+                document
+                    .getElementById('addName')
+                    .click();
+            }
+        }
+    );
 
-    topClose.textContent = '✕';
+    // =========================================================
+    // CLEAR ALL NAMES
+    // =========================================================
 
-    topClose.style.cssText =
-        'position:absolute;' +
-        'top:10px;' +
-        'right:10px;' +
-        'width:40px;' +
-        'height:40px;' +
-        'background:#000;' +
-        'color:#fff;' +
-        'border:none;' +
-        'border-radius:6px;' +
-        'font-size:22px;' +
-        'font-weight:bold;' +
-        'cursor:pointer;';
+    document
+        .getElementById('clearNames')
+        .addEventListener(
+            'click',
+            function () {
 
-    topClose.onclick = function () {
-        popup.remove();
-    };
+                if (
+                    allowedNames.length === 0
+                ) {
+                    return;
+                }
 
-    popup.appendChild(topClose);
+                if (
+                    !confirm(
+                        'Remove all users from the list?'
+                    )
+                ) {
+                    return;
+                }
 
-    /* =========================================================
-       COMMENT BUTTONS
-       ========================================================= */
+                allowedNames = [];
 
-    items.forEach(function (item) {
+                saveNames();
 
-        /* =====================================================
-           HEADER
-           ===================================================== */
+                renderNameList();
 
-        if (item.header) {
-            const h = document.createElement('div');
+                status.innerHTML =
+                    '<span class="success">' +
+                    '✅ All users removed.' +
+                    '</span>';
 
-            h.textContent = item.text;
+            }
+        );
 
-            h.style.cssText =
-                'background:#1976d2;' +
-                'color:#fff;' +
-                'font-weight:bold;' +
-                'font-size:20px;' +
-                'text-align:center;' +
-                'padding:10px;' +
-                'margin:10px 0 5px;' +
-                'border-radius:6px;';
+    // =========================================================
+    // SAVE NAMES
+    // =========================================================
 
-            popup.appendChild(h);
+    document
+        .getElementById('saveNames')
+        .addEventListener(
+            'click',
+            function () {
+
+                saveNames();
+
+                status.innerHTML =
+                    '<span class="success">' +
+                    '✅ Saved ' +
+                    allowedNames.length +
+                    ' users.' +
+                    '</span>';
+            }
+        );
+
+    // =========================================================
+    // SAVE COUNT
+    // =========================================================
+
+    document
+        .getElementById('saveCount')
+        .addEventListener(
+            'click',
+            function () {
+
+                let count =
+                    parseInt(
+                        pickCountInput.value,
+                        10
+                    );
+
+                if (
+                    !Number.isInteger(count) ||
+                    count < 1
+                ) {
+
+                    count = 3;
+
+                    pickCountInput.value = 3;
+                }
+
+                pickCount =
+                    count;
+
+                savePickCount();
+
+                status.innerHTML =
+                    '<span class="success">' +
+                    '✅ Disputes per user saved: ' +
+                    pickCount +
+                    '</span>';
+            }
+        );
+
+    // =========================================================
+    // PARSE EXCEL
+    // =========================================================
+
+    function parseExcelData(text) {
+
+        if (
+            !text ||
+            !text.trim()
+        ) {
+
+            throw new Error(
+                'No Excel data was found.'
+            );
+        }
+
+        let rows =
+            text
+                .replace(/\r/g, '')
+                .split('\n')
+                .filter(
+                    x =>
+                        x.trim() !== ''
+                )
+                .map(
+                    x =>
+                        x.split('\t')
+                );
+
+        /*
+         * Keep A:F internally.
+         *
+         * A  = index 0
+         * D  = index 3
+         * E  = index 4
+         * F  = index 5
+         */
+
+        rows =
+            rows.map(
+                row => {
+
+                    const r =
+                        row.slice(
+                            0,
+                            6
+                        );
+
+                    while (
+                        r.length < 6
+                    ) {
+
+                        r.push('');
+                    }
+
+                    return r;
+                }
+            );
+
+        /*
+         * Remove header.
+         */
+
+        if (
+            rows.length > 1 &&
+            /dispute/i.test(
+                String(
+                    rows[0][3] || ''
+                )
+            )
+        ) {
+
+            rows.shift();
+        }
+
+        /*
+         * Column D must contain data.
+         */
+
+        rows =
+            rows.filter(
+                row =>
+                    String(
+                        row[3] || ''
+                    ).trim() !== ''
+            );
+
+        /*
+         * Column E must contain a name.
+         */
+
+        rows =
+            rows.filter(
+                row =>
+                    String(
+                        row[4] || ''
+                    ).trim() !== ''
+            );
+
+        if (
+            rows.length < 1
+        ) {
+
+            throw new Error(
+                'No usable dispute rows found.'
+            );
+        }
+
+        return rows;
+    }
+
+    // =========================================================
+    // LOAD DATA
+    // =========================================================
+
+    function loadData(text) {
+
+        try {
+
+            tableData =
+                parseExcelData(text);
+
+            loaded.innerHTML =
+                '<span class="success">' +
+                '✅ ' +
+                tableData.length +
+                ' dispute rows loaded.' +
+                '</span>';
+
+            pick.disabled =
+                allowedNames.length === 0;
+
+            status.innerHTML =
+                'Data loaded. ' +
+                'Disputes per user: <b>' +
+                pickCount +
+                '</b>.<br>' +
+                'Users configured: <b>' +
+                allowedNames.length +
+                '</b>.';
+
+        } catch (error) {
+
+            tableData = [];
+
+            loaded.innerHTML =
+                '<span class="error">' +
+                '❌ ' +
+                escapeHtml(
+                    error.message
+                ) +
+                '</span>';
+
+            pick.disabled =
+                true;
+
+            again.disabled =
+                true;
+
+            copy.disabled =
+                true;
+        }
+    }
+
+    // =========================================================
+    // CAPTURE CLIPBOARD
+    // =========================================================
+
+    capture.addEventListener(
+        'click',
+        async function () {
+
+            try {
+
+                const text =
+                    await navigator
+                        .clipboard
+                        .readText();
+
+                loadData(
+                    text
+                );
+
+            } catch (e) {
+
+                status.innerHTML =
+                    '<span class="error">' +
+                    '❌ Clipboard access blocked.' +
+                    '</span><br>' +
+                    'Paste the Excel data into the box below.';
+            }
+        }
+    );
+
+    // =========================================================
+    // MANUAL PASTE
+    // =========================================================
+
+    usePaste.addEventListener(
+        'click',
+        function () {
+
+            loadData(
+                inputData.value
+            );
+        }
+    );
+
+    // =========================================================
+    // SHUFFLE
+    // =========================================================
+
+    function shuffleArray(array) {
+
+        const copy =
+            [...array];
+
+        for (
+            let i = copy.length - 1;
+            i > 0;
+            i--
+        ) {
+
+            const j =
+                Math.floor(
+                    Math.random() *
+                    (i + 1)
+                );
+
+            [
+                copy[i],
+                copy[j]
+            ] = [
+                copy[j],
+                copy[i]
+            ];
+        }
+
+        return copy;
+    }
+
+    // =========================================================
+    // ROW KEY
+    // =========================================================
+
+    function rowKey(row) {
+
+        return [
+            row[3],
+            row[4]
+        ]
+            .map(
+                value =>
+                    String(
+                        value || ''
+                    )
+            )
+            .join('\t');
+    }
+
+    // =========================================================
+    // SAME SELECTION
+    // =========================================================
+
+    function sameSelection(a, b) {
+
+        if (
+            a.length !==
+            b.length
+        ) {
+            return false;
+        }
+
+        const aKeys =
+            a
+                .map(
+                    item =>
+                        rowKey(
+                            item.row
+                        )
+                )
+                .sort();
+
+        const bKeys =
+            b
+                .map(
+                    item =>
+                        rowKey(
+                            item.row
+                        )
+                )
+                .sort();
+
+        return (
+            aKeys.join('|') ===
+            bKeys.join('|')
+        );
+    }
+
+    // =========================================================
+    // RANDOM PICK
+    // =========================================================
+
+    function pickDisputes() {
+
+        /*
+         * Make sure there are users.
+         */
+
+        if (
+            allowedNames.length === 0
+        ) {
+
+            status.innerHTML =
+                '<span class="error">' +
+                '❌ Please add at least one user first.' +
+                '</span>';
 
             return;
         }
 
-        /* =====================================================
-           COMMENT BUTTON
-           ===================================================== */
+        /*
+         * Save count.
+         */
 
-        const btn = document.createElement('button');
+        let count =
+            parseInt(
+                pickCountInput.value,
+                10
+            );
 
-        btn.textContent = item.text;
+        if (
+            !Number.isInteger(count) ||
+            count < 1
+        ) {
 
-        btn.style.cssText =
-            'display:block;' +
-            'width:100%;' +
-            'text-align:left;' +
-            'margin:5px 0;' +
-            'padding:12px;' +
-            'border:2px solid #fff;' +
-            'border-radius:6px;' +
-            'background:rgba(0,0,0,.45);' +
-            'cursor:pointer;' +
-            'font-weight:bold;' +
-            'font-size:18px;' +
-            'line-height:1.5;' +
-            'color:#fff;' +
-            'transition:background .15s ease;';
+            count = 3;
 
-        btn.onmouseover = function () {
-            this.style.background = '#003366';
-        };
+            pickCountInput.value =
+                3;
 
-        btn.onmouseout = function () {
-            this.style.background =
-                'rgba(0,0,0,.45)';
-        };
+            pickCount =
+                3;
 
-        btn.onclick = function () {
+            savePickCount();
 
-            /* =================================================
-               INITIALS ARE REQUIRED
-               ================================================= */
+        } else {
 
-            const initials =
-                (
-                    localStorage.getItem(
-                        'afCommentInitials'
-                    ) || ''
-                )
-                    .trim()
-                    .toUpperCase();
+            pickCount =
+                count;
 
-            if (!initials) {
-                console.error(
-                    'Your initials are not set yet. Please enter your initials and click Save before adding a comment.'
+            savePickCount();
+        }
+
+        /*
+         * Group rows by Column E.
+         */
+
+        const groups = {};
+
+        tableData.forEach(
+            row => {
+
+                const actualName =
+                    String(
+                        row[4] || ''
+                    ).trim();
+
+                const normalized =
+                    normalizeName(
+                        actualName
+                    );
+
+                if (
+                    !groups[normalized]
+                ) {
+
+                    groups[normalized] =
+                        [];
+                }
+
+                groups[normalized]
+                    .push(row);
+            }
+        );
+
+        // =====================================================
+        // CHECK EVERY MANUALLY ADDED USER
+        // =====================================================
+
+        const missingUsers = [];
+
+        allowedNames.forEach(
+            name => {
+
+                const normalized =
+                    normalizeName(
+                        name
+                    );
+
+                const group =
+                    groups[normalized] ||
+                    [];
+
+                if (
+                    group.length <
+                    count
+                ) {
+
+                    missingUsers.push(
+                        name +
+                        ' (' +
+                        group.length +
+                        ' available)'
+                    );
+                }
+            }
+        );
+
+        /*
+         * Stop if any configured user
+         * does not have enough disputes.
+         */
+
+        if (
+            missingUsers.length > 0
+        ) {
+
+            status.innerHTML =
+                '<span class="error">' +
+                '❌ Not enough disputes for one or more users.<br><br>' +
+                'You requested <b>' +
+                count +
+                '</b> disputes per user.<br><br>' +
+                escapeHtml(
+                    missingUsers.join(
+                        ' | '
+                    )
+                ) +
+                '</span>';
+
+            return;
+        }
+
+        // =====================================================
+        // RANDOM PICK FOR EACH USER
+        // =====================================================
+
+        let selected = [];
+
+        allowedNames.forEach(
+            name => {
+
+                const normalized =
+                    normalizeName(
+                        name
+                    );
+
+                const group =
+                    groups[
+                        normalized
+                    ];
+
+                /*
+                 * Shuffle ONLY this user's rows.
+                 *
+                 * Then take exactly `count`.
+                 */
+
+                const shuffled =
+                    shuffleArray(
+                        group
+                    );
+
+                const userSelected =
+                    shuffled.slice(
+                        0,
+                        count
+                    );
+
+                userSelected.forEach(
+                    row => {
+
+                        selected.push({
+                            row: row
+                        });
+                    }
                 );
+            }
+        );
 
-                initialsInput.focus();
+        // =====================================================
+        // TRY AGAIN
+        // =====================================================
+
+        let attempts = 0;
+
+        while (
+            lastSelected.length > 0 &&
+            sameSelection(
+                selected,
+                lastSelected
+            ) &&
+            attempts < 100
+        ) {
+
+            selected = [];
+
+            allowedNames.forEach(
+                name => {
+
+                    const normalized =
+                        normalizeName(
+                            name
+                        );
+
+                    const group =
+                        groups[
+                            normalized
+                        ];
+
+                    const shuffled =
+                        shuffleArray(
+                            group
+                        );
+
+                    const userSelected =
+                        shuffled.slice(
+                            0,
+                            count
+                        );
+
+                    userSelected.forEach(
+                        row => {
+
+                            selected.push({
+                                row: row
+                            });
+                        }
+                    );
+                }
+            );
+
+            attempts++;
+        }
+
+        // =====================================================
+        // SAVE
+        // =====================================================
+
+        lastSelected =
+            selected;
+
+        // =====================================================
+        // SHOW
+        // =====================================================
+
+        showResults(
+            selected
+        );
+
+        // =====================================================
+        // COPY D, E
+        // =====================================================
+
+        const copyText =
+            selected
+                .map(
+                    item => {
+
+                        const row =
+                            item.row;
+
+                        return [
+                            row[3],
+                            row[4]
+                        ].join('\t');
+                    }
+                )
+                .join('\n');
+
+        copyToClipboard(
+            copyText
+        );
+    }
+
+    // =========================================================
+    // SHOW RESULTS
+    // =========================================================
+
+    function showResults(
+        selected
+    ) {
+
+        /*
+         * Total.
+         */
+
+        const total =
+            selected.length;
+
+        /*
+         * Status.
+         */
+
+        status.innerHTML =
+            '<b>✅ ' +
+            total +
+            ' RANDOM DISPUTES</b><br>' +
+
+            '<span class="success">' +
+            pickCount +
+            ' disputes per user × ' +
+            allowedNames.length +
+            ' users = ' +
+            total +
+            ' total' +
+            '</span>';
+
+        /*
+         * Results table.
+         *
+         * ONLY:
+         * D
+         * E
+         */
+
+        let html = `
+            <table>
+                <thead>
+                    <tr>
+                        <th>D</th>
+                        <th>E</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+        `;
+
+        let previousUser =
+            null;
+
+        selected.forEach(
+            item => {
+
+                const row =
+                    item.row;
+
+                const currentUser =
+                    String(
+                        row[4] || ''
+                    ).trim();
+
+                const isNewUser =
+                    previousUser !==
+                    null &&
+                    normalizeName(
+                        previousUser
+                    ) !==
+                    normalizeName(
+                        currentUser
+                    );
+
+                html +=
+                    '<tr' +
+                    (
+                        isNewUser
+                            ? ' class="selectedRow userSeparator"'
+                            : ' class="selectedRow"'
+                    ) +
+                    '>';
+
+                /*
+                 * Column D
+                 */
+
+                html +=
+                    '<td>' +
+                    escapeHtml(
+                        String(
+                            row[3] || ''
+                        )
+                    ) +
+                    '</td>';
+
+                /*
+                 * Column E
+                 */
+
+                html +=
+                    '<td class="nameColumn">' +
+                    escapeHtml(
+                        String(
+                            row[4] || ''
+                        )
+                    ) +
+                    '</td>';
+
+                html +=
+                    '</tr>';
+
+                previousUser =
+                    currentUser;
+            }
+        );
+
+        html += `
+                </tbody>
+            </table>
+        `;
+
+        results.innerHTML =
+            html;
+
+        again.disabled =
+            false;
+
+        copy.disabled =
+            false;
+    }
+
+    // =========================================================
+    // COPY
+    // =========================================================
+
+    function copyToClipboard(
+        text
+    ) {
+
+        try {
+
+            if (
+                typeof GM_setClipboard ===
+                'function'
+            ) {
+
+                GM_setClipboard(
+                    text,
+                    'text'
+                );
 
                 return;
             }
 
-            let finalComment = item.text;
+        } catch (e) {}
 
-            /* =================================================
-               DISPUTE NUMBER
-               ================================================= */
+        try {
 
-            if (item.needsDisp) {
+            if (
+                navigator.clipboard &&
+                typeof navigator.clipboard.writeText ===
+                    'function'
+            ) {
 
-                const disp = prompt(
-                    'Enter Dispute Number (example: DISP-6731470)',
-                    ''
-                );
-
-                if (disp === null) {
-                    return;
-                }
-
-                if (!disp.trim()) {
-                    console.error(
-                        'Dispute Number is required.'
-                    );
-
-                    return;
-                }
-
-                finalComment =
-                    finalComment.replace(
-                        'DISP-XXXX',
-                        disp.trim()
+                navigator.clipboard
+                    .writeText(
+                        text
+                    )
+                    .catch(
+                        () => {}
                     );
             }
 
-            /* =================================================
-               GET TODAY'S PHILIPPINE DATE
-               ================================================= */
+        } catch (e) {}
+    }
 
-            /*
-             * IMPORTANT:
-             *
-             * This gets TODAY in the Philippines.
-             *
-             * NO +1 DAY.
-             *
-             * If PH today is:
-             *
-             * 08/20/26
-             *
-             * the comment date will be:
-             *
-             * 08/20/26
-             */
+    // =========================================================
+    // COPY AGAIN
+    // =========================================================
 
-            const commentDate = getTodayPHDate();
+    copy.addEventListener(
+        'click',
+        function () {
 
-            /* =================================================
-               CREATE FINAL COMMENT
-               ================================================= */
+            if (
+                !lastSelected.length
+            ) {
+                return;
+            }
 
-            const note =
-                finalComment +
-                ' - ' +
-                commentDate +
-                ' - ' +
-                initials;
+            const text =
+                lastSelected
+                    .map(
+                        item => {
 
-            /* =================================================
-               INSERT COMMENT
-               ================================================= */
+                            const row =
+                                item.row;
 
-            el.value =
-                note +
-                (
-                    el.value.trim()
-                        ? '\n\n' + el.value
-                        : ''
+                            return [
+                                row[3],
+                                row[4]
+                            ].join('\t');
+                        }
+                    )
+                    .join('\n');
+
+            copyToClipboard(
+                text
+            );
+
+            status.innerHTML +=
+                '<br><span class="success">' +
+                '✅ Copied again.' +
+                '</span>';
+        }
+    );
+
+    // =========================================================
+    // PICK
+    // =========================================================
+
+    pick.addEventListener(
+        'click',
+        pickDisputes
+    );
+
+    // =========================================================
+    // TRY AGAIN
+    // =========================================================
+
+    again.addEventListener(
+        'click',
+        pickDisputes
+    );
+
+    // =========================================================
+    // NORMALIZE NAME
+    // =========================================================
+
+    function normalizeName(
+        name
+    ) {
+
+        return String(
+            name || ''
+        )
+            .replace(
+                /\s+/g,
+                ' '
+            )
+            .trim()
+            .toLowerCase();
+    }
+
+    // =========================================================
+    // ESCAPE HTML
+    // =========================================================
+
+    function escapeHtml(
+        value
+    ) {
+
+        return String(
+            value
+        )
+            .replace(
+                /&/g,
+                '&amp;'
+            )
+            .replace(
+                /</g,
+                '&lt;'
+            )
+            .replace(
+                />/g,
+                '&gt;'
+            )
+            .replace(
+                /"/g,
+                '&quot;'
+            )
+            .replace(
+                /'/g,
+                '&#039;'
+            );
+    }
+
+    // =========================================================
+    // CLOSE
+    // =========================================================
+
+    document
+        .getElementById('vobClose')
+        .onclick =
+        function () {
+
+            panel.remove();
+
+            const currentStyle =
+                document.getElementById(
+                    'vobPickerStyle'
                 );
 
-            /* =================================================
-               TRIGGER INPUT EVENT
-               ================================================= */
-
-            el.dispatchEvent(
-                new Event('input', {
-                    bubbles: true
-                })
-            );
-
-            /* =================================================
-               TRIGGER CHANGE EVENT
-               ================================================= */
-
-            el.dispatchEvent(
-                new Event('change', {
-                    bubbles: true
-                })
-            );
-
-            /* =================================================
-               CLOSE POPUP
-               ================================================= */
-
-            popup.remove();
+            if (currentStyle) {
+                currentStyle.remove();
+            }
         };
 
-        popup.appendChild(btn);
-    });
+    // =========================================================
+    // MINIMIZE
+    // =========================================================
 
-    /* =========================================================
-       CLOSE
-       ========================================================= */
+    document
+        .getElementById('vobMin')
+        .onclick =
+        function () {
 
-    const close = document.createElement('button');
+            const body =
+                document.getElementById(
+                    'vobBody'
+                );
 
-    close.textContent = 'CLOSE';
+            if (
+                body.style.display ===
+                'none'
+            ) {
 
-    close.style.cssText =
-        'margin-top:10px;' +
-        'padding:12px 25px;' +
-        'background:#000;' +
-        'color:#fff;' +
-        'font-weight:bold;' +
-        'font-size:16px;' +
-        'border:none;' +
-        'border-radius:6px;' +
-        'cursor:pointer;';
+                body.style.display =
+                    'block';
 
-    close.onclick = function () {
-        popup.remove();
-    };
+                this.textContent =
+                    '−';
 
-    popup.appendChild(close);
+            } else {
 
-    /* =========================================================
-       ADD POPUP TO PAGE
-       ========================================================= */
+                body.style.display =
+                    'none';
 
-    document.body.appendChild(popup);
+                this.textContent =
+                    '+';
+            }
+        };
+
+    // =========================================================
+    // DRAG
+    // =========================================================
+
+    let dragging = false;
+    let offsetX = 0;
+    let offsetY = 0;
+
+    document
+        .getElementById('vobHeader')
+        .addEventListener(
+            'mousedown',
+            function (event) {
+
+                if (
+                    event.target.tagName ===
+                    'BUTTON'
+                ) {
+                    return;
+                }
+
+                dragging =
+                    true;
+
+                const rect =
+                    panel.getBoundingClientRect();
+
+                offsetX =
+                    event.clientX -
+                    rect.left;
+
+                offsetY =
+                    event.clientY -
+                    rect.top;
+
+                panel.style.right =
+                    'auto';
+            }
+        );
+
+    document.addEventListener(
+        'mousemove',
+        function (event) {
+
+            if (!dragging) {
+                return;
+            }
+
+            panel.style.left =
+                (
+                    event.clientX -
+                    offsetX
+                ) + 'px';
+
+            panel.style.top =
+                (
+                    event.clientY -
+                    offsetY
+                ) + 'px';
+        }
+    );
+
+    document.addEventListener(
+        'mouseup',
+        function () {
+
+            dragging =
+                false;
+        }
+    );
+
+    // =========================================================
+    // START
+    // =========================================================
+
+    renderNameList();
+
+    pickCountInput.value =
+        pickCount;
+
+    status.innerHTML =
+        '✅ Ready.<br>' +
+        'Add your users manually above, then load your A:F data.';
 
 })();
-```
