@@ -3,72 +3,124 @@
 const CONFIG_URL =
 "https://luckyph10.github.io/feeling_pogi_yarn/users.json";
 
-const cfg = await fetch(CONFIG_URL)
-    .then(r => r.json());
-
 const username =
-    localStorage.getItem("fpy_username");
+localStorage.getItem("fpy_username");
 
 const accessKey =
-    localStorage.getItem("fpy_key");
+localStorage.getItem("fpy_key");
 
-if (!username || !accessKey) {
+/* no credentials */
+
+if(!username || !accessKey){
 
     alert(
-        "Please register first.\n\n" +
-        "Open users.html and save your credentials."
+        "Setup Required.\n\nPlease complete registration."
+    );
+
+    window.open(
+        "https://luckyph10.github.io/feeling_pogi_yarn/users.html",
+        "_blank"
     );
 
     return;
 }
 
+/* load users */
+
+const cfg = await fetch(CONFIG_URL)
+.then(r => r.json());
+
 const user = cfg.users.find(
-    x => x.username.toLowerCase() === username.toLowerCase()
+u => u.username.toLowerCase() ===
+username.toLowerCase()
 );
 
-if (!user) {
-    alert("User not found.");
+/* user not found */
+
+if(!user){
+
+    alert(
+        "Access denied.\nUser not found."
+    );
+
     return;
 }
 
-if (!user.enabled) {
-    alert("Access Disabled.");
+/* disabled */
+
+if(user.enabled !== true){
+
+    alert(
+        "Your account has been disabled."
+    );
+
     return;
 }
+
+/*
+ACCESS KEY MODES
+
+mixed
+- User can use either the Global Key or their Personal Key.
+
+personal
+- User can only use their assigned Personal Key.
+- Global Key will not work.
+
+global
+- User can only use the Global Key.
+- Personal Keys will not work.
+*/
 
 let validKey = false;
 
 switch(cfg.settings.mode){
 
     case "global":
+
         validKey =
-            accessKey === cfg.settings.globalKey;
-        break;
+        accessKey ===
+        cfg.settings.globalKey;
+
+    break;
 
     case "personal":
+
         validKey =
-            accessKey === user.key;
-        break;
+        accessKey === user.key;
+
+    break;
 
     case "mixed":
+
         validKey =
-            accessKey === cfg.settings.globalKey ||
-            accessKey === user.key;
-        break;
+        accessKey === user.key ||
+        accessKey === cfg.settings.globalKey;
+
+    break;
 }
 
-if (!validKey){
-    alert("Invalid Key.");
+if(!validKey){
+
+    alert(
+        "Invalid Access Key."
+    );
+
     return;
 }
 
+/* AUTHORIZED */
+
 console.log(
-    "Authenticated:",
+    "Authorized User:",
     username
 );
 
-/* PUT THE REST OF YOUR
-   AUTOMATION CODE BELOW */
+/* ==========================
+   YOUR AUTOMATION CODE BELOW
+   ========================== */
+
+
 
 })();
 
