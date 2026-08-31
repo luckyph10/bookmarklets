@@ -6,8 +6,8 @@
     const DRS_OPTIONS = [
         "Plan Type Validated Post IDR Initiation",
         "VOB verified, no change to NSA jurisdiction",
-        "Timeline Enforcement Submitted to IDRE",
-        "Plan Type Objection Submitted",
+        "VOB pending",
+        "VOB verified dispute is not valid under NSA jurisdiction, requested closure",
         "Additional Info provided to IDRE through email"
     ];
 
