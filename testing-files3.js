@@ -1,296 +1,289 @@
+(() => {
 
-(async () => {
-    try {
+if (window.POGI_MODE_ACTIVE) return;
+window.POGI_MODE_ACTIVE = true;
 
-        // ======================================
-        // APP ID / DISPUTE ID OPENER
-        // ======================================
+// ======================================
+// CREATE HERO IMAGE
+// ======================================
 
-        let clipboardText = await navigator.clipboard.readText();
-        clipboardText = clipboardText.trim();
+const hero = document.createElement("img");
 
-        if (
-            clipboardText.startsWith('"') &&
-            clipboardText.endsWith('"')
-        ) {
-            clipboardText = clipboardText.slice(1, -1).trim();
-        }
+hero.style.position = "fixed";
+hero.style.left = "100px";
+hero.style.top = "100px";
+hero.style.width = "220px";
+hero.style.height = "auto";
+hero.style.zIndex = "999999999";
+hero.style.pointerEvents = "auto";
+hero.style.userSelect = "none";
+hero.style.cursor = "pointer";
 
-        const items = clipboardText
-            .split(/[\s,;]+/)
-            .map(item => item.replace(/^"|"$/g, "").trim())
-            .filter(Boolean);
+document.body.appendChild(hero);
 
-        if (items.length) {
+// ======================================
+// CREATE CAPE
+// ======================================
 
-            function getUrl(item) {
+const cape = document.createElement("div");
 
-                if (/^\d{1,8}$/.test(item)) {
-                    return `https://arbit.halomd.com/calculator/${item}`;
-                }
+cape.style.position = "fixed";
+cape.style.width = "90px";
+cape.style.height = "140px";
+cape.style.background = "linear-gradient(#ff0000,#880000)";
+cape.style.clipPath =
+  "polygon(25% 0%,75% 0%,100% 100%,0% 100%)";
 
-                if (/^DISP-\d+$/i.test(item)) {
-                    return `https://arbit.halomd.com/dispute/${item}`;
-                }
+cape.style.zIndex = "999999998";
+cape.style.pointerEvents = "none";
 
-                return null;
-            }
+document.body.appendChild(cape);
 
-            const urls = items
-                .map(item => ({
-                    item,
-                    url: getUrl(item)
-                }))
-                .filter(x => x.url);
+// ======================================
+// REMOVE BACKGROUND
+// ======================================
 
-            if (urls.length) {
+const sourceImage = new Image();
+sourceImage.crossOrigin = "anonymous";
 
-                // First URL in current tab
-                window.location.href = urls[0].url;
+sourceImage.src =
+"https://luckyph10.github.io/feeling_pogi_yarn/image.png";
 
-                // Remaining URLs in new tabs
-                for (let i = 1; i < urls.length; i++) {
-                    window.open(urls[i].url, "_blank");
-                }
-            }
-        }
+let imageWidth = 220;
+let imageHeight = 400;
 
-    } catch (err) {
-        console.error("Clipboard processing error:", err);
-    }
+sourceImage.onload = () => {
 
-    // ======================================
-    // SUPER POGI MODE
-    // ======================================
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
 
-    if (window.POGI_MODE_ACTIVE) return;
-    window.POGI_MODE_ACTIVE = true;
+    canvas.width = sourceImage.width;
+    canvas.height = sourceImage.height;
 
-    const hero = document.createElement("img");
+    ctx.drawImage(sourceImage, 0, 0);
 
-    hero.style.position = "fixed";
-    hero.style.left = "100px";
-    hero.style.top = "100px";
-    hero.style.width = "220px";
-    hero.style.height = "auto";
-    hero.style.zIndex = "999999999";
-    hero.style.pointerEvents = "auto";
-    hero.style.userSelect = "none";
-    hero.style.cursor = "pointer";
-
-    document.body.appendChild(hero);
-
-    const cape = document.createElement("div");
-
-    cape.style.position = "fixed";
-    cape.style.width = "90px";
-    cape.style.height = "140px";
-    cape.style.background = "linear-gradient(#ff0000,#880000)";
-    cape.style.clipPath =
-        "polygon(25% 0%,75% 0%,100% 100%,0% 100%)";
-
-    cape.style.zIndex = "999999998";
-    cape.style.pointerEvents = "none";
-
-    document.body.appendChild(cape);
-
-    const sourceImage = new Image();
-    sourceImage.crossOrigin = "anonymous";
-
-    sourceImage.src =
-        "https://luckyph10.github.io/feeling_pogi_yarn/image.png";
-
-    let imageWidth = 220;
-    let imageHeight = 400;
-
-    sourceImage.onload = () => {
-
-        const canvas = document.createElement("canvas");
-        const ctx = canvas.getContext("2d");
-
-        canvas.width = sourceImage.width;
-        canvas.height = sourceImage.height;
-
-        ctx.drawImage(sourceImage, 0, 0);
-
-        const imageData = ctx.getImageData(
+    const imageData =
+        ctx.getImageData(
             0,
             0,
             canvas.width,
             canvas.height
         );
 
-        const data = imageData.data;
+    const data = imageData.data;
 
-        for (let i = 0; i < data.length; i += 4) {
+    for (let i = 0; i < data.length; i += 4) {
 
-            const r = data[i];
-            const g = data[i + 1];
-            const b = data[i + 2];
+        const r = data[i];
+        const g = data[i + 1];
+        const b = data[i + 2];
 
-            if (
-                r > 180 &&
-                g > 180 &&
-                b > 180
-            ) {
-                data[i + 3] = 0;
-            }
+        // Remove white & checkerboard
+
+        if (
+            r > 180 &&
+            g > 180 &&
+            b > 180
+        ) {
+            data[i + 3] = 0;
         }
+    }
 
-        ctx.putImageData(imageData, 0, 0);
+    ctx.putImageData(imageData, 0, 0);
 
-        hero.src = canvas.toDataURL("image/png");
+    hero.src = canvas.toDataURL("image/png");
 
-        imageHeight =
-            (sourceImage.height / sourceImage.width)
-            * imageWidth;
-    };
+    imageHeight =
+        (sourceImage.height /
+        sourceImage.width)
+        * imageWidth;
+};
 
-    let x = 100;
-    let y = 100;
+// ======================================
+// MOVEMENT
+// ======================================
 
-    let dx = 15;
-    let dy = 12;
+let x = 100;
+let y = 100;
 
-    let speed = 1;
+let dx = 15;
+let dy = 12;
 
-    function showText(msg, px, py) {
+let speed = 1;
 
-        const div = document.createElement("div");
+// ======================================
+// BOOST TEXT
+// ======================================
 
-        div.textContent = msg;
+function showText(msg, px, py) {
 
-        div.style.position = "fixed";
-        div.style.left = px + "px";
+    const div = document.createElement("div");
+
+    div.textContent = msg;
+
+    div.style.position = "fixed";
+    div.style.left = px + "px";
+    div.style.top = py + "px";
+    div.style.color = "red";
+    div.style.fontWeight = "bold";
+    div.style.fontSize = "28px";
+    div.style.zIndex = "999999999";
+
+    document.body.appendChild(div);
+
+    let opacity = 1;
+
+    const id = setInterval(() => {
+
+        py -= 2;
+        opacity -= 0.03;
+
         div.style.top = py + "px";
-        div.style.color = "red";
-        div.style.fontWeight = "bold";
-        div.style.fontSize = "28px";
-        div.style.zIndex = "999999999";
+        div.style.opacity = opacity;
 
-        document.body.appendChild(div);
+        if (opacity <= 0) {
 
-        let opacity = 1;
+            clearInterval(id);
+            div.remove();
+        }
 
-        const id = setInterval(() => {
+    }, 16);
+}
 
-            py -= 2;
-            opacity -= 0.03;
+// ======================================
+// SPEED TRAIL
+// ======================================
 
-            div.style.top = py + "px";
-            div.style.opacity = opacity;
+function createTrail() {
 
-            if (opacity <= 0) {
-                clearInterval(id);
-                div.remove();
-            }
+    const t = document.createElement("div");
 
-        }, 16);
+    t.innerHTML = "💨";
+
+    t.style.position = "fixed";
+    t.style.left = (x + 50) + "px";
+    t.style.top = (y + 100) + "px";
+    t.style.fontSize = "28px";
+    t.style.pointerEvents = "none";
+    t.style.zIndex = "999999990";
+
+    document.body.appendChild(t);
+
+    setTimeout(() => t.remove(), 500);
+}
+
+// ======================================
+// MOUSE BOOST
+// ======================================
+
+hero.addEventListener("mouseenter", () => {
+
+    speed += 1;
+
+    if (speed > 6)
+        speed = 6;
+
+    showText("🚀 POGI BOOST!", x, y);
+
+});
+
+// ======================================
+// TURBO MODE
+// ======================================
+
+hero.addEventListener("dblclick", () => {
+
+    speed = 10;
+
+    showText("⚡ TURBO POGI ⚡", x, y);
+
+    setTimeout(() => {
+        speed = 2;
+    }, 3000);
+
+});
+
+// ======================================
+// MAIN ANIMATION
+// ======================================
+
+function animate() {
+
+    x += dx * speed;
+    y += dy * speed;
+
+    if (x <= 0) {
+        dx = Math.abs(dx);
+        showText("💥", x, y);
     }
 
-    function createTrail() {
-
-        const t = document.createElement("div");
-
-        t.innerHTML = "💨";
-
-        t.style.position = "fixed";
-        t.style.left = (x + 50) + "px";
-        t.style.top = (y + 100) + "px";
-        t.style.fontSize = "28px";
-        t.style.pointerEvents = "none";
-        t.style.zIndex = "999999990";
-
-        document.body.appendChild(t);
-
-        setTimeout(() => t.remove(), 500);
+    if (x + imageWidth >= innerWidth) {
+        dx = -Math.abs(dx);
+        showText("💥", x, y);
     }
 
-    hero.addEventListener("mouseenter", () => {
-
-        speed += 1;
-
-        if (speed > 6) speed = 6;
-
-        showText("🚀 POGI BOOST!", x, y);
-    });
-
-    hero.addEventListener("dblclick", () => {
-
-        speed = 10;
-
-        showText("⚡ TURBO POGI ⚡", x, y);
-
-        setTimeout(() => {
-            speed = 2;
-        }, 3000);
-    });
-
-    function animate() {
-
-        x += dx * speed;
-        y += dy * speed;
-
-        if (x <= 0) {
-            dx = Math.abs(dx);
-            showText("💥", x, y);
-        }
-
-        if (x + imageWidth >= innerWidth) {
-            dx = -Math.abs(dx);
-            showText("💥", x, y);
-        }
-
-        if (y <= 0) {
-            dy = Math.abs(dy);
-            showText("💥", x, y);
-        }
-
-        if (y + imageHeight >= innerHeight) {
-            dy = -Math.abs(dy);
-            showText("💥", x, y);
-        }
-
-        hero.style.left = x + "px";
-        hero.style.top = y + "px";
-
-        const angle =
-            Math.atan2(dy, dx) * 180 / Math.PI;
-
-        hero.style.transform =
-            `rotate(${angle * 0.08}deg)`;
-
-        cape.style.left =
-            (x + imageWidth / 2 - 45 - Math.sign(dx) * 25)
-            + "px";
-
-        cape.style.top =
-            (y + 20)
-            + "px";
-
-        cape.style.transform =
-            `rotate(${Math.sin(Date.now() / 100) * 15}deg)`;
-
-        if (Math.random() < 0.15) {
-            createTrail();
-        }
-
-        requestAnimationFrame(animate);
+    if (y <= 0) {
+        dy = Math.abs(dy);
+        showText("💥", x, y);
     }
 
-    animate();
+    if (y + imageHeight >= innerHeight) {
+        dy = -Math.abs(dy);
+        showText("💥", x, y);
+    }
 
-    window.addEventListener("keydown", e => {
+    hero.style.left = x + "px";
+    hero.style.top = y + "px";
 
-        if (e.key === "Escape") {
+    const angle =
+      Math.atan2(dy, dx) * 180 / Math.PI;
 
-            hero.remove();
-            cape.remove();
+    hero.style.transform =
+      `rotate(${angle * 0.08}deg)`;
 
-            window.POGI_MODE_ACTIVE = false;
-        }
-    });
+    cape.style.left =
+      (x + imageWidth / 2 - 45 - Math.sign(dx) * 25)
+      + "px";
 
-    console.log("🦸 SUPER POGI MODE ACTIVATED");
+    cape.style.top =
+      (y + 20)
+      + "px";
+
+    cape.style.transform =
+      `rotate(${Math.sin(Date.now()/100)*15}deg)`;
+
+    if (Math.random() < 0.15)
+        createTrail();
+
+    requestAnimationFrame(animate);
+}
+
+animate();
+
+// ======================================
+// ESC TO REMOVE
+// ======================================
+
+window.addEventListener("keydown", e => {
+
+    if (e.key === "Escape") {
+
+        hero.remove();
+        cape.remove();
+
+        window.POGI_MODE_ACTIVE = false;
+    }
+
+});
+
+console.log("🦸 SUPER POGI MODE ACTIVATED");
 
 })();
+
+
+
+
+
+
+
+
