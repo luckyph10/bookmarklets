@@ -66,7 +66,6 @@
 
         const comments = [
             'VOB verified, no change to NSA jurisdiction',
-            'Completed: VOB is verified Brief Ready to submit.',
             'Completed: VOB verified. Dispute status is closed. Payment determination is uploaded.',
             'Ineligible to Submit: Case was withdrawn by HaloMD.',
             'Ineligible to Submit: Case (Ineligibility reason)',
