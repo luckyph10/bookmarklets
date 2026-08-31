@@ -209,8 +209,7 @@ input:focus{
 
 function getDeviceId(){
 
-    let id =
-        localStorage.getItem("fpy_device");
+    let id = localStorage.getItem("fpy_device");
 
     if(!id){
 
@@ -225,8 +224,7 @@ function getDeviceId(){
     return id;
 }
 
-document.getElementById("device").innerHTML =
-`
+document.getElementById("device").innerHTML = `
 <b>Device ID</b><br>
 ${getDeviceId()}
 `;
@@ -250,24 +248,12 @@ function saveUser(){
         return;
     }
 
-    localStorage.setItem(
-        "fpy_username",
-        username
-    );
+    parent.postMessage({
+        type: "fpy-auth",
+        username: username,
+        accessKey: accessKey,
+        deviceId: getDeviceId()
+    },"*");
+}
 
-    localStorage.setItem(
-        "fpy_key",
-        accessKey
-    );
-
-    alert(
-        "Registration Successful!"
-    );
-
-    if(
-        parent &&
-        parent.document &&
-        parent.document.getElementById(
-            "fpy-auth-overlay"
-        )
-   
+</script>
