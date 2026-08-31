@@ -198,7 +198,7 @@ if (!username || !accessKey) {
 
 
 
-    function runScript() {
+  (async()=>{
 
         const el =
             document.querySelector('#ngForm > fieldset > div:nth-child(1) > div:nth-child(1) > div:nth-child(6) > textarea') ||
