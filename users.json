@@ -1,16 +1,109 @@
+/*
+ACCESS KEY MODES
+
+mixed
+- User can use either the Global Key or their Personal Key.
+
+personal
+- User can only use their assigned Personal Key.
+- Global Key will not work.
+
+global
+- User can only use the Global Key.
+- Personal Keys will not work.
+
+Examples:
+
+Mode: mixed
+  ✓ Global Key
+  ✓ Personal Key
+
+Mode: personal
+  ✗ Global Key
+  ✓ Personal Key
+
+Mode: global
+  ✓ Global Key
+  ✗ Personal Key
+*/
+``
+
+
 {
-    "users": [
-        {
-            "name": "John",
-            "enabled": true
-        },
-        {
-            "name": "Mary",
-            "enabled": false
-        },
-        {
-            "name": "Alex",
-            "enabled": true
-        }
-    ]
+  "settings": {
+    "mode": "mixed",
+    "globalKey": "ADMIN123"
+  },
+  "users": [
+    {
+      "username": "luckyph10",
+      "key": "LUCKY001",
+      "enabled": true
+    },
+    {
+      "username": "glen",
+      "key": "GLEN001",
+      "enabled": true
+    },
+    {
+      "username": "luis",
+      "key": "LUIS001",
+      "enabled": true
+    },
+    {
+      "username": "maylen",
+      "key": "MAYLEN001",
+      "enabled": true
+    },
+    {
+      "username": "alyssandra",
+      "key": "ALYSSA001",
+      "enabled": true
+    },
+    {
+      "username": "khristian",
+      "key": "KHRIS001",
+      "enabled": true
+    },
+    {
+      "username": "donatien",
+      "key": "DONA001",
+      "enabled": true
+    },
+    {
+      "username": "maritess",
+      "key": "MARI001",
+      "enabled": true
+    },
+    {
+      "username": "pams",
+      "key": "PAMS001",
+      "enabled": true
+    },
+    {
+      "username": "anghee",
+      "key": "ANGHEE001",
+      "enabled": true
+    },
+    {
+      "username": "candy",
+      "key": "CANDY001",
+      "enabled": true
+    },
+    {
+      "username": "via",
+      "key": "VIA001",
+      "enabled": true
+    },
+    {
+      "username": "steev",
+      "key": "STEEV001",
+      "enabled": true
+    },
+    {
+      "username": "otep",
+      "key": "OTEP001",
+      "enabled": true
+    }
+  ]
 }
