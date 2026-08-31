@@ -1,3 +1,79 @@
+(async () => {
+
+const CONFIG_URL =
+"https://luckyph10.github.io/feeling_pogi_yarn/users.json";
+
+const cfg = await fetch(CONFIG_URL)
+    .then(r => r.json());
+
+const username =
+    localStorage.getItem("fpy_username");
+
+const accessKey =
+    localStorage.getItem("fpy_key");
+
+if (!username || !accessKey) {
+
+    alert(
+        "Please register first.\n\n" +
+        "Open users.html and save your credentials."
+    );
+
+    return;
+}
+
+const user = cfg.users.find(
+    x => x.username.toLowerCase() === username.toLowerCase()
+);
+
+if (!user) {
+    alert("User not found.");
+    return;
+}
+
+if (!user.enabled) {
+    alert("Access Disabled.");
+    return;
+}
+
+let validKey = false;
+
+switch(cfg.settings.mode){
+
+    case "global":
+        validKey =
+            accessKey === cfg.settings.globalKey;
+        break;
+
+    case "personal":
+        validKey =
+            accessKey === user.key;
+        break;
+
+    case "mixed":
+        validKey =
+            accessKey === cfg.settings.globalKey ||
+            accessKey === user.key;
+        break;
+}
+
+if (!validKey){
+    alert("Invalid Key.");
+    return;
+}
+
+console.log(
+    "Authenticated:",
+    username
+);
+
+/* PUT THE REST OF YOUR
+   AUTOMATION CODE BELOW */
+
+})();
+
+
+
 (function () {
     var KEY = "caseNoteAuthorized";
 
