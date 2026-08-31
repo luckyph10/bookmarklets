@@ -1113,6 +1113,8 @@
          * Keep A:F internally.
          *
          * A  = index 0
+         * B  = index 1
+         * C  = index 2
          * D  = index 3
          * E  = index 4
          * F  = index 5
@@ -1147,7 +1149,31 @@
             rows.length > 1 &&
             /dispute/i.test(
                 String(
-                    rows[0][3] || ''
+                    rows[3] ||
+                    ''
+                )
+            )
+        ) {
+            // Header detection handled below
+        }
+
+        if (
+            rows.length > 1 &&
+            (
+                /dispute/i.test(
+                    String(
+                        rows[0][0] || ''
+                    )
+                ) ||
+                /dispute/i.test(
+                    String(
+                        rows[0][3] || ''
+                    )
+                ) ||
+                /name/i.test(
+                    String(
+                        rows[0][4] || ''
+                    )
                 )
             )
         ) {
@@ -1178,6 +1204,11 @@
                         row[4] || ''
                     ).trim() !== ''
             );
+
+        /*
+         * Column A is kept for output,
+         * but it is NOT used to group users.
+         */
 
         if (
             rows.length < 1
@@ -1327,7 +1358,13 @@
 
     function rowKey(row) {
 
+        /*
+         * Use A + D + E to identify
+         * a selected row.
+         */
+
         return [
+            row[0],
             row[3],
             row[4]
         ]
@@ -1642,7 +1679,7 @@
         );
 
         // =====================================================
-        // COPY D, E
+        // COPY A, D, E
         // =====================================================
 
         const copyText =
@@ -1654,6 +1691,7 @@
                             item.row;
 
                         return [
+                            row[0],
                             row[3],
                             row[4]
                         ].join('\t');
@@ -1703,6 +1741,7 @@
          * Results table.
          *
          * ONLY:
+         * A
          * D
          * E
          */
@@ -1711,6 +1750,7 @@
             <table>
                 <thead>
                     <tr>
+                        <th>A</th>
                         <th>D</th>
                         <th>E</th>
                     </tr>
@@ -1751,6 +1791,19 @@
                             : ' class="selectedRow"'
                     ) +
                     '>';
+
+                /*
+                 * Column A
+                 */
+
+                html +=
+                    '<td>' +
+                    escapeHtml(
+                        String(
+                            row[0] || ''
+                        )
+                    ) +
+                    '</td>';
 
                 /*
                  * Column D
@@ -1869,6 +1922,7 @@
                                 item.row;
 
                             return [
+                                row[0],
                                 row[3],
                                 row[4]
                             ].join('\t');
