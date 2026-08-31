@@ -82,6 +82,7 @@
             'Ineligible to Submit: Self-Funded Opt - In.',
             'Ineligible to Submit:Unable to find withdrawn email.',
             'Ineligible to Submit: Case (Unable to find evidence for INN)',
+            'Ineligible to Submit: DRS: Closure Request Submitted. Closure team has already received a closure request.',
             'Pending Onshore Review: Dispute Status Closed. Patient over 65 years old, VOB is not available. Final payment determination uploaded.',
             'Pending Onshore Review: Incomplete ING evidence.',
             'Pending Onshore Review: Unable to update the dispute tracker c/o Lillian Madison.',
