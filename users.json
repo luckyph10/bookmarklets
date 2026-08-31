@@ -104,11 +104,16 @@ Mode: global
       "username": "otep",
       "key": "OTEP001",
       "enabled": true
-    }
+    },
      {
       "username": "Chique",
       "key": "CHIQ001",
       "enabled": true
-    }
+    },
+    {
+      "username": "ahl",
+      "key": "AHL001",
+      "enabled": true
+    },
   ]
 }
