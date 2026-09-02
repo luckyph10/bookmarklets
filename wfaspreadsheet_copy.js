@@ -1,11 +1,11 @@
-
 (async()=>{
 
 /* =========================================================
-   DISPUTE USER NAME
+   DISPUTE USER NAME + PROCESSOR NAME
    ========================================================= */
 
 const KEY="disputeUserName";
+const PROCESSOR_KEY="processorName";
 
 const getName=()=>{
     try{
@@ -23,6 +23,46 @@ const saveName=n=>{
         console.error(e);
         return false;
     }
+};
+
+const getProcessorName=()=>{
+    try{
+        return(localStorage.getItem(PROCESSOR_KEY)||"").trim();
+    }catch(e){
+        return"";
+    }
+};
+
+const saveProcessorName=n=>{
+    try{
+        localStorage.setItem(PROCESSOR_KEY,n);
+        return true;
+    }catch(e){
+        console.error(e);
+        return false;
+    }
+};
+
+const getPHDate=()=>{
+
+    const phDate=
+        new Date(
+            new Date().toLocaleString(
+                "en-US",
+                {
+                    timeZone:"Asia/Manila"
+                }
+            )
+        );
+
+    return `${
+        phDate.getMonth()+1
+    }/${
+        phDate.getDate()
+    }/${
+        phDate.getFullYear()
+    }`;
+
 };
 
 
@@ -135,25 +175,6 @@ const columnKPageValue=
 
 /* =========================================================
    GET IDS
-   =========================================================
-
-   UPDATED:
-   The old code depended on:
-
-   #table-body tr td:nth-child(2)
-
-   The new page has:
-
-   <td>
-       <a title="Open Arbit"
-          target="_blank"
-          href="calculator/2184012">
-          2184012
-       </a>
-   </td>
-
-   We now get the ID directly from the
-   "Open Arbit" calculator links.
    ========================================================= */
 
 const arbitIdLinks=[
@@ -194,29 +215,6 @@ const ids=[
 
 /* =========================================================
    GET ALL ARBIT / APP ID LINKS
-   =========================================================
-
-   UPDATED SELECTOR:
-
-   OLD:
-   #table-body tr td:nth-child(2) a
-
-   NEW:
-   a[title="Open Arbit"][href*="calculator/"]
-
-   This matches:
-
-   <a
-       title="Open Arbit"
-       target="_blank"
-       href="calculator/2184012"
-   >
-       2184012
-   </a>
-
-   No dependency on table ID, row position,
-   td:nth-child(), Angular generated attributes,
-   or other changing selectors.
    ========================================================= */
 
 const arbitLinks=[
@@ -302,14 +300,6 @@ const planTypes=[
 
 /* =========================================================
    GET FIRST ARBIT ID NUMBER
-   =========================================================
-
-   UPDATED:
-   Instead of:
-
-   #table-body > tr > td:nth-child(2)
-
-   we use the new Open Arbit link.
    ========================================================= */
 
 const arbitIdNumber =
@@ -1111,10 +1101,6 @@ const installVobIframeHandlers=iframe=>{
                 return;
 
 
-            /* -------------------------------------------------
-               CATCH window.open FROM VOB FILE ACTIONS
-               ------------------------------------------------- */
-
             if(
                 !win.__disputeVobOpenPatched
             ){
@@ -1158,10 +1144,6 @@ const installVobIframeHandlers=iframe=>{
 
             }
 
-
-            /* -------------------------------------------------
-               CATCH VOB LINKS
-               ------------------------------------------------- */
 
             if(
                 !doc.__disputeVobClickHandler
@@ -1304,10 +1286,6 @@ const installVobIframeHandlers=iframe=>{
 
 const openArbitIframe=()=>{
 
-    /*
-     * RESTORE EXISTING MINIMIZED IFRAME
-     */
-
     const existingOverlay=
         document.getElementById(
             "arbit-iframe-overlay"
@@ -1361,27 +1339,10 @@ const openArbitIframe=()=>{
     }
 
 
-    /*
-     * Get ALL available ARBIT / APP ID links.
-     *
-     * UPDATED:
-     * The new page uses:
-     *
-     * <a title="Open Arbit"
-     *    target="_blank"
-     *    href="calculator/2184012">
-     *    2184012
-     * </a>
-     */
-
     let appLinks=[
         ...uniqueArbitLinks
     ];
 
-
-    /*
-     * Fallback using the NEW selector.
-     */
 
     if(!appLinks.length){
 
@@ -1427,10 +1388,6 @@ const openArbitIframe=()=>{
     }
 
 
-    /* =====================================================
-       REMOVE OLD IFRAME
-       ===================================================== */
-
     const old=
         document.getElementById(
             "arbit-iframe-overlay"
@@ -1451,19 +1408,11 @@ const openArbitIframe=()=>{
         oldStyle.remove();
 
 
-    /* =====================================================
-       CURRENT OPEN APP
-       ===================================================== */
-
     let currentAppIndex=0;
 
     let currentApp=
         appLinks[currentAppIndex];
 
-
-    /* =====================================================
-       CREATE OVERLAY
-       ===================================================== */
 
     const overlay=
         document.createElement("div");
@@ -1602,10 +1551,6 @@ const openArbitIframe=()=>{
     `;
 
 
-    /* =====================================================
-       STYLE
-       ===================================================== */
-
     const iframeStyle=
         document.createElement("style");
 
@@ -1617,955 +1562,415 @@ const openArbitIframe=()=>{
     iframeStyle.textContent=`
 
         #arbit-iframe-overlay{
-
             position:fixed!important;
             inset:0!important;
             width:100vw!important;
             height:100vh!important;
-
-            background:
-                rgba(0,0,0,.80)!important;
-
-            backdrop-filter:
-                blur(6px)!important;
-
-            -webkit-backdrop-filter:
-                blur(6px)!important;
-
-            z-index:
-                2147483647!important;
-
+            background:rgba(0,0,0,.80)!important;
+            backdrop-filter:blur(6px)!important;
+            -webkit-backdrop-filter:blur(6px)!important;
+            z-index:2147483647!important;
             display:flex!important;
-
             align-items:center!important;
-
             justify-content:center!important;
-
-            padding:
-                8px!important;
-
-            box-sizing:
-                border-box!important;
-
-            isolation:
-                isolate!important;
-
+            padding:8px!important;
+            box-sizing:border-box!important;
+            isolation:isolate!important;
         }
-
 
         #arbit-iframe-window{
-
             position:relative!important;
-
-            z-index:
-                2147483647!important;
-
-            width:
-                98vw!important;
-
-            height:
-                96vh!important;
-
-            max-width:
-                1900px!important;
-
+            z-index:2147483647!important;
+            width:98vw!important;
+            height:96vh!important;
+            max-width:1900px!important;
             background:#111!important;
-
-            border:
-                2px solid
-                rgba(255,255,255,.22)!important;
-
-            border-radius:
-                14px!important;
-
+            border:2px solid rgba(255,255,255,.22)!important;
+            border-radius:14px!important;
             overflow:hidden!important;
-
-            box-shadow:
-                0 25px 90px
-                rgba(0,0,0,.85)!important;
-
+            box-shadow:0 25px 90px rgba(0,0,0,.85)!important;
             display:flex!important;
-
-            flex-direction:
-                column!important;
-
+            flex-direction:column!important;
         }
-
 
         #arbit-iframe-header{
-
             position:relative!important;
-
-            z-index:
-                3!important;
-
-            height:
-                54px!important;
-
-            min-height:
-                54px!important;
-
-            background:
-                #151515!important;
-
-            border-bottom:
-                1px solid
-                rgba(255,255,255,.18)!important;
-
+            z-index:3!important;
+            height:54px!important;
+            min-height:54px!important;
+            background:#151515!important;
+            border-bottom:1px solid rgba(255,255,255,.18)!important;
             display:flex!important;
-
             align-items:center!important;
-
             justify-content:space-between!important;
-
-            gap:
-                10px!important;
-
-            padding:
-                0 10px 0 16px!important;
-
-            box-sizing:
-                border-box!important;
-
+            gap:10px!important;
+            padding:0 10px 0 16px!important;
+            box-sizing:border-box!important;
         }
-
 
         #arbit-iframe-left{
-
             display:flex!important;
-
             align-items:center!important;
-
             gap:10px!important;
-
             min-width:0!important;
-
             flex:1!important;
-
         }
-
 
         #arbit-iframe-title{
-
             color:#fff!important;
-
-            font-family:
-                Arial,sans-serif!important;
-
-            font-size:
-                14px!important;
-
-            font-weight:
-                800!important;
-
-            letter-spacing:
-                .3px!important;
-
-            white-space:
-                nowrap!important;
-
+            font-family:Arial,sans-serif!important;
+            font-size:14px!important;
+            font-weight:800!important;
+            letter-spacing:.3px!important;
+            white-space:nowrap!important;
             display:flex!important;
-
             align-items:center!important;
-
-            gap:
-                4px!important;
-
+            gap:4px!important;
             flex-shrink:0!important;
-
         }
-
 
         #arbit-iframe-number{
-
-            color:
-                #facc15!important;
-
-            font-weight:
-                900!important;
-
-            margin-left:
-                2px!important;
-
-            text-shadow:
-                0 1px 4px
-                rgba(0,0,0,.4)!important;
-
+            color:#facc15!important;
+            font-weight:900!important;
+            margin-left:2px!important;
+            text-shadow:0 1px 4px rgba(0,0,0,.4)!important;
         }
-
 
         #arbit-app-selector-wrap{
-
             display:flex!important;
-
             align-items:center!important;
-
             gap:6px!important;
-
             min-width:0!important;
-
         }
-
 
         #arbit-app-selector{
-
-            height:
-                38px!important;
-
-            min-width:
-                150px!important;
-
-            max-width:
-                260px!important;
-
-            padding:
-                0 32px 0 11px!important;
-
-            border:
-                1px solid
-                rgba(255,255,255,.25)!important;
-
-            border-radius:
-                8px!important;
-
-            background:
-                #222!important;
-
+            height:38px!important;
+            min-width:150px!important;
+            max-width:260px!important;
+            padding:0 32px 0 11px!important;
+            border:1px solid rgba(255,255,255,.25)!important;
+            border-radius:8px!important;
+            background:#222!important;
             color:#fff!important;
-
-            font-family:
-                Arial,sans-serif!important;
-
-            font-size:
-                12px!important;
-
-            font-weight:
-                700!important;
-
+            font-family:Arial,sans-serif!important;
+            font-size:12px!important;
+            font-weight:700!important;
             outline:none!important;
-
             cursor:pointer!important;
-
             box-sizing:border-box!important;
-
         }
-
 
         #arbit-app-selector:hover{
-
-            border-color:
-                rgba(255,255,255,.45)!important;
-
+            border-color:rgba(255,255,255,.45)!important;
         }
-
 
         #arbit-app-selector:focus{
-
-            border-color:
-                #facc15!important;
-
-            box-shadow:
-                0 0 0 3px
-                rgba(250,204,21,.12)!important;
-
+            border-color:#facc15!important;
+            box-shadow:0 0 0 3px rgba(250,204,21,.12)!important;
         }
-
 
         #arbit-app-selector option{
-
-            background:
-                #222!important;
-
+            background:#222!important;
             color:#fff!important;
-
         }
-
 
         #arbit-app-open{
-
-            height:
-                38px!important;
-
-            padding:
-                0 14px!important;
-
-            border:
-                1px solid
-                rgba(255,255,255,.2)!important;
-
-            border-radius:
-                8px!important;
-
-            background:
-                #f59e0b!important;
-
+            height:38px!important;
+            padding:0 14px!important;
+            border:1px solid rgba(255,255,255,.2)!important;
+            border-radius:8px!important;
+            background:#f59e0b!important;
             color:#111!important;
-
-            font-family:
-                Arial,sans-serif!important;
-
-            font-size:
-                12px!important;
-
-            font-weight:
-                900!important;
-
-            letter-spacing:
-                .3px!important;
-
+            font-family:Arial,sans-serif!important;
+            font-size:12px!important;
+            font-weight:900!important;
+            letter-spacing:.3px!important;
             cursor:pointer!important;
-
-            white-space:
-                nowrap!important;
-
-            box-shadow:
-                0 4px 14px
-                rgba(0,0,0,.3)!important;
-
+            white-space:nowrap!important;
+            box-shadow:0 4px 14px rgba(0,0,0,.3)!important;
         }
-
 
         #arbit-app-open:hover{
-
-            background:
-                #fbbf24!important;
-
-            transform:
-                translateY(-1px)!important;
-
+            background:#fbbf24!important;
+            transform:translateY(-1px)!important;
         }
-
 
         #arbit-app-open:active{
-
-            transform:
-                translateY(0)!important;
-
+            transform:translateY(0)!important;
         }
-
 
         #arbit-iframe-actions{
-
             display:flex!important;
-
             align-items:center!important;
-
             justify-content:flex-end!important;
-
-            gap:
-                8px!important;
-
-            flex-wrap:
-                nowrap!important;
-
-            flex-shrink:
-                0!important;
-
+            gap:8px!important;
+            flex-wrap:nowrap!important;
+            flex-shrink:0!important;
         }
-
 
         #arbit-rush-verify{
-
-            height:
-                38px!important;
-
-            padding:
-                0 16px!important;
-
-            border:
-                1px solid
-                rgba(255,255,255,.2)!important;
-
-            border-radius:
-                8px!important;
-
-            background:
-                #16a34a!important;
-
+            height:38px!important;
+            padding:0 16px!important;
+            border:1px solid rgba(255,255,255,.2)!important;
+            border-radius:8px!important;
+            background:#16a34a!important;
             color:#fff!important;
-
-            font-family:
-                Arial,sans-serif!important;
-
-            font-size:
-                12px!important;
-
-            font-weight:
-                800!important;
-
-            letter-spacing:
-                .35px!important;
-
+            font-family:Arial,sans-serif!important;
+            font-size:12px!important;
+            font-weight:800!important;
+            letter-spacing:.35px!important;
             cursor:pointer!important;
-
-            white-space:
-                nowrap!important;
-
-            box-shadow:
-                0 4px 14px
-                rgba(0,0,0,.3)!important;
-
+            white-space:nowrap!important;
+            box-shadow:0 4px 14px rgba(0,0,0,.3)!important;
         }
-
 
         #arbit-rush-verify:hover{
-
-            background:
-                #22c55e!important;
-
-            box-shadow:
-                0 5px 18px
-                rgba(34,197,94,.4)!important;
-
+            background:#22c55e!important;
+            box-shadow:0 5px 18px rgba(34,197,94,.4)!important;
         }
-
 
         #arbit-pull-evidence{
-
-            height:
-                38px!important;
-
-            padding:
-                0 16px!important;
-
-            border:
-                1px solid
-                rgba(255,255,255,.2)!important;
-
-            border-radius:
-                8px!important;
-
-            background:
-                #2563eb!important;
-
+            height:38px!important;
+            padding:0 16px!important;
+            border:1px solid rgba(255,255,255,.2)!important;
+            border-radius:8px!important;
+            background:#2563eb!important;
             color:#fff!important;
-
-            font-family:
-                Arial,sans-serif!important;
-
-            font-size:
-                12px!important;
-
-            font-weight:
-                800!important;
-
-            letter-spacing:
-                .2px!important;
-
+            font-family:Arial,sans-serif!important;
+            font-size:12px!important;
+            font-weight:800!important;
+            letter-spacing:.2px!important;
             cursor:pointer!important;
-
-            white-space:
-                nowrap!important;
-
-            box-shadow:
-                0 4px 14px
-                rgba(0,0,0,.3)!important;
-
+            white-space:nowrap!important;
+            box-shadow:0 4px 14px rgba(0,0,0,.3)!important;
         }
-
 
         #arbit-pull-evidence:hover{
-
-            background:
-                #3b82f6!important;
-
-            box-shadow:
-                0 5px 18px
-                rgba(59,130,246,.4)!important;
-
+            background:#3b82f6!important;
+            box-shadow:0 5px 18px rgba(59,130,246,.4)!important;
         }
-
 
         #arbit-iframe-minimize{
-
-            width:
-                38px!important;
-
-            height:
-                38px!important;
-
-            border:
-                0!important;
-
-            border-radius:
-                50%!important;
-
-            background:
-                rgba(250,204,21,.18)!important;
-
-            color:
-                #facc15!important;
-
-            font-size:
-                25px!important;
-
-            font-weight:
-                900!important;
-
-            line-height:
-                1!important;
-
+            width:38px!important;
+            height:38px!important;
+            border:0!important;
+            border-radius:50%!important;
+            background:rgba(250,204,21,.18)!important;
+            color:#facc15!important;
+            font-size:25px!important;
+            font-weight:900!important;
+            line-height:1!important;
             cursor:pointer!important;
-
             display:flex!important;
-
             align-items:center!important;
-
             justify-content:center!important;
-
-            flex-shrink:
-                0!important;
-
-            padding:
-                0!important;
-
+            flex-shrink:0!important;
+            padding:0!important;
         }
-
 
         #arbit-iframe-minimize:hover{
-
-            background:
-                rgba(250,204,21,.32)!important;
-
+            background:rgba(250,204,21,.32)!important;
         }
-
 
         #arbit-iframe-close{
-
-            width:
-                38px!important;
-
-            height:
-                38px!important;
-
-            border:
-                0!important;
-
-            border-radius:
-                50%!important;
-
-            background:
-                #dc2626!important;
-
+            width:38px!important;
+            height:38px!important;
+            border:0!important;
+            border-radius:50%!important;
+            background:#dc2626!important;
             color:#fff!important;
-
-            font-size:
-                27px!important;
-
-            line-height:
-                1!important;
-
+            font-size:27px!important;
+            line-height:1!important;
             cursor:pointer!important;
-
             display:flex!important;
-
             align-items:center!important;
-
             justify-content:center!important;
-
-            flex-shrink:
-                0!important;
-
-            padding:
-                0!important;
-
+            flex-shrink:0!important;
+            padding:0!important;
         }
-
 
         #arbit-iframe-close:hover{
-
-            background:
-                #ef4444!important;
-
+            background:#ef4444!important;
         }
-
 
         #arbit-iframe{
-
             position:relative!important;
-
-            z-index:
-                1!important;
-
-            width:
-                100%!important;
-
-            height:
-                calc(100% - 54px)!important;
-
-            flex:
-                1!important;
-
+            z-index:1!important;
+            width:100%!important;
+            height:calc(100% - 54px)!important;
+            flex:1!important;
             border:0!important;
-
             background:#fff!important;
-
         }
-
 
         #vob-file-viewer-overlay{
-
             position:fixed!important;
-
             inset:0!important;
-
             width:100vw!important;
-
             height:100vh!important;
-
-            background:
-                rgba(0,0,0,.84)!important;
-
-            backdrop-filter:
-                blur(6px)!important;
-
-            -webkit-backdrop-filter:
-                blur(6px)!important;
-
-            z-index:
-                2147483647!important;
-
+            background:rgba(0,0,0,.84)!important;
+            backdrop-filter:blur(6px)!important;
+            -webkit-backdrop-filter:blur(6px)!important;
+            z-index:2147483647!important;
             display:flex!important;
-
             align-items:center!important;
-
             justify-content:center!important;
-
-            padding:
-                10px!important;
-
-            box-sizing:
-                border-box!important;
-
-            isolation:
-                isolate!important;
-
+            padding:10px!important;
+            box-sizing:border-box!important;
+            isolation:isolate!important;
         }
-
 
         #vob-file-viewer-window{
-
-            width:
-                96vw!important;
-
-            height:
-                94vh!important;
-
-            max-width:
-                1800px!important;
-
+            width:96vw!important;
+            height:94vh!important;
+            max-width:1800px!important;
             background:#111!important;
-
-            border:
-                1px solid
-                rgba(255,255,255,.25)!important;
-
-            border-radius:
-                14px!important;
-
+            border:1px solid rgba(255,255,255,.25)!important;
+            border-radius:14px!important;
             overflow:hidden!important;
-
-            box-shadow:
-                0 25px 100px
-                rgba(0,0,0,.9)!important;
-
+            box-shadow:0 25px 100px rgba(0,0,0,.9)!important;
             display:flex!important;
-
-            flex-direction:
-                column!important;
-
+            flex-direction:column!important;
         }
-
 
         #vob-file-viewer-header{
-
-            height:
-                48px!important;
-
-            min-height:
-                48px!important;
-
-            background:
-                #151515!important;
-
-            border-bottom:
-                1px solid
-                rgba(255,255,255,.18)!important;
-
+            height:48px!important;
+            min-height:48px!important;
+            background:#151515!important;
+            border-bottom:1px solid rgba(255,255,255,.18)!important;
             display:flex!important;
-
             align-items:center!important;
-
             justify-content:space-between!important;
-
-            padding:
-                0 10px 0 16px!important;
-
+            padding:0 10px 0 16px!important;
         }
-
 
         #vob-file-viewer-title{
-
             color:#fff!important;
-
-            font:
-                800 13px Arial,sans-serif!important;
-
+            font:800 13px Arial,sans-serif!important;
         }
-
 
         #vob-file-viewer-close{
-
-            width:
-                36px!important;
-
-            height:
-                36px!important;
-
+            width:36px!important;
+            height:36px!important;
             border:0!important;
-
-            border-radius:
-                50%!important;
-
-            background:
-                rgba(255,255,255,.08)!important;
-
+            border-radius:50%!important;
+            background:rgba(255,255,255,.08)!important;
             color:#fff!important;
-
-            font-size:
-                26px!important;
-
+            font-size:26px!important;
             cursor:pointer!important;
-
         }
-
 
         #vob-file-viewer-close:hover{
-
-            background:
-                rgba(220,40,40,.95)!important;
-
+            background:rgba(220,40,40,.95)!important;
         }
-
 
         #vob-file-viewer-frame{
-
-            width:
-                100%!important;
-
-            height:
-                calc(100% - 48px)!important;
-
-            flex:
-                1!important;
-
+            width:100%!important;
+            height:calc(100% - 48px)!important;
+            flex:1!important;
             border:0!important;
-
             background:#fff!important;
-
         }
-
 
         @media(max-width:1250px){
 
             #arbit-iframe-header{
-
-                gap:
-                    5px!important;
-
+                gap:5px!important;
             }
-
 
             #arbit-iframe-left{
-
-                gap:
-                    6px!important;
-
+                gap:6px!important;
             }
-
 
             #arbit-app-selector{
-
-                min-width:
-                    125px!important;
-
-                max-width:
-                    180px!important;
-
+                min-width:125px!important;
+                max-width:180px!important;
             }
-
 
             #arbit-rush-verify,
             #arbit-pull-evidence{
-
-                padding:
-                    0 10px!important;
-
-                font-size:
-                    10px!important;
-
+                padding:0 10px!important;
+                font-size:10px!important;
             }
 
         }
-
 
         @media(max-width:950px){
 
             #arbit-iframe-title{
-
-                font-size:
-                    12px!important;
-
+                font-size:12px!important;
             }
-
 
             #arbit-app-selector{
-
-                min-width:
-                    110px!important;
-
-                max-width:
-                    145px!important;
-
+                min-width:110px!important;
+                max-width:145px!important;
             }
-
 
             #arbit-app-open{
-
-                padding:
-                    0 10px!important;
-
+                padding:0 10px!important;
             }
-
 
             #arbit-rush-verify,
             #arbit-pull-evidence{
-
-                padding:
-                    0 7px!important;
-
-                font-size:
-                    9px!important;
-
+                padding:0 7px!important;
+                font-size:9px!important;
             }
 
         }
 
-
         @media(max-width:700px){
 
             #arbit-iframe-overlay{
-
-                padding:
-                    4px!important;
-
+                padding:4px!important;
             }
-
 
             #arbit-iframe-window{
-
-                width:
-                    100vw!important;
-
-                height:
-                    98vh!important;
-
-                border-radius:
-                    10px!important;
-
+                width:100vw!important;
+                height:98vh!important;
+                border-radius:10px!important;
             }
-
 
             #arbit-iframe-header{
-
-                padding-left:
-                    8px!important;
-
-                gap:
-                    4px!important;
-
+                padding-left:8px!important;
+                gap:4px!important;
             }
-
 
             #arbit-iframe-left{
-
-                gap:
-                    4px!important;
-
+                gap:4px!important;
             }
-
 
             #arbit-iframe-title{
-
-                font-size:
-                    10px!important;
-
+                font-size:10px!important;
             }
-
 
             #arbit-iframe-number{
-
-                font-size:
-                    10px!important;
-
+                font-size:10px!important;
             }
-
 
             #arbit-app-selector{
-
-                min-width:
-                    85px!important;
-
-                max-width:
-                    120px!important;
-
-                height:
-                    34px!important;
-
-                font-size:
-                    9px!important;
-
+                min-width:85px!important;
+                max-width:120px!important;
+                height:34px!important;
+                font-size:9px!important;
             }
-
 
             #arbit-app-open{
-
-                height:
-                    34px!important;
-
-                padding:
-                    0 8px!important;
-
-                font-size:
-                    9px!important;
-
+                height:34px!important;
+                padding:0 8px!important;
+                font-size:9px!important;
             }
-
 
             #arbit-rush-verify,
             #arbit-pull-evidence{
-
-                height:
-                    34px!important;
-
-                padding:
-                    0 5px!important;
-
-                font-size:
-                    8px!important;
-
+                height:34px!important;
+                padding:0 5px!important;
+                font-size:8px!important;
             }
-
 
             #arbit-iframe-minimize,
             #arbit-iframe-close{
-
-                width:
-                    34px!important;
-
-                height:
-                    34px!important;
-
+                width:34px!important;
+                height:34px!important;
             }
 
         }
@@ -2582,10 +1987,6 @@ const openArbitIframe=()=>{
         overlay
     );
 
-
-    /* =====================================================
-       ELEMENTS
-       ===================================================== */
 
     const iframe=
         document.getElementById(
@@ -2635,10 +2036,6 @@ const openArbitIframe=()=>{
         );
 
 
-    /* =====================================================
-       UPDATE CURRENT ID DISPLAY
-       ===================================================== */
-
     const updateCurrentIdDisplay=()=>{
 
         if(!iframeNumberElement)
@@ -2651,10 +2048,6 @@ const openArbitIframe=()=>{
 
     };
 
-
-    /* =====================================================
-       APP DROPDOWN CHANGE
-       ===================================================== */
 
     if(appSelector){
 
@@ -2703,10 +2096,6 @@ const openArbitIframe=()=>{
 
     }
 
-
-    /* =====================================================
-       OPEN SELECTED APP IN SAME IFRAME
-       ===================================================== */
 
     if(appOpenBtn){
 
@@ -2790,16 +2179,8 @@ const openArbitIframe=()=>{
     }
 
 
-    /* =====================================================
-       UPDATE IFRAME ARBIT NUMBER
-       ===================================================== */
-
     updateCurrentIdDisplay();
 
-
-    /* =====================================================
-       FORCE IFRAME TO FRONT
-       ===================================================== */
 
     try{
 
@@ -2837,10 +2218,6 @@ const openArbitIframe=()=>{
     }
 
 
-    /* =====================================================
-       RUSH VERIFY
-       ===================================================== */
-
     rushBtn.onclick=()=>{
 
         runRushVerify(
@@ -2849,10 +2226,6 @@ const openArbitIframe=()=>{
 
     };
 
-
-    /* =====================================================
-       PULL CASE / HISTORY EVIDENCE
-       ===================================================== */
 
     pullEvidenceBtn.onclick=()=>{
 
@@ -2863,18 +2236,10 @@ const openArbitIframe=()=>{
     };
 
 
-    /* =====================================================
-       INSTALL VOB HANDLERS
-       ===================================================== */
-
     installVobIframeHandlers(
         iframe
     );
 
-
-    /* =====================================================
-       MINIMIZE IFRAME
-       ===================================================== */
 
     const minimizeIframe=()=>{
 
@@ -2894,10 +2259,6 @@ const openArbitIframe=()=>{
     minimizeBtn.onclick=
         minimizeIframe;
 
-
-    /* =====================================================
-       CLOSE IFRAME
-       ===================================================== */
 
     const closeIframe=()=>{
 
@@ -2921,10 +2282,6 @@ const openArbitIframe=()=>{
         closeIframe;
 
 
-    /* =====================================================
-       CLICK OUTSIDE
-       ===================================================== */
-
     overlay.addEventListener(
         "mousedown",
         e=>{
@@ -2940,10 +2297,6 @@ const openArbitIframe=()=>{
         }
     );
 
-
-    /* =====================================================
-       ESC
-       ===================================================== */
 
     overlay.addEventListener(
         "keydown",
@@ -2978,10 +2331,6 @@ const openArbitIframe=()=>{
         true
     );
 
-
-    /* =====================================================
-       FOCUS
-       ===================================================== */
 
     setTimeout(()=>{
 
@@ -3042,6 +2391,23 @@ const popup=()=>new Promise(resolve=>{
                 >
                     ARBIT ID
                 </button>
+
+            </div>
+
+
+            <div id="dp-label-processor">
+                Processor Name
+            </div>
+
+
+            <div id="dp-processor-row">
+
+                <input
+                    id="dp-processor"
+                    type="text"
+                    placeholder="Enter Processor Name"
+                    autocomplete="off"
+                >
 
             </div>
 
@@ -3320,103 +2686,514 @@ const popup=()=>new Promise(resolve=>{
     `;
 
 
-    /* =====================================================
-       STYLE
-       ===================================================== */
+/* =========================================================
+   STYLE
+   ========================================================= */
 
-    const style=
-        document.createElement("style");
-
-
-    style.id=
-        "dispute-popup-style";
+const style=
+    document.createElement("style");
 
 
-    style.textContent=`
-
-        #dispute-popup-overlay{
-
-            position:fixed;
-
-            inset:0;
-
-            width:100%;
-
-            height:100%;
-
-            z-index:2147483646;
-
-            pointer-events:none;
-
-            isolation:isolate;
-
-        }
+style.id=
+    "dispute-popup-style";
 
 
-        #dispute-popup{
+style.textContent=`
 
-            pointer-events:auto;
+    #dispute-popup-overlay{
+        position:fixed;
+        inset:0;
+        width:100%;
+        height:100%;
+        z-index:2147483646;
+        pointer-events:none;
+        isolation:isolate;
+    }
 
-            position:absolute;
 
-            top:20px;
+    #dispute-popup{
+        pointer-events:auto;
+        position:absolute;
+        top:20px;
+        left:50%;
+        transform:translateX(-50%);
+        width:620px;
+        max-width:calc(100vw - 30px);
+        max-height:calc(100vh - 40px);
+        overflow-y:auto;
+        padding:24px;
+        border-radius:18px;
+        background:rgba(0,0,0,.78);
+        border:1px solid rgba(255,255,255,.18);
+        box-shadow:0 15px 45px rgba(0,0,0,.45);
+        backdrop-filter:blur(14px);
+        -webkit-backdrop-filter:blur(14px);
+        font-family:Arial,sans-serif;
+        color:#fff;
+        box-sizing:border-box;
+    }
 
-            left:50%;
 
-            transform:translateX(-50%);
+    #dp-title-row{
+        display:flex;
+        align-items:center;
+        justify-content:space-between;
+        gap:12px;
+        margin-bottom:20px;
+        padding-right:34px;
+    }
 
-            width:620px;
 
-            max-width:
-                calc(100vw - 30px);
+    #dp-title{
+        font-size:20px;
+        font-weight:700;
+        margin:0;
+    }
 
-            max-height:
-                calc(100vh - 40px);
 
-            overflow-y:auto;
+    #dp-arbit-id{
+        height:38px;
+        padding:0 16px;
+        border:1px solid rgba(255,255,255,.25);
+        border-radius:9px;
+        background:#d92828;
+        color:#fff;
+        font-size:13px;
+        font-weight:800;
+        letter-spacing:.4px;
+        cursor:pointer;
+        white-space:nowrap;
+        box-shadow:0 4px 12px rgba(0,0,0,.3);
+    }
 
-            padding:24px;
 
-            border-radius:18px;
+    #dp-arbit-id:hover{
+        background:#ef3333;
+        transform:translateY(-1px);
+    }
 
-            background:
-                rgba(0,0,0,.78);
 
-            border:
-                1px solid
-                rgba(255,255,255,.18);
+    #dp-close{
+        position:absolute;
+        top:8px;
+        right:10px;
+        width:34px;
+        height:34px;
+        border:0;
+        border-radius:50%;
+        background:transparent;
+        color:#fff;
+        font-size:27px;
+        cursor:pointer;
+    }
 
-            box-shadow:
-                0 15px 45px
-                rgba(0,0,0,.45);
 
-            backdrop-filter:
-                blur(14px);
+    #dp-close:hover{
+        background:rgba(255,255,255,.14);
+    }
 
-            -webkit-backdrop-filter:
-                blur(14px);
 
-            font-family:
-                Arial,sans-serif;
+    #dp-label-processor,
+    #dp-label-name,
+    #dp-label-state,
+    #dp-label-mismatch,
+    #dp-label-email,
+    #dp-label-arbit-notes,
+    #dp-label-plan-evidence,
+    #dp-label-verified,
+    #dp-label-non-bifurcated{
 
-            color:#fff;
+        font-size:13px;
+        font-weight:600;
+        color:rgba(255,255,255,.9);
+        margin:10px 0 7px;
 
-            box-sizing:border-box;
+    }
 
-        }
 
+    #dp-label-processor{
+        margin-top:0;
+    }
+
+
+    #dp-processor-row,
+    #dp-name-row,
+    #dp-state-row{
+        display:flex;
+        gap:8px;
+        width:100%;
+        align-items:center;
+    }
+
+
+    #dp-processor,
+    #dp-name,
+    #dp-state,
+    #dp-email,
+    #dp-arbit-notes,
+    #dp-mismatch,
+    #dp-plan-evidence,
+    #dp-verified,
+    #dp-non-bifurcated,
+    #dp-duplicate-comments{
+
+        height:42px;
+        box-sizing:border-box;
+        border:1px solid rgba(255,255,255,.25);
+        border-radius:10px;
+        background:rgba(255,255,255,.09);
+        color:#fff;
+        outline:none;
+        padding:0 12px;
+        font-size:14px;
+
+    }
+
+
+    #dp-processor,
+    #dp-name,
+    #dp-state{
+        flex:1;
+        min-width:0;
+    }
+
+
+    #dp-duplicate-comments{
+        width:220px;
+        flex-shrink:0;
+        cursor:pointer;
+    }
+
+
+    #dp-mismatch,
+    #dp-email,
+    #dp-arbit-notes,
+    #dp-plan-evidence,
+    #dp-verified,
+    #dp-non-bifurcated{
+        width:100%;
+    }
+
+
+    #dp-mismatch,
+    #dp-plan-evidence,
+    #dp-verified,
+    #dp-non-bifurcated{
+        cursor:pointer;
+    }
+
+
+    #dp-mismatch option,
+    #dp-plan-evidence option,
+    #dp-verified option,
+    #dp-non-bifurcated option,
+    #dp-duplicate-comments option{
+        background:#222;
+        color:#fff;
+    }
+
+
+    #dp-processor::placeholder,
+    #dp-name::placeholder,
+    #dp-state::placeholder,
+    #dp-email::placeholder,
+    #dp-arbit-notes::placeholder{
+        color:rgba(255,255,255,.5);
+    }
+
+
+    #dp-processor:focus,
+    #dp-name:focus,
+    #dp-state:focus,
+    #dp-email:focus,
+    #dp-arbit-notes:focus,
+    #dp-mismatch:focus,
+    #dp-plan-evidence:focus,
+    #dp-verified:focus,
+    #dp-non-bifurcated:focus,
+    #dp-duplicate-comments:focus{
+
+        border-color:rgba(255,255,255,.65);
+
+        box-shadow:
+            0 0 0 3px
+            rgba(255,255,255,.08);
+
+    }
+
+
+    #dp-edit,
+    #dp-save,
+    #dp-go{
+
+        height:42px;
+
+        padding:
+            0 15px;
+
+        border:
+            1px solid
+            rgba(255,255,255,.25);
+
+        border-radius:10px;
+
+        background:
+            rgba(255,255,255,.14);
+
+        color:#fff;
+
+        font-weight:700;
+
+        font-size:14px;
+
+        cursor:pointer;
+
+        white-space:nowrap;
+
+    }
+
+
+    #dp-edit:hover,
+    #dp-save:hover{
+
+        background:
+            rgba(255,255,255,.24);
+
+    }
+
+
+    #dp-go{
+
+        width:100%;
+
+        margin-top:10px;
+
+        background:
+            rgba(35,150,70,.9);
+
+        border-color:
+            rgba(35,150,70,.65);
+
+    }
+
+
+    #dp-go:hover{
+
+        background:
+            rgba(45,175,80,.98);
+
+    }
+
+
+    #dp-save{
+
+        display:none;
+
+    }
+
+
+    #dp-saved{
+
+        display:none;
+
+        height:42px;
+
+        padding:
+            0 12px;
+
+        border-radius:10px;
+
+        background:
+            rgba(35,140,65,.8);
+
+        color:#fff;
+
+        font-weight:700;
+
+        font-size:13px;
+
+        align-items:center;
+
+        justify-content:center;
+
+        white-space:nowrap;
+
+    }
+
+
+    #dp-status{
+
+        margin-top:9px;
+
+        font-size:12px;
+
+        color:
+            rgba(255,255,255,.65);
+
+        min-height:16px;
+
+    }
+
+
+    #dp-eligible{
+
+        margin-top:16px;
+
+        padding-top:14px;
+
+        border-top:
+            1px solid
+            rgba(255,255,255,.14);
+
+    }
+
+
+    #dp-eligible-title{
+
+        font-size:13px;
+
+        font-weight:600;
+
+        margin-bottom:9px;
+
+    }
+
+
+    #dp-eligible-buttons{
+
+        display:flex;
+
+        gap:8px;
+
+    }
+
+
+    #dp-no,
+    #dp-yes{
+
+        flex:1;
+
+        height:42px;
+
+        border-radius:10px;
+
+        border:
+            1px solid
+            rgba(255,255,255,.2);
+
+        color:#fff;
+
+        font-size:14px;
+
+        font-weight:700;
+
+        cursor:pointer;
+
+    }
+
+
+    #dp-no{
+
+        background:
+            rgba(190,35,35,.88);
+
+    }
+
+
+    #dp-no:hover{
+
+        background:
+            rgba(220,45,45,.95);
+
+    }
+
+
+    #dp-yes{
+
+        background:
+            rgba(30,95,190,.9);
+
+    }
+
+
+    #dp-yes:hover{
+
+        background:
+            rgba(40,115,220,.98);
+
+    }
+
+
+    #dp-yes-extra{
+
+        margin-top:14px;
+
+        padding-top:14px;
+
+        border-top:
+            1px solid
+            rgba(255,255,255,.14);
+
+    }
+
+
+    #dp-continue{
+
+        width:100%;
+
+        height:42px;
+
+        margin-top:10px;
+
+        border-radius:10px;
+
+        border:
+            1px solid
+            rgba(35,140,65,.45);
+
+        background:
+            rgba(35,150,70,.9);
+
+        color:#fff;
+
+        font-size:14px;
+
+        font-weight:700;
+
+        cursor:pointer;
+
+    }
+
+
+    #dp-continue:hover:not(:disabled){
+
+        background:
+            rgba(45,175,80,.98);
+
+    }
+
+
+    #dp-continue:disabled{
+
+        background:
+            rgba(100,100,100,.45);
+
+        border-color:
+            rgba(255,255,255,.12);
+
+        color:
+            rgba(255,255,255,.45);
+
+        cursor:not-allowed;
+
+        opacity:.65;
+
+    }
+
+
+    @media(max-width:650px){
 
         #dp-title-row{
-
-            display:flex;
-
-            align-items:center;
-
-            justify-content:space-between;
-
-            gap:12px;
-
-            margin-bottom:20px;
 
             padding-right:34px;
 
@@ -3425,718 +3202,224 @@ const popup=()=>new Promise(resolve=>{
 
         #dp-title{
 
-            font-size:20px;
-
-            font-weight:700;
-
-            margin:0;
+            font-size:18px;
 
         }
 
 
         #dp-arbit-id{
 
-            height:38px;
+            padding:
+                0 11px;
 
-            padding:0 16px;
-
-            border:
-                1px solid
-                rgba(255,255,255,.25);
-
-            border-radius:9px;
-
-            background:#d92828;
-
-            color:#fff;
-
-            font-size:13px;
-
-            font-weight:800;
-
-            letter-spacing:.4px;
-
-            cursor:pointer;
-
-            white-space:nowrap;
-
-            box-shadow:
-                0 4px 12px
-                rgba(0,0,0,.3);
+            font-size:
+                12px;
 
         }
 
 
-        #dp-arbit-id:hover{
-
-            background:#ef3333;
-
-            transform:translateY(-1px);
-
-        }
-
-
-        #dp-close{
-
-            position:absolute;
-
-            top:8px;
-
-            right:10px;
-
-            width:34px;
-
-            height:34px;
-
-            border:0;
-
-            border-radius:50%;
-
-            background:transparent;
-
-            color:#fff;
-
-            font-size:27px;
-
-            cursor:pointer;
-
-        }
-
-
-        #dp-close:hover{
-
-            background:
-                rgba(255,255,255,.14);
-
-        }
-
-
-        #dp-label-name,
-        #dp-label-state,
-        #dp-label-mismatch,
-        #dp-label-email,
-        #dp-label-arbit-notes,
-        #dp-label-plan-evidence,
-        #dp-label-verified,
-        #dp-label-non-bifurcated{
-
-            font-size:13px;
-
-            font-weight:600;
-
-            color:
-                rgba(255,255,255,.9);
-
-            margin:
-                10px 0 7px;
-
-        }
-
-
-        #dp-name-row,
         #dp-state-row{
 
-            display:flex;
-
-            gap:8px;
-
-            width:100%;
-
-            align-items:center;
+            flex-wrap:wrap;
 
         }
 
 
-        #dp-name,
-        #dp-state,
-        #dp-email,
-        #dp-arbit-notes,
-        #dp-mismatch,
-        #dp-plan-evidence,
-        #dp-verified,
-        #dp-non-bifurcated,
-        #dp-duplicate-comments{
-
-            height:42px;
-
-            box-sizing:border-box;
-
-            border:
-                1px solid
-                rgba(255,255,255,.25);
-
-            border-radius:10px;
-
-            background:
-                rgba(255,255,255,.09);
-
-            color:#fff;
-
-            outline:none;
-
-            padding:
-                0 12px;
-
-            font-size:14px;
-
-        }
-
-
-        #dp-name,
         #dp-state{
 
-            flex:1;
+            width:100%;
 
-            min-width:0;
+            flex:none;
 
         }
 
 
         #dp-duplicate-comments{
 
-            width:220px;
-
-            flex-shrink:0;
-
-            cursor:pointer;
-
-        }
-
-
-        #dp-mismatch,
-        #dp-email,
-        #dp-arbit-notes,
-        #dp-plan-evidence,
-        #dp-verified,
-        #dp-non-bifurcated{
-
             width:100%;
 
         }
 
+    }
 
-        #dp-mismatch,
-        #dp-plan-evidence,
-        #dp-verified,
-        #dp-non-bifurcated{
+`;
 
-            cursor:pointer;
 
-        }
+document.head.appendChild(
+    style
+);
 
 
-        #dp-mismatch option,
-        #dp-plan-evidence option,
-        #dp-verified option,
-        #dp-non-bifurcated option,
-        #dp-duplicate-comments option{
+document.body.appendChild(
+    overlay
+);
 
-            background:#222;
 
-            color:#fff;
+/* =====================================================
+   ELEMENTS
+   ===================================================== */
 
-        }
+const processorInput=
+    document.getElementById(
+        "dp-processor"
+    );
 
+const nameInput=
+    document.getElementById("dp-name");
 
-        #dp-name::placeholder,
-        #dp-state::placeholder,
-        #dp-email::placeholder,
-        #dp-arbit-notes::placeholder{
+const stateInput=
+    document.getElementById("dp-state");
 
-            color:
-                rgba(255,255,255,.5);
+const duplicateCommentsInput=
+    document.getElementById(
+        "dp-duplicate-comments"
+    );
 
-        }
+const mismatchInput=
+    document.getElementById(
+        "dp-mismatch"
+    );
 
+const editBtn=
+    document.getElementById("dp-edit");
 
-        #dp-name:focus,
-        #dp-state:focus,
-        #dp-email:focus,
-        #dp-arbit-notes:focus,
-        #dp-mismatch:focus,
-        #dp-plan-evidence:focus,
-        #dp-verified:focus,
-        #dp-non-bifurcated:focus,
-        #dp-duplicate-comments:focus{
+const saveBtn=
+    document.getElementById("dp-save");
 
-            border-color:
-                rgba(255,255,255,.65);
+const savedLabel=
+    document.getElementById("dp-saved");
 
-            box-shadow:
-                0 0 0 3px
-                rgba(255,255,255,.08);
+const goBtn=
+    document.getElementById("dp-go");
 
-        }
+const closeBtn=
+    document.getElementById("dp-close");
 
+const status=
+    document.getElementById("dp-status");
 
-        #dp-edit,
-        #dp-save,
-        #dp-go{
+const eligible=
+    document.getElementById("dp-eligible");
 
-            height:42px;
+const noBtn=
+    document.getElementById("dp-no");
 
-            padding:
-                0 15px;
+const yesBtn=
+    document.getElementById("dp-yes");
 
-            border:
-                1px solid
-                rgba(255,255,255,.25);
+const yesExtra=
+    document.getElementById("dp-yes-extra");
 
-            border-radius:10px;
+const emailInput=
+    document.getElementById("dp-email");
 
-            background:
-                rgba(255,255,255,.14);
+const arbitNotesInput=
+    document.getElementById(
+        "dp-arbit-notes"
+    );
 
-            color:#fff;
+const planEvidenceInput=
+    document.getElementById(
+        "dp-plan-evidence"
+    );
 
-            font-weight:700;
+const verifiedInput=
+    document.getElementById(
+        "dp-verified"
+    );
 
-            font-size:14px;
+const nonBifurcatedInput=
+    document.getElementById(
+        "dp-non-bifurcated"
+    );
 
-            cursor:pointer;
+const continueBtn=
+    document.getElementById(
+        "dp-continue"
+    );
 
-            white-space:nowrap;
-
-        }
-
-
-        #dp-edit:hover,
-        #dp-save:hover{
-
-            background:
-                rgba(255,255,255,.24);
-
-        }
-
-
-        #dp-go{
-
-            width:100%;
-
-            margin-top:10px;
-
-            background:
-                rgba(35,150,70,.9);
-
-            border-color:
-                rgba(35,150,70,.65);
-
-        }
-
-
-        #dp-go:hover{
-
-            background:
-                rgba(45,175,80,.98);
-
-        }
-
-
-        #dp-save{
-
-            display:none;
-
-        }
-
-
-        #dp-saved{
-
-            display:none;
-
-            height:42px;
-
-            padding:
-                0 12px;
-
-            border-radius:10px;
-
-            background:
-                rgba(35,140,65,.8);
-
-            color:#fff;
-
-            font-weight:700;
-
-            font-size:13px;
-
-            align-items:center;
-
-            justify-content:center;
-
-            white-space:nowrap;
-
-        }
-
-
-        #dp-status{
-
-            margin-top:9px;
-
-            font-size:12px;
-
-            color:
-                rgba(255,255,255,.65);
-
-            min-height:16px;
-
-        }
-
-
-        #dp-eligible{
-
-            margin-top:16px;
-
-            padding-top:14px;
-
-            border-top:
-                1px solid
-                rgba(255,255,255,.14);
-
-        }
-
-
-        #dp-eligible-title{
-
-            font-size:13px;
-
-            font-weight:600;
-
-            margin-bottom:9px;
-
-        }
-
-
-        #dp-eligible-buttons{
-
-            display:flex;
-
-            gap:8px;
-
-        }
-
-
-        #dp-no,
-        #dp-yes{
-
-            flex:1;
-
-            height:42px;
-
-            border-radius:10px;
-
-            border:
-                1px solid
-                rgba(255,255,255,.2);
-
-            color:#fff;
-
-            font-size:14px;
-
-            font-weight:700;
-
-            cursor:pointer;
-
-        }
-
-
-        #dp-no{
-
-            background:
-                rgba(190,35,35,.88);
-
-        }
-
-
-        #dp-no:hover{
-
-            background:
-                rgba(220,45,45,.95);
-
-        }
-
-
-        #dp-yes{
-
-            background:
-                rgba(30,95,190,.9);
-
-        }
-
-
-        #dp-yes:hover{
-
-            background:
-                rgba(40,115,220,.98);
-
-        }
-
-
-        #dp-yes-extra{
-
-            margin-top:14px;
-
-            padding-top:14px;
-
-            border-top:
-                1px solid
-                rgba(255,255,255,.14);
-
-        }
-
-
-        #dp-continue{
-
-            width:100%;
-
-            height:42px;
-
-            margin-top:10px;
-
-            border-radius:10px;
-
-            border:
-                1px solid
-                rgba(35,140,65,.45);
-
-            background:
-                rgba(35,150,70,.9);
-
-            color:#fff;
-
-            font-size:14px;
-
-            font-weight:700;
-
-            cursor:pointer;
-
-        }
-
-
-        #dp-continue:hover:not(:disabled){
-
-            background:
-                rgba(45,175,80,.98);
-
-        }
-
-
-        #dp-continue:disabled{
-
-            background:
-                rgba(100,100,100,.45);
-
-            border-color:
-                rgba(255,255,255,.12);
-
-            color:
-                rgba(255,255,255,.45);
-
-            cursor:not-allowed;
-
-            opacity:.65;
-
-        }
-
-
-        @media(max-width:650px){
-
-            #dp-title-row{
-
-                padding-right:34px;
-
-            }
-
-
-            #dp-title{
-
-                font-size:18px;
-
-            }
-
-
-            #dp-arbit-id{
-
-                padding:
-                    0 11px;
-
-                font-size:
-                    12px;
-
-            }
-
-
-            #dp-state-row{
-
-                flex-wrap:wrap;
-
-            }
-
-
-            #dp-state{
-
-                width:100%;
-
-                flex:none;
-
-            }
-
-
-            #dp-duplicate-comments{
-
-                width:100%;
-
-            }
-
-        }
-
-    `;
-
-
-    document.head.appendChild(
-        style
+const arbitIdBtn=
+    document.getElementById(
+        "dp-arbit-id"
     );
 
 
-    document.body.appendChild(
-        overlay
-    );
+/* =====================================================
+   ARBIT ID BUTTON
+   ===================================================== */
+
+arbitIdBtn.onclick=()=>{
+
+    openArbitIframe();
+
+};
 
 
-    /* =====================================================
-       ELEMENTS
-       ===================================================== */
+/* =====================================================
+   USER NAME + PROCESSOR NAME
+   ===================================================== */
 
-    const nameInput=
-        document.getElementById("dp-name");
+let currentName=
+    getName();
 
-    const stateInput=
-        document.getElementById("dp-state");
-
-    const duplicateCommentsInput=
-        document.getElementById(
-            "dp-duplicate-comments"
-        );
-
-    const mismatchInput=
-        document.getElementById(
-            "dp-mismatch"
-        );
-
-    const editBtn=
-        document.getElementById("dp-edit");
-
-    const saveBtn=
-        document.getElementById("dp-save");
-
-    const savedLabel=
-        document.getElementById("dp-saved");
-
-    const goBtn=
-        document.getElementById("dp-go");
-
-    const closeBtn=
-        document.getElementById("dp-close");
-
-    const status=
-        document.getElementById("dp-status");
-
-    const eligible=
-        document.getElementById("dp-eligible");
-
-    const noBtn=
-        document.getElementById("dp-no");
-
-    const yesBtn=
-        document.getElementById("dp-yes");
-
-    const yesExtra=
-        document.getElementById("dp-yes-extra");
-
-    const emailInput=
-        document.getElementById("dp-email");
-
-    const arbitNotesInput=
-        document.getElementById(
-            "dp-arbit-notes"
-        );
-
-    const planEvidenceInput=
-        document.getElementById(
-            "dp-plan-evidence"
-        );
-
-    const verifiedInput=
-        document.getElementById(
-            "dp-verified"
-        );
-
-    const nonBifurcatedInput=
-        document.getElementById(
-            "dp-non-bifurcated"
-        );
-
-    const continueBtn=
-        document.getElementById(
-            "dp-continue"
-        );
-
-    const arbitIdBtn=
-        document.getElementById(
-            "dp-arbit-id"
-        );
+let currentProcessorName=
+    getProcessorName();
 
 
-    /* =====================================================
-       ARBIT ID BUTTON
-       ===================================================== */
+processorInput.value=
+    currentProcessorName;
 
-    arbitIdBtn.onclick=()=>{
-
-        openArbitIframe();
-
-    };
+nameInput.value=
+    currentName;
 
 
-    /* =====================================================
-       USER NAME
-       ===================================================== */
+/* =====================================================
+   INITIAL LOCK STATE
+   ===================================================== */
 
-    let currentName=
-        getName();
+if(
+    currentName &&
+    currentProcessorName
+){
+
+    processorInput.readOnly=true;
+    nameInput.readOnly=true;
+
+    editBtn.style.display=
+        "inline-block";
+
+    saveBtn.style.display=
+        "none";
+
+    savedLabel.style.display=
+        "inline-flex";
+
+    status.textContent=
+        "Saved Processor Name and Dispute User Name.";
+
+}else{
+
+    processorInput.readOnly=false;
+    nameInput.readOnly=false;
+
+    editBtn.style.display=
+        "none";
+
+    saveBtn.style.display=
+        "inline-block";
+
+    savedLabel.style.display=
+        "none";
 
 
-    nameInput.value=
-        currentName;
-
-
-    if(currentName){
-
-        nameInput.readOnly=true;
-
-        editBtn.style.display=
-            "inline-block";
-
-        saveBtn.style.display=
-            "none";
-
-        savedLabel.style.display=
-            "inline-flex";
+    if(!currentProcessorName){
 
         status.textContent=
-            "Saved username: "+currentName;
+            "Please enter and save your Processor Name and Dispute User Name.";
+
+        processorInput.focus();
 
     }else{
-
-        nameInput.readOnly=false;
-
-        editBtn.style.display=
-            "none";
-
-        saveBtn.style.display=
-            "inline-block";
-
-        savedLabel.style.display=
-            "none";
 
         status.textContent=
             "Please enter and save your Dispute User Name.";
@@ -4145,968 +3428,1047 @@ const popup=()=>new Promise(resolve=>{
 
     }
 
+}
 
-    /* =====================================================
-       EDIT
-       ===================================================== */
 
-    editBtn.onclick=()=>{
+/* =====================================================
+   EDIT
+   ===================================================== */
 
-        nameInput.readOnly=false;
+editBtn.onclick=()=>{
+
+    processorInput.readOnly=false;
+    nameInput.readOnly=false;
+
+    processorInput.focus();
+
+    processorInput.select();
+
+    editBtn.style.display=
+        "none";
+
+    saveBtn.style.display=
+        "inline-block";
+
+    savedLabel.style.display=
+        "none";
+
+    status.textContent=
+        "Editing Processor Name and Dispute User Name...";
+
+};
+
+
+/* =====================================================
+   SAVE
+   ===================================================== */
+
+saveBtn.onclick=()=>{
+
+    const processor=
+        processorInput.value.trim();
+
+    const n=
+        nameInput.value.trim();
+
+
+    if(!processor){
+
+        status.textContent=
+            "Enter a Processor Name first.";
+
+        processorInput.focus();
+
+        return;
+
+    }
+
+
+    if(!n){
+
+        status.textContent=
+            "Enter a Dispute User Name first.";
 
         nameInput.focus();
 
-        nameInput.select();
+        return;
 
-        editBtn.style.display=
-            "none";
+    }
 
-        saveBtn.style.display=
-            "inline-block";
 
-        savedLabel.style.display=
-            "none";
+    if(!saveProcessorName(processor)){
 
         status.textContent=
-            "Editing username...";
+            "Could not save the Processor Name.";
 
-    };
+        return;
 
-
-    /* =====================================================
-       SAVE
-       ===================================================== */
-
-    saveBtn.onclick=()=>{
-
-        const n=
-            nameInput.value.trim();
+    }
 
 
-        if(!n){
-
-            status.textContent=
-                "Enter a Dispute User Name first.";
-
-            nameInput.focus();
-
-            return;
-
-        }
-
-
-        if(!saveName(n)){
-
-            status.textContent=
-                "Could not save the username.";
-
-            return;
-
-        }
-
-
-        currentName=n;
-
-        nameInput.value=n;
-
-        nameInput.readOnly=true;
-
-        editBtn.style.display=
-            "inline-block";
-
-        saveBtn.style.display=
-            "none";
-
-        savedLabel.style.display=
-            "inline-flex";
+    if(!saveName(n)){
 
         status.textContent=
-            "Username saved.";
+            "Could not save the username.";
+
+        return;
+
+    }
+
+
+    currentProcessorName=
+        processor;
+
+    currentName=
+        n;
+
+
+    processorInput.value=
+        processor;
+
+    nameInput.value=
+        n;
+
+
+    processorInput.readOnly=true;
+    nameInput.readOnly=true;
+
+    editBtn.style.display=
+        "inline-block";
+
+    saveBtn.style.display=
+        "none";
+
+    savedLabel.style.display=
+        "inline-flex";
+
+    status.textContent=
+        "Processor Name and Dispute User Name saved.";
+
+    stateInput.focus();
+
+};
+
+
+/* =====================================================
+   VALIDATE MAIN FORM
+   ===================================================== */
+
+const validate=()=>{
+
+    if(!currentProcessorName){
+
+        status.textContent=
+            "Please save your Processor Name first.";
+
+        processorInput.focus();
+
+        return false;
+
+    }
+
+
+    if(!currentName){
+
+        status.textContent=
+            "Please save your Dispute User Name first.";
+
+        nameInput.focus();
+
+        return false;
+
+    }
+
+
+    if(!stateInput.value.trim()){
+
+        status.textContent=
+            "Enter a State.";
 
         stateInput.focus();
 
-    };
+        return false;
 
+    }
 
-    /* =====================================================
-       VALIDATE MAIN FORM
-       ===================================================== */
 
-    const validate=()=>{
-
-        if(!currentName){
-
-            status.textContent=
-                "Please save your Dispute User Name first.";
-
-            nameInput.focus();
-
-            return false;
-
-        }
-
-
-        if(!stateInput.value.trim()){
-
-            status.textContent=
-                "Enter a State.";
-
-            stateInput.focus();
-
-            return false;
-
-        }
-
-
-        if(!duplicateCommentsInput.value){
-
-            status.textContent=
-                "Please select Duplicate Dispute Comments.";
-
-            duplicateCommentsInput.focus();
-
-            return false;
-
-        }
-
-
-        if(!mismatchInput.value){
-
-            status.textContent=
-                "Please select Plantype Mismatch: Yes or No.";
-
-            mismatchInput.focus();
-
-            return false;
-
-        }
-
-
-        return true;
-
-    };
-
-
-    /* =====================================================
-       VALIDATE YES FORM
-       ===================================================== */
-
-    const validateYesFields=()=>{
-
-        const email=
-            emailInput.value.trim();
-
-        const arbitNotes=
-            arbitNotesInput.value.trim();
-
-        const planEvidence=
-            planEvidenceInput.value;
-
-        const verificationStatus=
-            verifiedInput.value;
-
-        const nonBifurcated=
-            nonBifurcatedInput.value;
-
-
-        return(
-            !!email &&
-            !!arbitNotes &&
-            !!planEvidence &&
-            !!verificationStatus &&
-            !!nonBifurcated
-        );
-
-    };
-
-
-    /* =====================================================
-       UPDATE CONTINUE
-       ===================================================== */
-
-    const updateContinueButton=()=>{
-
-        const complete=
-            validateYesFields();
-
-
-        continueBtn.disabled=
-            !complete;
-
-
-        if(complete){
-
-            continueBtn.title=
-                "All required fields are complete.";
-
-        }else{
-
-            continueBtn.title=
-                "Complete all required fields before continuing.";
-
-        }
-
-    };
-
-
-    /* =====================================================
-       YES FIELD LISTENERS
-       ===================================================== */
-
-    emailInput.addEventListener(
-        "input",
-        updateContinueButton
-    );
-
-    arbitNotesInput.addEventListener(
-        "input",
-        updateContinueButton
-    );
-
-    planEvidenceInput.addEventListener(
-        "change",
-        updateContinueButton
-    );
-
-    verifiedInput.addEventListener(
-        "change",
-        updateContinueButton
-    );
-
-    nonBifurcatedInput.addEventListener(
-        "change",
-        updateContinueButton
-    );
-
-
-    /* =====================================================
-       GO
-       ===================================================== */
-
-    const processGo=()=>{
-
-        if(!validate())
-            return;
-
-
-        stateInput.value=
-            stateInput.value
-                .trim()
-                .toUpperCase();
-
-
-        eligible.style.display=
-            "block";
-
-
-        yesExtra.style.display=
-            "none";
-
-
-        emailInput.value="";
-        arbitNotesInput.value="";
-        planEvidenceInput.value="";
-        verifiedInput.value="";
-        nonBifurcatedInput.value="";
-
-
-        updateContinueButton();
-
+    if(!duplicateCommentsInput.value){
 
         status.textContent=
-            "Choose eligibility to continue.";
+            "Please select Duplicate Dispute Comments.";
 
-        noBtn.focus();
+        duplicateCommentsInput.focus();
 
-    };
+        return false;
 
-
-    goBtn.onclick=
-        processGo;
+    }
 
 
-    stateInput.onkeydown=e=>{
+    if(!mismatchInput.value){
 
-        if(e.key==="Enter"){
+        status.textContent=
+            "Please select Plantype Mismatch: Yes or No.";
 
-            e.preventDefault();
+        mismatchInput.focus();
 
-            processGo();
+        return false;
 
-        }
-
-    };
-
-
-    /* =====================================================
-       BUILD ONE ROW
-       ===================================================== */
-
-    const buildRow=(
-        id,
-        i,
-        stateValue,
-        duplicateComments,
-        isYes,
-        disputeUserName="",
-        email="",
-        verificationStatus="",
-        arbitCaseNotes="",
-        planTypeEvidence="",
-        nonBifurcated="",
-        plantypeMismatch=""
-    )=>{
-
-        const actualG=
-            disputeStatus;
+    }
 
 
-        const actualL=
-            columnJValue;
+    return true;
+
+};
 
 
-        const actualR=
-            getColumnRValue(
-                actualG,
-                actualL
-            );
+/* =====================================================
+   VALIDATE YES FORM
+   ===================================================== */
+
+const validateYesFields=()=>{
+
+    const email=
+        emailInput.value.trim();
+
+    const arbitNotes=
+        arbitNotesInput.value.trim();
+
+    const planEvidence=
+        planEvidenceInput.value;
+
+    const verificationStatus=
+        verifiedInput.value;
+
+    const nonBifurcated=
+        nonBifurcatedInput.value;
 
 
-        const row=[
+    return(
+        !!email &&
+        !!arbitNotes &&
+        !!planEvidence &&
+        !!verificationStatus &&
+        !!nonBifurcated
+    );
 
-            isYes
-                ?email
-                :"-",
+};
 
-            getPlanType(i),
 
-            plantypeMismatch,
+/* =====================================================
+   UPDATE CONTINUE
+   ===================================================== */
 
-            duplicateComments,
+const updateContinueButton=()=>{
 
-            disputeNumber,
+    const complete=
+        validateYesFields();
 
-            id,
 
+    continueBtn.disabled=
+        !complete;
+
+
+    if(complete){
+
+        continueBtn.title=
+            "All required fields are complete.";
+
+    }else{
+
+        continueBtn.title=
+            "Complete all required fields before continuing.";
+
+    }
+
+};
+
+
+/* =====================================================
+   YES FIELD LISTENERS
+   ===================================================== */
+
+emailInput.addEventListener(
+    "input",
+    updateContinueButton
+);
+
+arbitNotesInput.addEventListener(
+    "input",
+    updateContinueButton
+);
+
+planEvidenceInput.addEventListener(
+    "change",
+    updateContinueButton
+);
+
+verifiedInput.addEventListener(
+    "change",
+    updateContinueButton
+);
+
+nonBifurcatedInput.addEventListener(
+    "change",
+    updateContinueButton
+);
+
+
+/* =====================================================
+   GO
+   ===================================================== */
+
+const processGo=()=>{
+
+    if(!validate())
+        return;
+
+
+    stateInput.value=
+        stateInput.value
+            .trim()
+            .toUpperCase();
+
+
+    eligible.style.display=
+        "block";
+
+
+    yesExtra.style.display=
+        "none";
+
+
+    emailInput.value="";
+    arbitNotesInput.value="";
+    planEvidenceInput.value="";
+    verifiedInput.value="";
+    nonBifurcatedInput.value="";
+
+
+    updateContinueButton();
+
+
+    status.textContent=
+        "Choose eligibility to continue.";
+
+    noBtn.focus();
+
+};
+
+
+goBtn.onclick=
+    processGo;
+
+
+stateInput.onkeydown=e=>{
+
+    if(e.key==="Enter"){
+
+        e.preventDefault();
+
+        processGo();
+
+    }
+
+};
+
+
+/* =========================================================
+   BUILD ONE ROW
+   ========================================================= */
+
+const buildRow=(
+    id,
+    i,
+    stateValue,
+    duplicateComments,
+    isYes,
+    disputeUserName="",
+    email="",
+    verificationStatus="",
+    arbitCaseNotes="",
+    planTypeEvidence="",
+    nonBifurcated="",
+    plantypeMismatch="",
+    processorName=""
+)=>{
+
+    const actualG=
+        disputeStatus;
+
+
+    const actualL=
+        columnJValue;
+
+
+    const actualR=
+        getColumnRValue(
             actualG,
-
-            isYes
-                ?disputeUserName
-                :"-",
-
-            isYes
-                ?verificationStatus
-                :"-",
-
-            isYes
-                ?arbitCaseNotes
-                :"-",
-
-            isYes
-                ?planTypeEvidence
-                :"-",
-
-            actualL,
-
-            "N/A",
-
-            "N/A",
-
-            stateValue,
-
-            isYes
-                ?nonBifurcated
-                :"-",
-
-            isYes
-                ?"Yes"
-                :"No",
-
-            actualR
-
-        ];
-
-
-        if(row.length!==18){
-
-            console.error(
-                "ERROR: ROW DOES NOT HAVE 18 COLUMNS!",
-                row,
-                "Length:",
-                row.length
-            );
-
-        }
-
-
-        console.log(
-            "FINAL 18-COLUMN ROW",
-            row
+            actualL
         );
 
 
-        return row.join("\t");
+    /*
+     * A:R remain exactly as before.
+     *
+     * S = Processor Name
+     * T = Philippine Date
+     */
 
-    };
+    const row=[
 
+        isYes
+            ?email
+            :"-",
 
-    /* =====================================================
-       BUILD OUTPUT
-       ===================================================== */
+        getPlanType(i),
 
-    const buildOutput=(
-        stateValue,
+        plantypeMismatch,
+
         duplicateComments,
-        isYes,
-        disputeUserName="",
-        email="",
-        verificationStatus="",
-        arbitCaseNotes="",
-        planTypeEvidence="",
-        nonBifurcated="",
-        plantypeMismatch=""
-    )=>{
 
-        const rows=
-            sameId
-            ?[
-                buildRow(
-                    ids[0],
-                    0,
-                    stateValue,
-                    duplicateComments,
-                    isYes,
-                    disputeUserName,
-                    email,
-                    verificationStatus,
-                    arbitCaseNotes,
-                    planTypeEvidence,
-                    nonBifurcated,
-                    plantypeMismatch
-                )
-            ]
-            :ids.map((id,i)=>
-                buildRow(
-                    id,
-                    i,
-                    stateValue,
-                    duplicateComments,
-                    isYes,
-                    disputeUserName,
-                    email,
-                    verificationStatus,
-                    arbitCaseNotes,
-                    planTypeEvidence,
-                    nonBifurcated,
-                    plantypeMismatch
-                )
-            );
+        disputeNumber,
 
+        id,
 
-        const output=
-            rows.join("\r\n");
+        actualG,
+
+        isYes
+            ?disputeUserName
+            :"-",
+
+        isYes
+            ?verificationStatus
+            :"-",
+
+        isYes
+            ?arbitCaseNotes
+            :"-",
+
+        isYes
+            ?planTypeEvidence
+            :"-",
+
+        actualL,
+
+        "N/A",
+
+        "N/A",
+
+        stateValue,
+
+        isYes
+            ?nonBifurcated
+            :"-",
+
+        isYes
+            ?"Yes"
+            :"No",
+
+        actualR,
+
+        processorName,
+
+        getPHDate()
+
+    ];
 
 
-        console.log(
-            "FINAL COPY OUTPUT",
-            output
+    if(row.length!==20){
+
+        console.error(
+            "ERROR: ROW DOES NOT HAVE 20 COLUMNS!",
+            row,
+            "Length:",
+            row.length
         );
 
-
-        return output;
-
-    };
+    }
 
 
-    /* =====================================================
-       NO
-       ===================================================== */
-
-    noBtn.onclick=async()=>{
-
-        if(!validate())
-            return;
+    console.log(
+        "FINAL 20-COLUMN ROW",
+        row
+    );
 
 
-        const stateValue=
-            stateInput.value
-                .trim()
-                .toUpperCase();
+    console.log(
+        "COLUMN S / PROCESSOR NAME:",
+        processorName
+    );
+
+    console.log(
+        "COLUMN T / PHILIPPINE DATE:",
+        getPHDate()
+    );
 
 
-        const duplicateComments=
-            duplicateCommentsInput.value;
+    return row.join("\t");
+
+};
 
 
-        const plantypeMismatch=
-            mismatchInput.value;
+/* =========================================================
+   BUILD OUTPUT
+   ========================================================= */
 
+const buildOutput=(
+    stateValue,
+    duplicateComments,
+    isYes,
+    disputeUserName="",
+    email="",
+    verificationStatus="",
+    arbitCaseNotes="",
+    planTypeEvidence="",
+    nonBifurcated="",
+    plantypeMismatch="",
+    processorName=""
+)=>{
 
-        const output=
-            buildOutput(
+    const rows=
+        sameId
+        ?[
+            buildRow(
+                ids[0],
+                0,
                 stateValue,
                 duplicateComments,
-                false,
-                "",
-                "",
-                "",
-                "",
-                "",
-                "",
-                plantypeMismatch
-            );
-
-
-        const copied=
-            await copyText(output);
-
-
-        overlay.remove();
-        style.remove();
-
-
-        const rowCount=
-            sameId
-            ?1
-            :ids.length;
-
-
-        showCopyMessage(
-
-            copied
-            ?`✅ COPIED ${rowCount} ROW${rowCount!==1?"S":""} — COLUMN C UPDATED`
-            :`❌ COPY FAILED — CLICK COPY AGAIN`,
-
-            output
-
-        );
-
-
-        resolve(null);
-
-    };
-
-
-    /* =====================================================
-       YES
-       ===================================================== */
-
-    yesBtn.onclick=()=>{
-
-        if(!validate())
-            return;
-
-
-        yesExtra.style.display=
-            "block";
-
-
-        status.textContent=
-            "Complete all required YES fields.";
-
-
-        updateContinueButton();
-
-
-        emailInput.focus();
-
-    };
-
-
-    /* =====================================================
-       CONTINUE YES
-       ===================================================== */
-
-    continueBtn.onclick=async()=>{
-
-        if(continueBtn.disabled){
-
-            status.textContent=
-                "Please complete all required fields before continuing.";
-
-            return;
-
-        }
-
-
-        if(!validate())
-            return;
-
-
-        if(!validateYesFields()){
-
-            status.textContent=
-                "Please complete all required YES fields.";
-
-            updateContinueButton();
-
-            return;
-
-        }
-
-
-        const email=
-            emailInput.value.trim();
-
-
-        const arbitCaseNotes=
-            arbitNotesInput.value.trim();
-
-
-        const planTypeEvidence=
-            planEvidenceInput.value;
-
-
-        const verificationStatus=
-            verifiedInput.value;
-
-
-        const nonBifurcated=
-            nonBifurcatedInput.value;
-
-
-        const plantypeMismatch=
-            mismatchInput.value;
-
-
-        if(!email){
-
-            status.textContent=
-                "Enter PLANTYPE_IDRE_EMAIL.";
-
-            emailInput.focus();
-
-            return;
-
-        }
-
-
-        if(!arbitCaseNotes){
-
-            status.textContent=
-                "Enter Arbit Case Notes.";
-
-            arbitNotesInput.focus();
-
-            return;
-
-        }
-
-
-        if(!planTypeEvidence){
-
-            status.textContent=
-                "Select Plan Type Evidence.";
-
-            planEvidenceInput.focus();
-
-            return;
-
-        }
-
-
-        if(!verificationStatus){
-
-            status.textContent=
-                "Select Yes or No for Verified.";
-
-            verifiedInput.focus();
-
-            return;
-
-        }
-
-
-        if(!nonBifurcated){
-
-            status.textContent=
-                "Select N/A or Yes for Non-Bifurcated state/Federal.";
-
-            nonBifurcatedInput.focus();
-
-            return;
-
-        }
-
-
-        if(!plantypeMismatch){
-
-            status.textContent=
-                "Select Yes or No for Plantype Mismatch.";
-
-            mismatchInput.focus();
-
-            return;
-
-        }
-
-
-        const stateValue=
-            stateInput.value
-                .trim()
-                .toUpperCase();
-
-
-        const duplicateComments=
-            duplicateCommentsInput.value;
-
-
-        const output=
-            buildOutput(
-                stateValue,
-                duplicateComments,
-                true,
-                currentName,
+                isYes,
+                disputeUserName,
                 email,
                 verificationStatus,
                 arbitCaseNotes,
                 planTypeEvidence,
                 nonBifurcated,
-                plantypeMismatch
-            );
-
-
-        const copied=
-            await copyText(output);
-
-
-        overlay.remove();
-        style.remove();
-
-
-        const rowCount=
-            sameId
-            ?1
-            :ids.length;
-
-
-        showCopyMessage(
-
-            copied
-            ?`✅ COPIED ${rowCount} ROW${rowCount!==1?"S":""} — COLUMNS A:R`
-            :`❌ COPY FAILED — CLICK COPY AGAIN`,
-
-            output
-
+                plantypeMismatch,
+                processorName
+            )
+        ]
+        :ids.map((id,i)=>
+            buildRow(
+                id,
+                i,
+                stateValue,
+                duplicateComments,
+                isYes,
+                disputeUserName,
+                email,
+                verificationStatus,
+                arbitCaseNotes,
+                planTypeEvidence,
+                nonBifurcated,
+                plantypeMismatch,
+                processorName
+            )
         );
 
 
-        resolve(null);
-
-    };
-
-
-    /* =====================================================
-       KEYBOARD SHORTCUTS
-       ===================================================== */
-
-    overlay.addEventListener(
-        "keydown",
-        e=>{
-
-            if(
-                e.ctrlKey &&
-                !e.altKey &&
-                !e.metaKey &&
-                !e.shiftKey &&
-                e.key==="2"
-            ){
-
-                e.preventDefault();
-                e.stopPropagation();
-
-                duplicateCommentsInput.value=
-                    "N/A";
+    const output=
+        rows.join("\r\n");
 
 
-                duplicateCommentsInput.dispatchEvent(
-                    new Event(
-                        "change",
-                        {
-                            bubbles:true
-                        }
-                    )
-                );
-
-
-                status.textContent=
-                    "Duplicate Dispute Comments: N/A";
-
-                return;
-
-            }
-
-
-            if(
-                e.ctrlKey &&
-                !e.altKey &&
-                !e.metaKey &&
-                !e.shiftKey &&
-                e.key==="3"
-            ){
-
-                e.preventDefault();
-                e.stopPropagation();
-
-                duplicateCommentsInput.value=
-                    "Duplicate Dispute Reviewed";
-
-
-                duplicateCommentsInput.dispatchEvent(
-                    new Event(
-                        "change",
-                        {
-                            bubbles:true
-                        }
-                    )
-                );
-
-
-                status.textContent=
-                    "Duplicate Dispute Comments: Duplicate Dispute Reviewed";
-
-                return;
-
-            }
-
-
-            if(
-                e.ctrlKey &&
-                !e.altKey &&
-                !e.metaKey &&
-                !e.shiftKey &&
-                e.key==="4"
-            ){
-
-                e.preventDefault();
-                e.stopPropagation();
-
-                mismatchInput.value=
-                    "No";
-
-
-                mismatchInput.dispatchEvent(
-                    new Event(
-                        "change",
-                        {
-                            bubbles:true
-                        }
-                    )
-                );
-
-
-                status.textContent=
-                    "Plantype Mismatch: No";
-
-                return;
-
-            }
-
-
-            if(
-                e.ctrlKey &&
-                !e.altKey &&
-                !e.metaKey &&
-                !e.shiftKey &&
-                e.key==="5"
-            ){
-
-                e.preventDefault();
-                e.stopPropagation();
-
-                mismatchInput.value=
-                    "Yes";
-
-
-                mismatchInput.dispatchEvent(
-                    new Event(
-                        "change",
-                        {
-                            bubbles:true
-                        }
-                    )
-                );
-
-
-                status.textContent=
-                    "Plantype Mismatch: Yes";
-
-                return;
-
-            }
-
-
-            if(e.key==="Escape"){
-
-                e.preventDefault();
-
-                overlay.remove();
-                style.remove();
-
-                resolve(null);
-
-                return;
-
-            }
-
-
-            if(
-                e.ctrlKey &&
-                !e.altKey &&
-                !e.metaKey &&
-                !e.shiftKey &&
-                e.key==="0" &&
-                eligible.style.display==="block"
-            ){
-
-                e.preventDefault();
-                e.stopPropagation();
-
-                noBtn.click();
-
-                return;
-
-            }
-
-
-            if(
-                e.ctrlKey &&
-                !e.altKey &&
-                !e.metaKey &&
-                !e.shiftKey &&
-                e.key==="1" &&
-                eligible.style.display==="block"
-            ){
-
-                e.preventDefault();
-                e.stopPropagation();
-
-                yesBtn.click();
-
-                return;
-
-            }
-
-        },
-        true
+    console.log(
+        "FINAL COPY OUTPUT",
+        output
     );
 
 
-    /* =====================================================
-       CLOSE
-       ===================================================== */
+    return output;
 
-    closeBtn.onclick=()=>{
-
-        overlay.remove();
-        style.remove();
-
-        resolve(null);
-
-    };
+};
 
 
-    stateInput.focus();
+/* =========================================================
+   NO
+   ========================================================= */
+
+noBtn.onclick=async()=>{
+
+    if(!validate())
+        return;
+
+
+    const stateValue=
+        stateInput.value
+            .trim()
+            .toUpperCase();
+
+
+    const duplicateComments=
+        duplicateCommentsInput.value;
+
+
+    const plantypeMismatch=
+        mismatchInput.value;
+
+
+    const output=
+        buildOutput(
+            stateValue,
+            duplicateComments,
+            false,
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            plantypeMismatch,
+            currentProcessorName
+        );
+
+
+    const copied=
+        await copyText(output);
+
+
+    overlay.remove();
+    style.remove();
+
+
+    const rowCount=
+        sameId
+        ?1
+        :ids.length;
+
+
+    showCopyMessage(
+
+        copied
+        ?`✅ COPIED ${rowCount} ROW${rowCount!==1?"S":""} — COLUMNS A:T`
+        :`❌ COPY FAILED — CLICK COPY AGAIN`,
+
+        output
+
+    );
+
+
+    resolve(null);
+
+};
+
+
+/* =========================================================
+   YES
+   ========================================================= */
+
+yesBtn.onclick=()=>{
+
+    if(!validate())
+        return;
+
+
+    yesExtra.style.display=
+        "block";
+
+
+    status.textContent=
+        "Complete all required YES fields.";
+
+
+    updateContinueButton();
+
+
+    emailInput.focus();
+
+};
+
+
+/* =========================================================
+   CONTINUE YES
+   ========================================================= */
+
+continueBtn.onclick=async()=>{
+
+    if(continueBtn.disabled){
+
+        status.textContent=
+            "Please complete all required fields before continuing.";
+
+        return;
+
+    }
+
+
+    if(!validate())
+        return;
+
+
+    if(!validateYesFields()){
+
+        status.textContent=
+            "Please complete all required YES fields.";
+
+        updateContinueButton();
+
+        return;
+
+    }
+
+
+    const email=
+        emailInput.value.trim();
+
+
+    const arbitCaseNotes=
+        arbitNotesInput.value.trim();
+
+
+    const planTypeEvidence=
+        planEvidenceInput.value;
+
+
+    const verificationStatus=
+        verifiedInput.value;
+
+
+    const nonBifurcated=
+        nonBifurcatedInput.value;
+
+
+    const plantypeMismatch=
+        mismatchInput.value;
+
+
+    if(!email){
+
+        status.textContent=
+            "Enter PLANTYPE_IDRE_EMAIL.";
+
+        emailInput.focus();
+
+        return;
+
+    }
+
+
+    if(!arbitCaseNotes){
+
+        status.textContent=
+            "Enter Arbit Case Notes.";
+
+        arbitNotesInput.focus();
+
+        return;
+
+    }
+
+
+    if(!planTypeEvidence){
+
+        status.textContent=
+            "Select Plan Type Evidence.";
+
+        planEvidenceInput.focus();
+
+        return;
+
+    }
+
+
+    if(!verificationStatus){
+
+        status.textContent=
+            "Select Yes or No for Verified.";
+
+        verifiedInput.focus();
+
+        return;
+
+    }
+
+
+    if(!nonBifurcated){
+
+        status.textContent=
+            "Select N/A or Yes for Non-Bifurcated state/Federal.";
+
+        nonBifurcatedInput.focus();
+
+        return;
+
+    }
+
+
+    if(!plantypeMismatch){
+
+        status.textContent=
+            "Select Yes or No for Plantype Mismatch.";
+
+        mismatchInput.focus();
+
+        return;
+
+    }
+
+
+    const stateValue=
+        stateInput.value
+            .trim()
+            .toUpperCase();
+
+
+    const duplicateComments=
+        duplicateCommentsInput.value;
+
+
+    const output=
+        buildOutput(
+            stateValue,
+            duplicateComments,
+            true,
+            currentName,
+            email,
+            verificationStatus,
+            arbitCaseNotes,
+            planTypeEvidence,
+            nonBifurcated,
+            plantypeMismatch,
+            currentProcessorName
+        );
+
+
+    const copied=
+        await copyText(output);
+
+
+    overlay.remove();
+    style.remove();
+
+
+    const rowCount=
+        sameId
+        ?1
+        :ids.length;
+
+
+    showCopyMessage(
+
+        copied
+        ?`✅ COPIED ${rowCount} ROW${rowCount!==1?"S":""} — COLUMNS A:T`
+        :`❌ COPY FAILED — CLICK COPY AGAIN`,
+
+        output
+
+    );
+
+
+    resolve(null);
+
+};
+
+
+/* =========================================================
+   KEYBOARD SHORTCUTS
+   ========================================================= */
+
+overlay.addEventListener(
+    "keydown",
+    e=>{
+
+        if(
+            e.ctrlKey &&
+            !e.altKey &&
+            !e.metaKey &&
+            !e.shiftKey &&
+            e.key==="2"
+        ){
+
+            e.preventDefault();
+            e.stopPropagation();
+
+            duplicateCommentsInput.value=
+                "N/A";
+
+
+            duplicateCommentsInput.dispatchEvent(
+                new Event(
+                    "change",
+                    {
+                        bubbles:true
+                    }
+                )
+            );
+
+
+            status.textContent=
+                "Duplicate Dispute Comments: N/A";
+
+            return;
+
+        }
+
+
+        if(
+            e.ctrlKey &&
+            !e.altKey &&
+            !e.metaKey &&
+            !e.shiftKey &&
+            e.key==="3"
+        ){
+
+            e.preventDefault();
+            e.stopPropagation();
+
+            duplicateCommentsInput.value=
+                "Duplicate Dispute Reviewed";
+
+
+            duplicateCommentsInput.dispatchEvent(
+                new Event(
+                    "change",
+                    {
+                        bubbles:true
+                    }
+                )
+            );
+
+
+            status.textContent=
+                "Duplicate Dispute Comments: Duplicate Dispute Reviewed";
+
+            return;
+
+        }
+
+
+        if(
+            e.ctrlKey &&
+            !e.altKey &&
+            !e.metaKey &&
+            !e.shiftKey &&
+            e.key==="4"
+        ){
+
+            e.preventDefault();
+            e.stopPropagation();
+
+            mismatchInput.value=
+                "No";
+
+
+            mismatchInput.dispatchEvent(
+                new Event(
+                    "change",
+                    {
+                        bubbles:true
+                    }
+                )
+            );
+
+
+            status.textContent=
+                "Plantype Mismatch: No";
+
+            return;
+
+        }
+
+
+        if(
+            e.ctrlKey &&
+            !e.altKey &&
+            !e.metaKey &&
+            !e.shiftKey &&
+            e.key==="5"
+        ){
+
+            e.preventDefault();
+            e.stopPropagation();
+
+            mismatchInput.value=
+                "Yes";
+
+
+            mismatchInput.dispatchEvent(
+                new Event(
+                    "change",
+                    {
+                        bubbles:true
+                    }
+                )
+            );
+
+
+            status.textContent=
+                "Plantype Mismatch: Yes";
+
+            return;
+
+        }
+
+
+        if(e.key==="Escape"){
+
+            e.preventDefault();
+
+            overlay.remove();
+            style.remove();
+
+            resolve(null);
+
+            return;
+
+        }
+
+
+        if(
+            e.ctrlKey &&
+            !e.altKey &&
+            !e.metaKey &&
+            !e.shiftKey &&
+            e.key==="0" &&
+            eligible.style.display==="block"
+        ){
+
+            e.preventDefault();
+            e.stopPropagation();
+
+            noBtn.click();
+
+            return;
+
+        }
+
+
+        if(
+            e.ctrlKey &&
+            !e.altKey &&
+            !e.metaKey &&
+            !e.shiftKey &&
+            e.key==="1" &&
+            eligible.style.display==="block"
+        ){
+
+            e.preventDefault();
+            e.stopPropagation();
+
+            yesBtn.click();
+
+            return;
+
+        }
+
+    },
+    true
+);
+
+
+/* =========================================================
+   CLOSE
+   ========================================================= */
+
+closeBtn.onclick=()=>{
+
+    overlay.remove();
+    style.remove();
+
+    resolve(null);
+
+};
+
+
+stateInput.focus();
 
 });
 
